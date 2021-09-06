@@ -3,7 +3,7 @@
 In LXC:
 ```
 $ cd /fortipoc
-$ git clone https://github.com/sha-02/django_fpoc-manager.git
+$ git clone https://github.com/sha-02/fpoc-manager.git
 
 $ cd fpoc-manager
 $ python3 -m venv venv
