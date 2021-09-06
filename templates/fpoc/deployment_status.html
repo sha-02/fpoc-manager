@@ -1,0 +1,42 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block title %}Configs{% endblock title %}
+
+{% block content %}
+
+<h1>Deployment status</h1>
+{% for device in devices %}
+    <a href="https://{{device.ip}}:{{device.https}}/">{{device.name}}</a> => {{device.deployment_status}}
+    <br>
+{% empty %}
+{% endfor %}
+
+
+<hr>
+<h1>Configuration files</h1>
+
+<!-- Table Of Content -->
+{% for device in devices %}
+    <a href="#{{device.name}}">{{device.name}}</a>
+
+    <!-- dump the context dictionary -->
+    {% for param in device.context.items %}
+        {{param}}
+    {% endfor %}
+
+    <br>
+{% empty %}
+{% endfor %}
+
+<hr>
+<!-- Configuration files -->
+{% for device in devices %}
+    <h2><a id="{{device.name}}"></a>{{ device.name }}</h2>
+    <pre>{{ device.config }}</pre>
+    <hr>
+{% empty %}
+    <h3>No configuration was generated</h3>
+{% endfor %}
+
+{% endblock content %}

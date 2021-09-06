@@ -1,0 +1,17 @@
+{% extends '_base.html' %}
+
+{% block title %}Display parameters{% endblock %}
+
+{% block content %}
+
+<h3>Method = {{method}}</h3>
+
+<!-- for key, value in params.items -->
+{% for param in params.items %}
+    {{param}}
+    <br>
+{% empty %}
+    <h3>dictionary is empty</h3>
+{% endfor %}
+
+{% endblock content %}

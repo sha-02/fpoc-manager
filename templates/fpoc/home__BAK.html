@@ -1,0 +1,154 @@
+{% extends '_base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Home page{% endblock title %}
+
+{% block content %}
+
+<script>
+function togglePassword() {
+  var x = document.getElementById("adminPassword");
+  if (x.type === "password") {
+    x.type = "text";
+  } else {
+    x.type = "password";
+  }
+}
+</script>
+
+<h3>FortiPoc</h3>
+Name<select form="formPoC"  name="fortipoc_selection">
+  <option value="10.5.58.151" selected="selected">radon01</option>
+  <option value="10.5.55.1">spin01</option>
+</select>
+or IP<input form="formPoC" id="fortipocIP" type="text" name="fortipoc_ip">
+<!--admin<input form="formPoC" type="text" id="adminUser" name="username" value="admin">-->
+admin<input type="text" id="adminUser" name="username" value="admin">
+password<input form="formPoC" id="adminPassword" type="password" name="password" value="fortinet">
+<!-- A checkbox to toggle between password visibility -->
+<input type="checkbox" onclick="togglePassword()">
+<br><br>
+
+<!--<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">-->
+<!--  <img src="{% static 'images/logo.png' %}" class="img-fluid" alt="DjangoX logo"/>-->
+<!--  <p class="lead">A Django starter project with batteries.</p>-->
+<!--</div>-->
+
+<div class="accordion" id="accordionPoC">
+
+  <!-- SD-WAN simple -->
+  <div class="card">
+    <div class="card-header" id="heading-1">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-1" aria-expanded="true" aria-controls="collapse-1">
+          SD-WAN simple
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-1" class="collapse" aria-labelledby="heading-1" data-parent="#accordionPoC">
+<!--    <div id="collapse-1" class="collapse show" aria-labelledby="heading-1" data-parent="#accordionPoC">-->  <!-- Do not 'show' by default -->
+      <div class="card-body">
+        Two Branches, One Hub, etc... details to write here...
+<!--        <form id="formPoC" method="post" action="{% url 'fpoc:sdwan_simple' 1 %}">-->
+        <form id="formPoC" method="post" action="{% url 'fpoc:display_request_parameters' %}">
+          {% csrf_token %}
+          <input form="formPoC" type="text" name="sdwansimple" value="sdwansimple">
+        <button class="btn btn-info btn-sm" type="submit">TEST</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- IPsec Dialup Hub and Spoke -->
+  <div class="card">
+    <div class="card-header" id="heading-2">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-2" aria-expanded="false" aria-controls="collapse-2">
+          (AD)VPN Dialup Hub and Spoke
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
+      <div class="card-body">
+      <br>  01 IKE routes (net-device disable)
+      <br>    traffic is only from spoke to Hub, no spoke-2-spoke traffic
+      <hr>
+      <br>  02 IKE mode-cfg only -- remote-access or extranet style (net-device disable)
+      <br>      all traffic received by Hub sourced by mode-cfg IP
+      <br>      traffic is only from spoke/client to Hub, no spoke-2-spoke (client-2-client) traffic
+      <hr>
+      <br>  03 (AD)VPN with exchange-interface-ip
+      <br>
+      <br>    03A H&S with OSPF (net-device disable)
+      <br>      03AA ADVPN OSPF (net-device disable)
+      <br>
+      <br>    03B H&S with iBGP RR (net-device disable)
+      <br>      03BA ADVPN iBGP RR (net-device disable)
+      <br>
+      <br>    03C H&S with eBGP (net-device disable)
+      <br>      03CA ADVPN eBGP (net-device disable)
+      <br>
+      <br>    03D H&S with iBGP CONFED (net-device disable)
+      <br>      03DA ADVPN iBGP CONFED (net-device disable)
+      <hr>
+      <br>  04 (AD)VPN with mode-cfg
+      <br>      mode-cfg used for simple provisioning of spokes' overlay IPs
+      <br>
+      <br>    04A H&S with OSPF (net-device disable)
+      <br>      04AA ADVPN OSPF (net-device disable)
+      <br>
+      <br>    04B H&S with iBGP RR (net-device disable)
+      <br>      04BA ADVPN iBGP RR (net-device disable)
+      <hr>
+      <br>  05 ADVPN shortcuts routing based on Traffic selectors (Proof of Concept)
+      <br>      05A static routes on Spokes, IKE routes on Hub
+      <br>      05B BGP routes on Hub and Spokes
+      <hr>
+      <br>  06 iBGP RR with IKE routes for overlay -- legacy for net-device enable
+      <hr>
+      <br>  07 static routes only (Proof of concept)
+      <br>      traffic is only from spoke to Hub, no spoke-2-spoke traffic
+      </div>
+    </div>
+  </div>
+
+  <!-- static VPN site to site -->
+  <div class="card">
+    <div class="card-header" id="heading-3">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-3" aria-expanded="false" aria-controls="collapse-3">
+          VPN site-to-site (IPsec, GRE, VxLAN)
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordionPoC">
+      <div class="card-body">
+        <h3>Static IPsec with two redundant tunnels</h3>
+
+<!--        <form id="formPoC2" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="document.getElementById('test').value = document.getElementById('adminUser').value;">-->
+        <form id="formPoC2" method="post" action="{% url 'fpoc:display_request_parameters' %}">
+          {% csrf_token %}
+<!--          <input form="formPoC2" type="text" name="staticvpn_username" onblur="this.value = $('#adminUser').val();">-->
+<!--          <input form="formPoC2" type="text" name="staticvpn_username" onblur="this.value = document.getElementById('adminUser').value;">-->
+          <input style="display:none;" form="formPoC2" type="text" id='test' name="staticvpn_username" onsubmit="document.getElementById('test').value = document.getElementById('adminUser').value;">
+        <button class="btn btn-info btn-sm" type="submit">TEST</button>
+        </form>
+
+
+        <ul>
+          <li> <a href="{% url 'fpoc:sdwan_simple' 1 %}"> static routes </a></li>
+          <li> <a href="{% url 'fpoc:sdwan_simple' 2 %}"> OSPF routes </a></li>
+          <li> <a href="{% url 'fpoc:sdwan_simple' 3 %}"> iBGP routes (two iBGP peerings) </a></li>
+          <li> <a href="{% url 'fpoc:sdwan_simple' 4 %}"> iBGP routes (one iBGP peering over loopback advertised via OSPF) </a></li>
+          <li> <a href="{% url 'fpoc:sdwan_simple' 5 %}"> eBGP routes (two eBGP peerings) </a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+

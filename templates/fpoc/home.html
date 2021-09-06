@@ -1,0 +1,321 @@
+{% extends '_base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Home page{% endblock title %}
+
+{% block content %}
+
+<script>
+function collectFortiPoCElements(formID)
+{
+  // Assign all the global FortiPoC Elements to the form being submitted
+  document.getElementById('fpocSelection').setAttribute('form', formID);
+  document.getElementById('fpocIP').setAttribute('form', formID);
+  document.getElementById('previewOnly').setAttribute('form', formID);
+  document.getElementById('targetedFOSversion').setAttribute('form', formID);
+}
+</script>
+
+<h3>FortiPoc</h3>
+
+<!-- FortiPoC access -->
+
+<div class="d-flex justify-content-between ">
+  <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
+    <div class="p-2 bd-highlight">
+      Name<select id="fpocSelection" name="fpocSelection">
+        <option value="10.5.58.151" selected="selected">radon01</option>
+        <option value="10.5.55.1">spin01</option>
+        <option value="10.5.55.10">spin10</option>
+      </select>
+    </div>
+    <div class="p-2 bd-highlight">
+      or IP<input type="text" id="fpocIP" name="fpocIP" maxlength="15" size="15">
+    </div>
+  </div>
+  <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
+    <div class="p-2 bd-highlight">
+      <input type="checkbox" id="previewOnly" name="previewOnly"> preview-only
+    </div>
+    <div class="p-2 bd-highlight">
+      <input type="text" id="targetedFOSversion" name="targetedFOSversion" maxlength="7" size="7"> FOS version
+    </div>
+  </div>
+</div>
+
+
+<!--<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">-->
+<!--  <img src="{% static 'images/logo.png' %}" class="img-fluid" alt="DjangoX logo"/>-->
+<!--  <p class="lead">A Django starter project with batteries.</p>-->
+<!--</div>-->
+<div class="accordion" id="accordionPoC">
+
+  <!-- ========================================================================================================= -->
+  <!-- Bootstrap -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+  <div class="card-header" id="heading-0">
+    <h2 class="mb-0">
+      <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-0" aria-expanded="true" aria-controls="collapse-0">
+        Bootstrap configurations
+      </button>
+    </h2>
+  </div>
+  <div id="collapse-0" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
+    <div class="card-body">
+      <h5>FortiPoC Fundation1</h5>
+      <form id="formPoC_0" method="post" action="{% url 'fpoc:bootstrap' %}" onsubmit="collectFortiPoCElements(this.id)">
+        {% csrf_token %}
+        <fieldset>
+          <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-A
+          <input type="checkbox" name="FGT-A_sec" value="FGT-A_sec" >FGT-A_sec
+          <br><input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-B
+          <input type="checkbox" name="FGT-B_sec" value="FGT-B_sec" >FGT-B_sec
+          <br><input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">FGT-C
+          <input type="checkbox" name="FGT-C_sec" value="FGT-C_sec" >FGT-C_sec
+          <br><input type="checkbox" name="FGT-D" value="FGT-D" checked="checked">FGT-D
+          <input type="checkbox" name="FGT-D_sec" value="FGT-D_sec" >FGT-D_sec
+          <br><input type="checkbox" name="ISFW-A" value="ISFW-A" >ISFW-A
+        </fieldset>
+      <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:bootstrap' %}">Start</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+  <!-- ========================================================================================================= -->
+  <!-- SD-WAN simple -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+    <div class="card-header" id="heading-1">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-1" aria-expanded="true" aria-controls="collapse-1">
+          SD-WAN simple
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-1" class="collapse" aria-labelledby="heading-1" data-parent="#accordionPoC">
+      <div class="card-body">
+        <h5>Two Branches, One Hub</h5>
+        <form id="formPoC_1" method="post" action="{% url 'fpoc:sdwan_simple' %}" onsubmit="collectFortiPoCElements(this.id)">
+          {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-A
+            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-B
+            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">FGT-DC
+          </fieldset>
+        <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:sdwan_simple' %}">Start</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================================================= -->
+  <!-- Single Path IPsec Dialup Hub and Spoke -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+    <div class="card-header" id="heading-2">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-2" aria-expanded="false" aria-controls="collapse-2">
+          IPsec Dialup Hub and Spoke -- Single Path
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
+      <div class="card-body">
+<!--        <form id="formPoC_2" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+        <form id="formPoC_2" method="post" action="{% url 'fpoc:vpn_dialup' %}" onsubmit="collectFortiPoCElements(this.id)">
+          {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">Hub
+            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">Spoke01
+            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">Spoke02
+            <input type="checkbox" name="FGT-D" value="FGT-D" checked="checked">Spoke03
+          </fieldset>
+          <fieldset>
+            Hub
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Hub_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Hub_NAT" value="DNAT"> DNAT
+            </div>
+            <br>
+            Spoke01
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="SNAT"> SNAT
+              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="DNAT"> DNAT
+            </div>
+            <br>
+            Spoke02
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="SNAT"> SNAT
+              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="DNAT"> DNAT
+            </div>
+            <br>
+            Spoke03
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="SNAT"> SNAT
+              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="DNAT"> DNAT
+            </div>
+          </fieldset>
+          <fieldset>
+            IKE <select name="ike">
+              <option value=1>v1</option>
+              <option value=2 selected="selected">v2</option>
+            </select>
+            Routing <select name="routing">
+              <option value='ike-routing'>IKE routing (RRI)</option>
+              <option value='modecfg-routing'>Mode-Config routing</option>
+              <option value='ospf'>OSPF</option>
+              <option value='ibgp' selected="selected">iBGP Route Reflector</option>
+              <option value='ibgp-confederation'>iBGP Confederation</option>
+              <option value='ebgp'>eBGP</option>
+            </select>
+            Overlay <select name="overlay">
+              <option value='static'>static (exchange-interface-ip)</option>
+              <option value='modecfg' selected="selected">Dynamic (Mode-Config)</option>
+            </select>
+            <input type="checkbox" name="advpn" value=1 checked="checked">ADVPN
+
+          <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:vpn_dialup' %}">Start</button>
+        </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================================================= -->
+  <!-- Multiple Path IPsec Dialup Hub and Spoke -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+  <div class="card-header" id="heading-4">
+    <h2 class="mb-0">
+      <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-4" aria-expanded="false" aria-controls="collapse-4">
+        IPsec Dialup Hub and Spoke -- Multiple Paths
+      </button>
+    </h2>
+  </div>
+  <div id="collapse-4" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
+    <div class="card-body">
+      <h5>Dual Hub, Single tunnel to each Hub</h5>
+<!--        <form id="formPoC_4" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+      <form id="formPoC_4" method="post" action="{% url 'fpoc:vpn_dualhub_singletunnel' %}" onsubmit="collectFortiPoCElements(this.id)">
+        {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">Hub-1
+            <input type="checkbox" name="FGT-A_sec" value="FGT-A_sec" checked="checked">Hub-2
+            <input type="checkbox" name="ISFW-A" value="ISFW-A" checked="checked">ISFW
+            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">Spoke1
+            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">Spoke2
+          </fieldset>
+          <fieldset>
+            Mode <select name="mode">
+              <option value='active_passive' selected="selected">Active-Passive</option>
+              <option value='active_active' >Active-Active</option>
+            </select>
+          </fieldset>
+        <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:vpn_dualhub_singletunnel' %}">Start</button>
+      </form>
+
+      <hr>
+      <h5>SDWAN+ADVPN Workshop</h5>
+<!--        <form id="formPoC_4" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+      <form id="formPoC_5" method="post" action="{% url 'fpoc:sdwan_advpn_workshop' %}" onsubmit="collectFortiPoCElements(this.id)">
+        {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-DC-3
+            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-SDW-1
+            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">FGT-SDW-2
+          </fieldset>
+          <fieldset>
+            Overlay <select name="overlay">
+              <option value='static'>static (exchange-interface-ip)</option>
+              <option value='modecfg' selected="selected">Dynamic (Mode-Config)</option>
+            </select>
+          </fieldset>
+          <fieldset>
+            Duplicate Add-Paths <select name="duplicate_paths">
+              <option value='keep_duplicates' selected="selected">Keep duplicates</option>
+              <option value='onnet_pref_spokes'>On-net preference on the Spokes</option>
+              <option value='offnet_filter_hub'>Off-net filtering on the Hub</option>
+            </select>
+            <input type="checkbox" name="override_with_hub_nexthop" value=1>Override off-net prefixes with the Hub's BGP Next-Hop
+          </fieldset>
+          <fieldset>
+            Feasible routes <select name="feasible_routes">
+              <option value='none' selected="selected">No feasible route</option>
+              <option value='rfc1918'>RFC1918 routes</option>
+              <option value='default_route'>Default routes</option>
+            </select>
+            <input type="checkbox" name="remote_internet_mpls" value=1>Remote Internet Breakout via MPLS
+          </fieldset>
+        <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:sdwan_advpn_workshop' %}">Start</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+  <!-- ========================================================================================================= -->
+  <!-- static VPN site to site -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+    <div class="card-header" id="heading-3">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-3" aria-expanded="false" aria-controls="collapse-3">
+          VPN site-to-site (IPsec, GRE, GRE-IPsec, IPinIP, IPinIP-IPsec, Geneve)
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordionPoC">
+      <div class="card-body">
+        <h5>Two redundant static tunnels</h5>
+
+<!--        <form id="formPoC_3" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+        <form id="formPoC_3" method="post" action="{% url 'fpoc:vpn_site2site' %}" onsubmit="collectFortiPoCElements(this.id)">
+          {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-A
+            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-B
+          </fieldset>
+          <fieldset>
+            VPN <select name="vpn">
+              <option value='ipsec' selected="selected">IPsec</option>
+              <option value='gre'>GRE</option>
+              <option value='gre-ipsec-transport'>GRE over transport IPsec</option>
+              <option value='gre-ipsec-tunnel'>GRE over tunnel IPsec</option>
+              <option value='gre-ipsec-phase1'>GRE over transport IPsec (ph1 encapsulation)</option>
+              <option value='ipip'>IP-in-IP</option>
+              <option value='ipip-ipsec-transport'>IP-in-IP over transport IPsec</option>
+              <option value='ipip-ipsec-tunnel'>IP-in-IP over tunnel IPsec</option>
+              <option value='geneve'>Geneve</option>
+            </select>
+            IKE <select name="ike">
+              <option value=1>v1</option>
+              <option value=2 selected="selected">v2</option>
+            </select>
+            Routing <select name="routing">
+              <option value='static' selected="selected">static</option>
+              <option value='ospf'>OSPF</option>
+              <option value='ibgp'>iBGP (two peerings)</option>
+              <option value='ibgp-loopback'>iBGP (peering over loopback via OSPF)</option>
+              <option value='ebgp'>eBGP (two peerings)</option>
+            </select>
+          <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:vpn_site2site' %}">Start</button>
+        </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+
