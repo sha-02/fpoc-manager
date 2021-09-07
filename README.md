@@ -11,6 +11,11 @@ $ source venv/bin/activate
 (venv) $ pip install -r requirements.txt
 ```
 
+# Rebase
+```
+git pull --rebase
+```
+
 # Start
 ```
 (venv) $ python manage.py runserver 0.0.0.0:8000
