@@ -64,6 +64,10 @@ class Device:
         # IP@ of the FortiPoC in the OOB management subnet inside the FortiPoC used to access the Devices
         return self.mgmt_subnet + '254' # last-byte of FortiPoC in OOB management is .254
 
+    @property
+    def mgmt_subnet_mask(self):
+        return self.mgmt_subnet + '0' + ' 255.255.255.0'
+
 
 @dataclass
 class FortiGate(Device):

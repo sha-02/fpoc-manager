@@ -43,7 +43,12 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
         if devkey not in dev_keys_to_start:
             del (poc.devices[devkey])  # this device was not requested to be started for this PoC
         else:
-            poc.devices[devkey].ip = fortipoc_ip
+            if fortipoc_ip == '127.0.0.1':  # fpoc-manager is running inside the fpoc itself and can access devices directly
+                poc.devices[devkey].ip = poc.devices[devkey].mgmt_ip
+                poc.devices[devkey].https_port = 443
+                poc.devices[devkey].ssh_port = 22
+            else:
+                poc.devices[devkey].ip = fortipoc_ip
 
     start_time = perf_counter()
     deploy_configs(request, poc)
