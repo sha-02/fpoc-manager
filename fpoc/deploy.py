@@ -11,7 +11,7 @@ from datetime import timedelta
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice
+from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 from fpoc.fortipoc import TypePoC, TypeDevice
 from fpoc.devices import FortiGate, LXC, Vyos
 
@@ -96,6 +96,10 @@ def deploy_configs(request: WSGIRequest, poc: TypePoC):
                     print(f"Waiting for {ex.sleep} seconds...")
                     sleep(ex.sleep)
                 print(f'Processing {device.name} once again')  # before reprocessing the device
+
+            except AbortDeployment:
+                print('Aborting deployment !')
+                return None
 
             # except (ConnectionError, Timeout, TimeoutError, RemoteDisconnected, NetmikoTimeoutException) as ex:
             #     nb_failures += 1

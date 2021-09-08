@@ -15,3 +15,7 @@ class ReProcessDevice(FpocManagerException):
     def __init__(self, *args, sleep=0):
         self.sleep = sleep
         super(ReProcessDevice, self).__init__(*args)    # propagate the exception
+
+
+class AbortDeployment(FpocManagerException):
+    """ Exception used to abort deployment """

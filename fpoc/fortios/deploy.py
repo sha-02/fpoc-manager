@@ -4,7 +4,7 @@ from config.settings import BASE_DIR
 
 import fpoc.fortios as fortios
 from fpoc.devices import FortiGate
-from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice
+from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 from fpoc.fortipoc import TypePoC
 
 
@@ -57,29 +57,74 @@ def update_fortios_version(device: FortiGate, fos_version_target: str):
     :param device:
     :return:
     """
-    from os import listdir
-    from os.path import isfile, join
 
-    # Find all firmware files on disk (files name start with '<major.minor.patch>__FGT_VM64_KVM')
+    # List of supported fortios firmware
+    firmwares = fortios_firmware()
+
+    # Check if the target firmware is referenced
+    if firmwares.get(fos_version_target) is None:
+        print(f'Firmware {fos_version_target} is not referenced')
+        raise StopProcessingDevice
+
+    # Check if the target firmware file is available
+    # firmware filename can also be prefixed by the version. So filename can be, for e.g.:
+    # - 'FGT_VM64_KVM-v6-build1911-FORTINET.out'
+    # - or '6.4.7_FGT_VM64_KVM-v6-build1911-FORTINET.out'
     firmware_path = f'{BASE_DIR}/templates/firmware'
-    firmware_files = [file for file in listdir(firmware_path) if isfile(join(firmware_path, file))]
-    firmware_target = f'{fos_version_target}_FGT_VM64_KVM'
-
-    for firmware in firmware_files:
-        if firmware_target in firmware:
-            break  # firmware file found, exit the loop
+    for firmware in (firmwares[fos_version_target]["filename"], fos_version_target+'_'+firmwares[fos_version_target]["filename"]):
+        try:
+            with open(f'{firmware_path}/{firmware}', "rb") as f:
+                break
+        except FileNotFoundError:
+            pass
     else:
-        print(f'Could not find firmware for {fos_version_target} in folder {firmware_path}')
-        raise (StopProcessingDevice)
+        print(f'Firmware not found in folder {firmware_path}')
+        print(f'Downloading firmware image from store...')
+        firmware = firmwares[fos_version_target]["filename"]
+        firmware_download(firmware)
 
     print(f'Found firmware {firmware} in folder {firmware_path}')
     print(f'Uploading firmware to {device.name}... ', end='')
     fortios.upload_firmware(device, firmware)
     print('Firmware uploaded.')
-    raise ReProcessDevice(sleep=90) # Leave enough time for the FGT to upgrade/dowgrade the config and reboot
+    raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to upgrade/dowgrade the config and reboot
 
 
-def retrieve_hostname(device: FortiGate)->str:
+def fortios_firmware() -> dict:
+    """
+    Load the fortios firmware dictionnary from JSON file
+    :return: dict of fos firmware
+    """
+    import json
+
+    try:
+        with open(f'{BASE_DIR}/fpoc/fortios/firmware.json', "r") as f:
+            return json.loads(f.read())
+    except FileNotFoundError:
+        print(f'File not found: {BASE_DIR}/fpoc/fortios/firmware.json')
+        raise AbortDeployment
+
+
+def firmware_download(firmware: str):
+    """
+
+    :param firmware: contains the filename of the firmware to download from store
+    :return:
+    """
+    import requests
+
+    download_url = f"https://labsetup1.repository.fortipoc.etlab.net/store/images/{firmware}"
+
+    response = requests.get(download_url, verify=False)
+    response.raise_for_status()  # Check that the request was successful
+
+    firmware_path = f'{BASE_DIR}/templates/firmware'
+    with open(f'{firmware_path}/{firmware}', "wb") as f:
+        f.write(response.content)
+    print("Download completed.")
+
+
+def retrieve_hostname(device: FortiGate) -> str:
     """
     Retrieve the hostname of the FGT via API (FOS >= 6.4.3) or via SSH otherwise
     :param device:
@@ -130,8 +175,8 @@ def prepare_bootstrap_config(device: FortiGate):
     print(f'Uploading bootstrap configuration to {device.name}... ', end='')
     fortios.restore_config_file(device)
     print('bootstrap configuration uploaded.')
-    device.apikey = None    # reset cached API key since there is no API key in the bootstrap config
-    raise ReProcessDevice(sleep=60) # Leave enough time for the FGT to load the config and reboot
+    device.apikey = None  # reset cached API key since there is no API key in the bootstrap config
+    raise ReProcessDevice(sleep=60)  # Leave enough time for the FGT to load the config and reboot
 
 
 def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
