@@ -190,9 +190,8 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
 
     # Prepare the FGT
     #
-    if request.POST.get('previewOnly'):
-        if request.POST.get('targetedFOSversion'):  # FOS version assigned to FGTs for config rendering
-            device.fos_version = request.POST.get('targetedFOSversion')
+    if request.POST.get('previewOnly') and request.POST.get('targetedFOSversion'):
+            device.fos_version = request.POST['targetedFOSversion'] # FOS version assigned to FGTs for config rendering
     else:
         # Retrieve the FOS version running on the FGT and ensure FGT is ready for deployment:
         #   - it runs the desired FortiOS version if user asked for a specific FOS version
@@ -204,16 +203,13 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # Render the config
     #
 
-    context = {
-        'name': device.name,
-        'fos_version': device.fos_version,  # FOS version encoded as a string like '6.0.13'
-        'FOS': device.FOS,  # FOS version as long integer, like 6_000_013 for '6.0.13'
-        'wan': device.wan,
-        **device.template_context,
-    }
+    # Add information to the template context of this device: its FortiOS version and its WAN settings
+    device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
+    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
+    device.template_context['wan'] = device.wan
 
     device.config = loader.render_to_string(f'fpoc/fpoc{poc.id:02}/{device.template_group}/{device.template_filename}',
-                                            context, request)
+                                            device.template_context, request)
     # print(cli_settings)
 
     if not request.POST.get('previewOnly') and is_config_snippets(device.config):

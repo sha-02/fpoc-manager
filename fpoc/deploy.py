@@ -25,30 +25,21 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
     :return:
     """
 
-    # IP of FortiPoC is retrieved from the fpoc selection list or from an IP provided by user
-    fortipoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('fpocSelection')
-
     # the intersection of the keys of request.POST dict and the keys of poc.devices dict produces the keys of each
     # device to be started for this poc. Also add the keys of the device dependencies.
     dev_keys_to_start = set()
     for devkey in request.POST.keys() & poc.devices.keys():
         dev_keys_to_start.add(devkey)  # add the device key
-        dev_keys_to_start.update(device_dependencies[devkey])  # update with the tuples listed in device_depencies
+        dev_keys_to_start.update(device_dependencies[devkey])  # update with the tuples listed in device_dependencies
 
     # {devkey: devices[devkey] for devkey in dev_keys_to_start}
     # +--> do not use dict comprehension because it creates an unordered list of devices due to using set()
     # Delete devices from 'devices' which do not need to be started
-    for devkey in poc.devices.copy():  # use a copy otherwise an exception is raised because the dict changes size
+    # for devkey in poc.devices.copy():  # use a copy otherwise an exception is raised because the dict changes size
+    for devkey in list(poc.devices.keys()):  # use list of keys() otherwise exception raised bcse the dict changes size
         # during iteration
         if devkey not in dev_keys_to_start:
             del (poc.devices[devkey])  # this device was not requested to be started for this PoC
-        else:
-            if fortipoc_ip == '127.0.0.1':  # fpoc-manager is running inside the fpoc itself and can access devices directly
-                poc.devices[devkey].ip = poc.devices[devkey].mgmt_ip
-                poc.devices[devkey].https_port = 443
-                poc.devices[devkey].ssh_port = 22
-            else:
-                poc.devices[devkey].ip = fortipoc_ip
 
     start_time = perf_counter()
     deploy_configs(request, poc)
@@ -59,7 +50,9 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
 
     # List of all config settings rendered from template
     status_devices = [
-        { 'name': device.name, 'deployment_status': device.deployment_status, 'ip': device.ip, 'https': device.https_port,
+        { 'name': device.name, 'deployment_status': device.deployment_status,
+          'ip': device.ip if poc.ip != '0.0.0.0' else request.environ['REMOTE_ADDR'],
+          'https': device.https_port if poc.ip != '0.0.0.0' else poc.BASE_PORT_HTTPS + device.offset,
           'context': device.template_context, 'config': device.config} for device in poc ]
 
     return status_devices

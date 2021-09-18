@@ -28,9 +28,10 @@ class WAN:
 
 @dataclass
 class Device:
-    ip: str = None  # IP@ of the FortiPoC VM inside which this Device is running
-    ssh_port: int = None  # e.g., 10100 , used to SSH to the Device via the FortiPoC VM IP@
-    https_port: int = None  # e.g., 10400 , used to HTTPS to the Device via the FortiPoC VM IP@
+    offset: int = None  # Offset of this device in the FortiPoC (used for SSH/HTTPS mgmt port)
+    ip: str = None  # IP@ of the FortiPoC VM or mgmt_ip of the device (access from within FortiPoC)
+    ssh_port: int = None  # e.g., 10100+offset (access from FortiPoC IP) or 22 (access from within FortiPoC)
+    https_port: int = None  # e.g., 10400+offset (access from FortiPoC IP) or 443 (access from within FortiPoC)
 
     mgmt_subnet: str = None # OOB management subnet inside the FortiPoC used to access the Devices
     mgmt_lastbyte: str = None  # last-byte of this Device in the OOB mgmt subnet
@@ -81,19 +82,13 @@ class FortiGate(Device):
         major, minor, patch = self.fos_version.split('.')
         return int(major)*1_000_000 + int(minor)*1_000 + int(patch)
 
-    # @property
-    # def FOS(self):  # hexadecimal integer of the fos_version, e.g. "6.0.13" returns 0x60D (used for django template)
-    #     major, minor, patch = self.fos_version.split('.')
-    #     return int(''.join([string.hexdigits[int(major)], string.hexdigits[int(minor)], string.hexdigits[int(patch)]]), 16)
-
     def __post_init__(self):  # Apply default values
         super(FortiGate, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'admin'  # initialize if it is None
         self.password = self.password or 'fortinet'  # initialize if it is None
         self.apiadmin = self.apiadmin or 'adminapi'  # initialize if it is None
         self.template_filename = self.template_filename or '_FGT.conf' # initialize if it is None
-        # self.template_context.setdefault('name', self.name)  # initialize if key does not exist
-        # self.template_context.setdefault('FOS', 600)  # initialize to FortiOS 6.0.0 if key does not exist
+        self.template_context['name'] = self.name
 
 
 @dataclass

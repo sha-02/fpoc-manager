@@ -11,6 +11,7 @@ APPNAME = "fpoc"
 
 Status = namedtuple('Status', 'is_valid is_invalid message')
 
+
 def bootstrap(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     devices = {
@@ -41,7 +42,7 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     if request.POST.get('targetedFOSversion') == '':
         return render(request, f'{APPNAME}/error.html', {'error_message': 'The FortiOS version must be specified'})
-    status_devices = start_poc(request, FortiPoCFoundation1(poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices})
 
 
@@ -74,7 +75,7 @@ def sdwan_simple(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices})
 
 
@@ -109,7 +110,7 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices})
 
 
@@ -159,7 +160,7 @@ def vpn_dialup(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices})
 
 
@@ -196,7 +197,7 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices})
 
 
@@ -284,7 +285,7 @@ def sdwan_advpn_workshop(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices})
 
 
