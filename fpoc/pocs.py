@@ -6,6 +6,8 @@ from fpoc.devices import FortiGate, LXC, Vyos
 from fpoc.fortipoc import FortiPoCFoundation1
 from collections import namedtuple
 
+import ipaddress
+
 APPNAME = "fpoc"
 
 
@@ -26,8 +28,8 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         dev.name = devname
         dev.template_group = 'bootstrap_configs'
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
-        dev.template_context = {'i': FortiPoCFoundation1.devices[devname].mgmt_lastbyte} # for Django template to
-        # render the OOB MGMT IP of this FGT
+        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ip,
+                                'mgmt_fpoc': ipaddress.ip_interface(FortiPoCFoundation1.mgmt_fpoc).ip.compressed}
 
     device_dependencies = {
         'FGT-A': (), 'FGT-A_sec': (),

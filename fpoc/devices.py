@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import string
+import ipaddress
 
 @dataclass
 class WanSettings:
@@ -29,12 +29,13 @@ class WAN:
 @dataclass
 class Device:
     offset: int = None  # Offset of this device in the FortiPoC (used for SSH/HTTPS mgmt port)
-    ip: str = None  # IP@ of the FortiPoC VM or mgmt_ip of the device (access from within FortiPoC)
+
+    ip: str = None  # IP@ used to access the device = IP@ of the FortiPoC or mgmt_ip of the device within FortiPoC
     ssh_port: int = None  # e.g., 10100+offset (access from FortiPoC IP) or 22 (access from within FortiPoC)
     https_port: int = None  # e.g., 10400+offset (access from FortiPoC IP) or 443 (access from within FortiPoC)
 
-    mgmt_subnet: str = None # OOB management subnet inside the FortiPoC used to access the Devices
-    mgmt_lastbyte: str = None  # last-byte of this Device in the OOB mgmt subnet
+    mgmt_ip: str = None  # IP@ of this Device in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.12/24')
+    mgmt_fpoc: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name of the device
     username: str = None  # username for SSH session
@@ -56,18 +57,8 @@ class Device:
         self.template_context = self.template_context or {}  # initialize if it is None
 
     @property
-    def mgmt_ip(self):
-        # IP@ of this Device in the OOB management subnet inside the FortiPoC used to access the Devices
-        return self.mgmt_subnet + self.mgmt_lastbyte
-
-    @property
-    def mgmt_ip_fpoc(self):
-        # IP@ of the FortiPoC in the OOB management subnet inside the FortiPoC used to access the Devices
-        return self.mgmt_subnet + '254' # last-byte of FortiPoC in OOB management is .254
-
-    @property
-    def mgmt_subnet_mask(self):
-        return self.mgmt_subnet + '0' + ' 255.255.255.0'
+    def mgmt_subnet(self):
+        return ipaddress.ip_interface(self.mgmt_ip).network.compressed  # e.g. '172.16.31.0/24'
 
 
 @dataclass

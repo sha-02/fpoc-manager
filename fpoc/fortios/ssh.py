@@ -64,7 +64,7 @@ def create_api_admin(device: FortiGate):
             set vdom "root"
             config trusthost
                 edit 1
-                    set ipv4-trusthost {device.mgmt_subnet_mask}
+                    set ipv4-trusthost {device.mgmt_subnet}
                 next
             end
         next

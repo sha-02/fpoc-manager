@@ -144,6 +144,7 @@ def prepare_bootstrap_config(device: FortiGate):
     :param device:
     :return:
     """
+    import ipaddress
 
     # Check if FGT is running a bootstrap config (hostname is 'BOOTSTRAP_CONFIG')
     print('Checking if FGT is running a bootstrap config (hostname is "BOOTSTRAP_CONFIG")', end='')
@@ -165,7 +166,9 @@ def prepare_bootstrap_config(device: FortiGate):
     # Render the bootstrap configuration
 
     context = {
-        'i': device.mgmt_lastbyte,  # for Django template to render the OOB MGMT IP
+        'ip': device.mgmt_ip,  # mgmt IP of the device in the OOB MGMT subnet (e.g., 172.16.31.12)
+        'mgmt_fpoc': ipaddress.ip_interface(device.mgmt_fpoc).ip.compressed  # management IP of the FortiPoC inside the
+        # OOB mgmt subnet (e.g., 172.16.31.254)
     }
 
     device.config = loader.render_to_string(f'fpoc/fpoc00/bootstrap_configs/{device.fos_version}.conf',
@@ -187,6 +190,7 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     :param device:
     :return:
     """
+    import ipaddress
 
     # Prepare the FGT
     #
@@ -206,6 +210,7 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # Add information to the template context of this device: its FortiOS version and its WAN settings
     device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
+    device.template_context['mgmt_fpoc'] = ipaddress.ip_interface(device.mgmt_fpoc).ip.compressed  # 172.16.31.254
     device.template_context['wan'] = device.wan
 
     device.config = loader.render_to_string(f'fpoc/fpoc{poc.id:02}/{device.template_group}/{device.template_filename}',
