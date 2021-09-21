@@ -49,7 +49,8 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': 'The FortiOS version must be specified'})
     status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices})
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
 
 
 def sdwan_simple(request: WSGIRequest, poc_id: int):
@@ -83,7 +84,8 @@ def sdwan_simple(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices})
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
 
 
 def vpn_site2site(request: WSGIRequest, poc_id: int):
@@ -119,7 +121,8 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices})
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
 
 
 def vpn_dialup(request: WSGIRequest, poc_id: int):
@@ -170,7 +173,8 @@ def vpn_dialup(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices})
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
 
 
 def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
@@ -211,7 +215,8 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
     # status = loader.render_to_string(f'{APPNAME}/deployment_status.html', context, request)
     # return HttpResponse(status)
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices})
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
 
 
 def sdwan_advpn_workshop(request: WSGIRequest, poc_id: int):
@@ -300,7 +305,8 @@ def sdwan_advpn_workshop(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices})
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
 
 
 def inspect(request: WSGIRequest) -> Status:

@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<h1>{{fortipoc}}</h1>
+<h2>{{fortipoc}}</h2>
 {% for device in devices %}
     <a href="https://{{device.ip}}:{{device.https}}/" target="_blank">{{device.name}}</a> ({{device.name_fpoc}}) => {{device.deployment_status}}
     <br>
@@ -14,7 +14,7 @@
 
 
 <hr>
-<h1>Rendering contexts</h1>
+<h2>Rendering contexts</h2>
 {% for device in devices %}
     <b>{{device.name}}</b>
 
@@ -28,7 +28,7 @@
 {% endfor %}
 
 <hr>
-<h1>Configuration files</h1>
+<h2>Configuration files</h2>
 {% for device in devices %}
     <h2><a id="{{device.name}}"></a>{{ device.name }}</h2>
     <pre>{{ device.config }}</pre>
