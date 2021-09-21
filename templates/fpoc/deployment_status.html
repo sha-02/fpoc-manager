@@ -7,7 +7,7 @@
 
 <h1>{{fortipoc}}</h1>
 {% for device in devices %}
-    <a href="https://{{device.ip}}:{{device.https}}/">{{device.name}}</a> ({{device.name_fpoc}}) => {{device.deployment_status}}
+    <a href="https://{{device.ip}}:{{device.https}}/" target="_blank">{{device.name}}</a> ({{device.name_fpoc}}) => {{device.deployment_status}}
     <br>
 {% empty %}
 {% endfor %}
