@@ -19,8 +19,12 @@ class FortiPoC:
     ip = '172.16.31.254'  # IP@ used by fpoc-manager to access the FortiPoC VM
     # it is the mgmt_fpoc IP@ when the fpoc-manager runs inside the FortiPoC VM
     devices: dict
-
     # Dict[DeviceHint]
+
+    @classmethod
+    @property
+    def name(cls):  # Return the name of the Class itself
+        return cls.__name__
 
     def __iter__(self):
         # Makes the class an iterable which can iterate over the devices stored in the 'devices' dictionary
@@ -192,6 +196,8 @@ class FortiPoCFoundation1(FortiPoC):
             for k, v in device.__dict__.items():
                 if v is not None:
                     self.devices[fpoc_devname].__dict__[k] = v
+
+            self.devices[fpoc_devname].name_fpoc = fpoc_devname
 
         # Add mgmt information to each device (IP@, SSH/HTTPS ports)
         for device in self.devices.values():

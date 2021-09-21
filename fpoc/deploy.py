@@ -50,7 +50,8 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
 
     # List of all config settings rendered from template
     status_devices = [
-        { 'name': device.name, 'deployment_status': device.deployment_status,
+        { 'name': device.name, 'name_fpoc': device.name_fpoc,
+          'deployment_status': device.deployment_status,
           'ip': request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip,
           'https': poc.BASE_PORT_HTTPS + device.offset if poc.manager_inside_fpoc else device.https_port,
           'context': device.template_context, 'config': device.config} for device in poc ]

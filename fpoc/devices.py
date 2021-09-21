@@ -38,6 +38,7 @@ class Device:
     mgmt_fpoc: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name of the device
+    name_fpoc: str = None  # Name of the device in the FortiPoC
     username: str = None  # username for SSH session
     password: str = None  # password for SSH session
 
