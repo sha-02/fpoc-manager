@@ -31,8 +31,7 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         dev.name = devname
         dev.template_group = 'bootstrap_configs'
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
-        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ip,
-                                'mgmt_fpoc': ipaddress.ip_interface(FortiPoCFoundation1.mgmt_fpoc).ip.compressed}
+        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ip}
 
     device_dependencies = {
         'FGT-A': (), 'FGT-A_sec': (),
@@ -228,6 +227,7 @@ def sdwan_advpn_workshop(request: WSGIRequest, poc_id: int):
         'override_with_hub_nexthop': bool(request.POST.get('override_with_hub_nexthop', False)),  # True or False
         'feasible_routes': request.POST.get('feasible_routes'),  # 'none', 'rfc1918', 'default_route'
         'remote_internet_mpls': bool(request.POST.get('remote_internet_mpls', False)),  # True or False
+        'HA_FGCP': bool(request.POST.get('HA_FGCP', False)),  # True or False
 
         # Hub is FGT-A from FortiPoC "Fundation1"
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -299,6 +299,13 @@ def sdwan_advpn_workshop(request: WSGIRequest, poc_id: int):
         'FGT-B': ('PC_B1',),
         'FGT-C': ('PC_C1',)
     }
+
+    if context['HA_FGCP']:
+        devices.update({'FGT-A_sec': FortiGate(name='FGT-DC_sec', template_group='HA'),
+            'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='HA'),
+            'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='HA')})
+
+        device_dependencies.update({ 'FGT-A_sec': (), 'FGT-B_sec': (), 'FGT-C_sec': ()})
 
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
