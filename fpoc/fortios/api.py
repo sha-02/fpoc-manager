@@ -43,7 +43,7 @@ def retrieve_hostname(device: FortiGate)->str:
     response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
     if response.status_code != 200:
         # API access failed => skip this device
-        raise StopProcessingDevice(f'device={device.name} : failure to retrieve FGT hostname'
+        raise StopProcessingDevice(f'{device.name} : failure to retrieve FGT hostname'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
     response_json = response.json()
@@ -89,7 +89,7 @@ def retrieve_fos_version(device: FortiGate)->str:
     response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
     if response.status_code != 200:
         # API access failed => skip this device
-        raise StopProcessingDevice(f'device={device.name} : failure to retrieve FortiOS version'
+        raise StopProcessingDevice(f'{device.name} : failure to retrieve FortiOS version'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
     response_json = response.json()
@@ -221,7 +221,7 @@ def check_having_bootstrap_revision(device: FortiGate):
     response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
     if response.status_code != 200:
         # API access failed => skip this device
-        raise StopProcessingDevice(f'device={device.name} : failure to retrieve the revision history'
+        raise StopProcessingDevice(f'{device.name} : failure to retrieve the revision history'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
     response_json = response.json()

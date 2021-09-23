@@ -37,7 +37,7 @@ def ssh_logon(device: FortiGate):
     try:
         ssh = netmiko.ConnectHandler(**ssh_params)
     except NetmikoAuthenticationException:
-        print('SSH authentication failed. Retrying with empty password.')
+        print(f'{device.name} : SSH authentication failed. Retrying with empty password.')
         ssh_params['password'] = ''
         ssh = netmiko.ConnectHandler(**ssh_params)
 

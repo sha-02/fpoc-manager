@@ -16,7 +16,7 @@
 <hr>
 <h2>Rendering contexts</h2>
 {% for device in devices %}
-    <b>{{device.name}}</b>
+    <a href="#{{device.name}}">{{device.name}}</a>
 
     <!-- dump the context dictionary -->
     {% for param in device.context.items %}

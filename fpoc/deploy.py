@@ -68,7 +68,7 @@ def deploy_configs(request: WSGIRequest, poc: TypePoC):
     :return:
     """
     for device in poc:
-        print('=' * 50, f'Processing {device.name}', '=' * 50)
+        print('=' * 50, f'{device.name} : Processing device', '=' * 50)
         nb_failures = 0
 
         while True:  # a device may require multiple deployment attempts
@@ -76,20 +76,20 @@ def deploy_configs(request: WSGIRequest, poc: TypePoC):
                 deploy_config(request, poc, device)
 
             except CompletedDeviceProcessing:
-                print(f'Finished processing {device.name}')
+                print(f'{device.name} : Finished processing')
                 device.deployment_status = 'completed'
                 break  # exit the 'while True' loop to process the next device
 
             except StopProcessingDevice as ex:
-                print('\n*** WARNING ***', ex, f' *** {device.name} is skipped ***\n\n')  # display warning message
+                print(f'\n{device.name} : *** WARNING ***', ex, ' *** device is skipped ***\n\n')  # display warning message
                 device.deployment_status = 'skipped'
                 break  # exit the 'while True' loop to process the next device
 
             except ReProcessDevice as ex:
                 if ex.sleep:  # the caller of the exception asks for a sleep delay
-                    print(f"Waiting for {ex.sleep} seconds...")
+                    print(f'{device.name} : Waiting for {ex.sleep} seconds...')
                     sleep(ex.sleep)
-                print(f'Processing {device.name} once again')  # before reprocessing the device
+                print(f'{device.name} : Processing device once again')  # before reprocessing the device
 
             except AbortDeployment:
                 print('Aborting deployment !')
@@ -113,16 +113,16 @@ def deploy_configs(request: WSGIRequest, poc: TypePoC):
             except Exception as ex:
                 nb_failures += 1
                 if nb_failures >= 5:
-                    print('\n*** ERROR ***', ex, f' *** limit of 5 failures is reached, '
-                                                 f' {device.name} is skipped ***\n\n')  # display message
+                    print(f'\n{device.name} : *** ERROR ***', ex, f' *** limit of 5 failures is reached, '
+                                                 ' device is skipped ***\n\n')  # display message
                     break  # exit the 'while True' loop to process the next device
 
-                print('\nerror - ', ex, f'\nWaiting for 15 seconds before re-processing {device.name} ...')
+                print(f'\n{device.name} : error - ', ex, f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
                 sleep(15)
-                print(f'Processing {device.name} once again')  # before reprocessing the device
+                print(f'{device.name} : Processing device once again')  # before reprocessing the device
 
             else:  # No exception occurred for this device
-                print(f'Finished processing {device.name}')
+                print(f'{device.name} : Finished processing device')
                 device.deployment_status = 'completed'
                 break  # exit the 'while True' loop to process the next device
 

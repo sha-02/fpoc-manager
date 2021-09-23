@@ -17,18 +17,18 @@ def prepare_api(device: FortiGate):
     """
 
     # Checks if an API key is associated to the FGT. If no, create API admin/key on the FGT via SSH.
-    print('Checking if the FGT has an API key')
+    print(f'{device.name} : Checking if FGT has an API key')
 
     if not device.apikey:
         # There is no API key for this FGT. Connect to the device via SSH to create an admin api-user,
         # generate and retrieve an API key for this admin
-        print('No API key: adding an API admin and retrieving an API key via an SSH session')
+        print(f'{device.name} : No API key. Adding an API admin and retrieving an API key via an SSH session')
 
         fortios.create_api_admin(device)  # creates API admin and updates the device.apikey
         # print(output)
 
     # There is an API key for this FGT
-    print(f"API key: {device.apikey}")
+    print(f'{device.name} : API key is {device.apikey}')
 
 
 def prepare_fortios_version(device: FortiGate, fos_version_target: str):
@@ -39,12 +39,12 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str):
     :return:
     """
     device.fos_version = fortios.retrieve_fos_version(device)  # Update info about the version running on FGT
-    print(f"{device.name} is running FOS {device.fos_version}", end='')
+    print(f"{device.name} : FGT is running FOS {device.fos_version}", end='')
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
-        print(f"Changing the FGT hostname to 'FIRMWARE_UPDATED' before updating the firmware")
+        print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED' before updating the firmware")
         fortios.change_hostname(device, 'FIRMWARE_UPDATED')
-        print(f"Hostname changed")
+        print(f"{device.name} : Hostname changed")
         update_fortios_version(device, fos_version_target)
 
     print('')  # because of the print("... is running FOS ...", end='')
@@ -63,7 +63,7 @@ def update_fortios_version(device: FortiGate, fos_version_target: str):
 
     # Check if the target firmware is referenced
     if firmwares.get(fos_version_target) is None:
-        print(f'Firmware {fos_version_target} is not referenced')
+        print(f'{device.name} : Firmware {fos_version_target} is not referenced')
         raise StopProcessingDevice
 
     # Check if the target firmware file is available
@@ -78,13 +78,14 @@ def update_fortios_version(device: FortiGate, fos_version_target: str):
         except FileNotFoundError:
             pass
     else:
-        print(f'Firmware not found in folder {firmware_path}')
-        print(f'Downloading firmware image from store...')
+        print(f'{device.name} : Firmware not found in folder {firmware_path}')
+        print(f'{device.name} : Downloading firmware image from store... ', end='')
         firmware = firmwares[fos_version_target]["filename"]
         firmware_download(firmware)
+        print("Download completed.")
 
-    print(f'Found firmware {firmware} in folder {firmware_path}')
-    print(f'Uploading firmware to {device.name}... ', end='')
+    print(f'{device.name} : Found firmware {firmware} in folder {firmware_path}')
+    print(f'{device.name} : Uploading firmware... ', end='')
     fortios.upload_firmware(device, firmware)
     print('Firmware uploaded.')
     raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to upgrade/dowgrade the config and reboot
@@ -121,7 +122,6 @@ def firmware_download(firmware: str):
     firmware_path = f'{BASE_DIR}/templates/firmware'
     with open(f'{firmware_path}/{firmware}', "wb") as f:
         f.write(response.content)
-    print("Download completed.")
 
 
 def retrieve_hostname(device: FortiGate) -> str:
@@ -147,12 +147,12 @@ def prepare_bootstrap_config(device: FortiGate):
     import ipaddress
 
     # Check if FGT is running a bootstrap config (hostname is 'BOOTSTRAP_CONFIG')
-    print('Checking if FGT is running a bootstrap config (hostname is "BOOTSTRAP_CONFIG")', end='')
+    print(f'{device.name} : Checking if FGT is running a bootstrap config (hostname is "BOOTSTRAP_CONFIG")', end='')
     if retrieve_hostname(device) == 'BOOTSTRAP_CONFIG':
         print(f' => Yes')
         return None
 
-    print(f'\nFGT is not running a boostrap configuration, need to upload bootstrap config for {device.fos_version}')
+    print(f'\n{device.name} : FGT is not running a boostrap configuration, need to upload bootstrap config for {device.fos_version}')
 
     # Check if there is a bootstrap config for this FOS firmware on the disk (file name e.g. '6.4.6.out')
     bootstrap_path = f'{BASE_DIR}/templates/fpoc/fpoc00/bootstrap_configs'
@@ -160,7 +160,7 @@ def prepare_bootstrap_config(device: FortiGate):
         with open(f'{bootstrap_path}/{device.fos_version}.conf', mode='r') as f:
             config = f.read()
     except:
-        print(f'Could not find bootstrap configuration "{device.fos_version}.conf" in folder {bootstrap_path}')
+        print(f'{device.name} : Could not find bootstrap configuration "{device.fos_version}.conf" in folder {bootstrap_path}')
         raise (StopProcessingDevice)
 
     # Render the bootstrap configuration
@@ -175,7 +175,7 @@ def prepare_bootstrap_config(device: FortiGate):
                                             context, request=None)
 
     # Upload the bootstrap configuration to the FGT
-    print(f'Uploading bootstrap configuration to {device.name}... ', end='')
+    print(f'{device.name} : Uploading bootstrap configuration... ', end='')
     fortios.restore_config_file(device)
     print('bootstrap configuration uploaded.')
     device.apikey = None  # reset cached API key since there is no API key in the bootstrap config
@@ -229,7 +229,7 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
             f.write('\n#\n' + '#' * 50)
         f.write(device.config)
 
-    print(f'Configuration saved to {filename}')
+    print(f'{device.name} : Configuration saved to {filename}')
 
     # Deploy the config
     #
@@ -239,11 +239,11 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     if is_config_snippets(device.config):
         # Execute the CLI settings in device.config on the FGT and Save them in the 'Script' repository of the FGT
         script_name = f'fpoc={poc.id:02} config_hash={hash(device.config):_}'
-        print(f'Upload and run configuration script: {script_name}')
+        print(f'{device.name} : Upload and run configuration script: {script_name}')
         fortios.run_script(device, script_name)
     else:
         # Full configuration file
-        print('Restoring full configuration on the FGT')
+        print(f'{device.name} : Restoring full configuration')
         fortios.restore_config_file(device)
 
     # Save this configuration in the config revision
