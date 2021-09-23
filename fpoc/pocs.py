@@ -218,7 +218,7 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
                    'devices': status_devices})
 
 
-def sdwan_advpn_workshop(request: WSGIRequest, poc_id: int):
+def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'

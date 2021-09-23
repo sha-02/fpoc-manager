@@ -225,9 +225,9 @@ function collectFortiPoCElements(formID)
       </form>
 
       <hr>
-      <h5>SDWAN+ADVPN Workshop</h5>
+      <h5>SDWAN+ADVPN (one BGP peering per overlay)</h5>
 <!--        <form id="formPoC_4" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
-      <form id="formPoC_5" method="post" action="{% url 'fpoc:sdwan_advpn_workshop' %}" onsubmit="collectFortiPoCElements(this.id)">
+      <form id="formPoC_5" method="post" action="{% url 'fpoc:sdwan_advpn_bgp_per_overlay' %}" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
           <fieldset>
             Devices
@@ -261,7 +261,7 @@ function collectFortiPoCElements(formID)
             </select>
             <input type="checkbox" name="remote_internet_mpls" value=1>Remote Internet Breakout via MPLS
           </fieldset>
-        <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:sdwan_advpn_workshop' %}">Start</button>
+        <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:sdwan_advpn_bgp_per_overlay' %}">Start</button>
       </form>
     </div>
   </div>
