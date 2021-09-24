@@ -2,7 +2,6 @@ from django.test import TestCase
 import string
 from dataclasses import dataclass
 
-
 # Create your tests here.
 
 # class FortiOSversion:
@@ -107,10 +106,73 @@ from dataclasses import dataclass
 
 #############################################
 
-from pathlib import Path
-from config.settings import BASE_DIR
+# from pathlib import Path
+# from config.settings import BASE_DIR
+#
+# print(Path(__file__))
+# print(Path(__file__).resolve())
+# print(Path(__file__).resolve().parent.parent)
+# print(BASE_DIR)
 
-print(Path(__file__))
-print(Path(__file__).resolve())
-print(Path(__file__).resolve().parent.parent)
-print(BASE_DIR)
+##############################################
+
+import time
+import multiprocessing
+import datetime
+
+
+devices = ['FGT-A', 'FGT-B', 'FGT-C']
+
+
+def deploy(device: str, i: int):
+    # if i == 1:
+    #     return
+
+    if i <= 5:
+        print(f'{device} processing number {i}')
+        time.sleep(1)
+        raise UserWarning
+
+    if i > 5:
+        raise StopIteration
+
+
+def deploy_config(device: str):
+    i = 1
+    print(f'{device} : starting')
+    while True:
+        try:
+            deploy(device, i)
+        except UserWarning: # re-process device
+            i = i + 1
+            print(f'{device} : re-processing')
+
+        except StopIteration:
+            print(f'{device} : stopped processing by exception')
+            break
+        else:
+            print(f'{device} : completed without exception')
+            break
+
+
+def deploy_configs(devices: list, multiprocess=True):
+    if multiprocess:
+        # Create a process for each device
+        processes = [ multiprocessing.Process(target=deploy_config, args=(device,)) for device in devices ]
+
+        # Start each device processing
+        for p in processes:
+            p.start()
+
+        # Wait for each device processing to complete
+        for p in processes:
+            p.join()
+    else:
+        for device in devices:
+            deploy_config(device)
+
+start_time = time.perf_counter()
+deploy_configs(devices)
+end_time = time.perf_counter()
+duration_seconds = end_time - start_time
+print(f'\n\nDeployment finished. It took {datetime.timedelta(seconds=duration_seconds)}.\n')

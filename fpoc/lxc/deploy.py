@@ -7,7 +7,7 @@ import fpoc.fortipoc as fortipoc
 from fpoc.devices import LXC
 from fpoc.fortipoc import TypePoC
 
-def deploy_config(request: WSGIRequest, poc: TypePoC, device: LXC):
+def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
     """
     Render the configuration (Django template) and deploy it
 

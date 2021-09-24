@@ -5,8 +5,9 @@ from django.core.handlers.wsgi import WSGIRequest
 # from urllib3.exceptions import TimeoutError
 # from requests.exceptions import Timeout, ConnectionError
 
-from time import sleep, perf_counter
-from datetime import timedelta
+import time
+import datetime
+import multiprocessing
 
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
@@ -41,12 +42,12 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
         if devkey not in dev_keys_to_start:
             del (poc.devices[devkey])  # this device was not requested to be started for this PoC
 
-    start_time = perf_counter()
+    start_time = time.perf_counter()
     deploy_configs(request, poc)
-    end_time = perf_counter()
+    end_time = time.perf_counter()
 
     duration_seconds = end_time - start_time
-    print(f'\n\nDeployment finished. It took {timedelta(seconds=duration_seconds)}.\n')
+    print(f'\n\nDeployment finished. It took {datetime.timedelta(seconds=duration_seconds)}.\n')
 
     # List of all config settings rendered from template
     status_devices = [
@@ -59,75 +60,95 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
     return status_devices
 
 
-def deploy_configs(request: WSGIRequest, poc: TypePoC):
+def deploy_configs(request: WSGIRequest, poc: TypePoC, multiprocess=True):
     """
-    Deploy the configurations for a scenario to all devices
+    Deploy the configurations to all devices
 
     :param request:
     :param poc:
     :return:
     """
-    for device in poc:
-        print('=' * 50, f'{device.name} : Processing device', '=' * 50)
-        nb_failures = 0
+    if multiprocess:
+        # Create a process for each device
+        processes = [ multiprocessing.Process(target=deploy_config, args=(request, poc, device)) for device in poc ]
 
-        while True:  # a device may require multiple deployment attempts
-            try:
-                deploy_config(request, poc, device)
+        # Start each device processing
+        for p in processes:
+            p.start()
 
-            except CompletedDeviceProcessing:
-                print(f'{device.name} : Finished processing')
-                device.deployment_status = 'completed'
-                break  # exit the 'while True' loop to process the next device
-
-            except StopProcessingDevice as ex:
-                print(f'\n{device.name} : *** WARNING ***', ex, ' *** device is skipped ***\n\n')  # display warning message
-                device.deployment_status = 'skipped'
-                break  # exit the 'while True' loop to process the next device
-
-            except ReProcessDevice as ex:
-                if ex.sleep:  # the caller of the exception asks for a sleep delay
-                    print(f'{device.name} : Waiting for {ex.sleep} seconds...')
-                    sleep(ex.sleep)
-                print(f'{device.name} : Processing device once again')  # before reprocessing the device
-
-            except AbortDeployment:
-                print('Aborting deployment !')
-                return None
-
-            # except (ConnectionError, Timeout, TimeoutError, RemoteDisconnected, NetmikoTimeoutException) as ex:
-            #     nb_failures += 1
-            #     if nb_failures > 3:
-            #         print('\n*** ERROR ***', ex, f' *** {device.name} is skipped ***\n\n')  # display warning message
-            #         break  # exit the 'while True' loop to process the next device
-            #
-            #     print('\n*** Connection error *** ', ex,
-            #           f'\nWaiting for 15 seconds before re-processing {device.name} ...')
-            #     sleep(5)
-            #     print(f'Processing {device.name} once again')  # before reprocessing the device
-            #
-            # except Exception as ex:
-            #     print('\n*** ERROR ***', ex, f' *** {device.name} is skipped ***\n\n')  # display an error message
-            #     break  # exit the 'while True' loop to process the next device
-
-            except Exception as ex:
-                nb_failures += 1
-                if nb_failures >= 5:
-                    print(f'\n{device.name} : *** ERROR ***', ex, f' *** limit of 5 failures is reached, '
-                                                 ' device is skipped ***\n\n')  # display message
-                    break  # exit the 'while True' loop to process the next device
-
-                print(f'\n{device.name} : error - ', ex, f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
-                sleep(15)
-                print(f'{device.name} : Processing device once again')  # before reprocessing the device
-
-            else:  # No exception occurred for this device
-                print(f'{device.name} : Finished processing device')
-                device.deployment_status = 'completed'
-                break  # exit the 'while True' loop to process the next device
+        # Wait for each device processing to complete
+        for p in processes:
+            p.join()
+    else:
+        for device in poc:
+            deploy_config(request, poc, device)
 
 
 def deploy_config(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
+    """
+    Deploy the configuration for a device
+
+    """
+    print('=' * 50, f'{device.name} : Processing device', '=' * 50)
+    nb_failures = 0
+
+    while True:  # a device may require multiple deployment attempts
+        try:
+            deploy(request, poc, device)
+
+        except CompletedDeviceProcessing:
+            print(f'{device.name} : Finished processing')
+            device.deployment_status = 'completed'
+            break  # exit the 'while True' loop to process the next device
+
+        except StopProcessingDevice as ex:
+            print(f'\n{device.name} : *** WARNING ***', ex, ' *** device is skipped ***\n\n')  # display warning message
+            device.deployment_status = 'skipped'
+            break  # exit the 'while True' loop to process the next device
+
+        except ReProcessDevice as ex:
+            if ex.sleep:  # the caller of the exception asks for a sleep delay
+                print(f'{device.name} : Waiting for {ex.sleep} seconds...')
+                time.sleep(ex.sleep)
+            print(f'{device.name} : Processing device once again')  # before reprocessing the device
+
+        except AbortDeployment:
+            print('Aborting deployment !')
+            return None
+
+        # except (ConnectionError, Timeout, TimeoutError, RemoteDisconnected, NetmikoTimeoutException) as ex:
+        #     nb_failures += 1
+        #     if nb_failures > 3:
+        #         print('\n*** ERROR ***', ex, f' *** {device.name} is skipped ***\n\n')  # display warning message
+        #         break  # exit the 'while True' loop to process the next device
+        #
+        #     print('\n*** Connection error *** ', ex,
+        #           f'\nWaiting for 15 seconds before re-processing {device.name} ...')
+        #     sleep(5)
+        #     print(f'Processing {device.name} once again')  # before reprocessing the device
+        #
+        # except Exception as ex:
+        #     print('\n*** ERROR ***', ex, f' *** {device.name} is skipped ***\n\n')  # display an error message
+        #     break  # exit the 'while True' loop to process the next device
+
+        except Exception as ex:
+            nb_failures += 1
+            if nb_failures >= 5:
+                print(f'\n{device.name} : *** ERROR ***', ex, f' *** limit of 5 failures is reached, '
+                                             ' device is skipped ***\n\n')  # display message
+                break  # exit the 'while True' loop to process the next device
+
+            print(f'\n{device.name} : error - ', ex, f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
+            time.sleep(15)
+            print(f'{device.name} : Processing device once again')  # before reprocessing the device
+
+        else:  # No exception occurred for this device
+            print(f'{device.name} : Finished processing device')
+            device.deployment_status = 'completed'
+            break  # exit the 'while True' loop to process the next device
+
+
+def deploy(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
     """
     Render the configuration (Django template) and deploy it to the device
 
@@ -138,10 +159,10 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
     """
 
     if isinstance(device, FortiGate):
-        fortios.deploy_config(request, poc, device)
+        fortios.deploy(request, poc, device)
     elif isinstance(device, LXC):
-        lxc.deploy_config(request, poc, device)
+        lxc.deploy(request, poc, device)
     elif isinstance(device, Vyos):
-        vyos.deploy_config(request, poc, device)
+        vyos.deploy(request, poc, device)
     else:
         raise StopProcessingDevice(f'{device.name} : the type of this device is not supported for deployment')

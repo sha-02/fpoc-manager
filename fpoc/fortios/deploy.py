@@ -182,7 +182,7 @@ def prepare_bootstrap_config(device: FortiGate):
     raise ReProcessDevice(sleep=60)  # Leave enough time for the FGT to load the config and reboot
 
 
-def deploy_config(request: WSGIRequest, poc: TypePoC, device: FortiGate):
+def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     """
     Render the configuration (Django template) and deploy it to the FGT
 
