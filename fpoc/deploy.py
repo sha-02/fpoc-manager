@@ -7,7 +7,7 @@ from django.core.handlers.wsgi import WSGIRequest
 
 import time
 import datetime
-import multiprocessing
+import threading
 
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
@@ -60,7 +60,7 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
     return status_devices
 
 
-def deploy_configs(request: WSGIRequest, poc: TypePoC, multiprocess=True):
+def deploy_configs(request: WSGIRequest, poc: TypePoC, multithread=True):
     """
     Deploy the configurations to all devices
 
@@ -68,17 +68,15 @@ def deploy_configs(request: WSGIRequest, poc: TypePoC, multiprocess=True):
     :param poc:
     :return:
     """
-    if multiprocess:
-        # Create a process for each device
-        processes = [ multiprocessing.Process(target=deploy_config, args=(request, poc, device)) for device in poc ]
+    if multithread:
+        threads = list()
+        for device in poc:
+            thread = threading.Thread(target=deploy_config, args=(request, poc, device))
+            threads.append(thread)
+            thread.start()
 
-        # Start each device processing
-        for p in processes:
-            p.start()
-
-        # Wait for each device processing to complete
-        for p in processes:
-            p.join()
+        for index, thread in enumerate(threads):
+            thread.join()
     else:
         for device in poc:
             deploy_config(request, poc, device)

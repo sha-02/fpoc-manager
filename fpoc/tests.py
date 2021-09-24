@@ -116,10 +116,8 @@ from dataclasses import dataclass
 
 ##############################################
 
-import time
-import multiprocessing
-import datetime
-
+import time, datetime
+import threading
 
 devices = ['FGT-A', 'FGT-B', 'FGT-C']
 
@@ -155,18 +153,16 @@ def deploy_config(device: str):
             break
 
 
-def deploy_configs(devices: list, multiprocess=True):
-    if multiprocess:
-        # Create a process for each device
-        processes = [ multiprocessing.Process(target=deploy_config, args=(device,)) for device in devices ]
+def deploy_configs(devices: list, multithread=True):
+    if multithread:
+        threads = list()
+        for device in devices:
+            thread = threading.Thread(target=deploy_config, args=(device,))
+            threads.append(thread)
+            thread.start()
 
-        # Start each device processing
-        for p in processes:
-            p.start()
-
-        # Wait for each device processing to complete
-        for p in processes:
-            p.join()
+        for index, thread in enumerate(threads):
+            thread.join()
     else:
         for device in devices:
             deploy_config(device)
