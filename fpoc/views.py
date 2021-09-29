@@ -34,6 +34,8 @@ class AboutPageView(TemplateView):
 
 
 def display_request_parameters(request: WSGIRequest):
+    """
+    """
     if request.method == 'POST':
         data = request.POST
     else:

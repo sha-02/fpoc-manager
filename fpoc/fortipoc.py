@@ -3,6 +3,7 @@ from django.core.handlers.wsgi import WSGIRequest
 import typing
 import copy
 import ipaddress
+import threading
 
 from fpoc.devices import FortiGate, LXC, Vyos
 from fpoc.devices import WAN, WanSettings
@@ -21,18 +22,23 @@ class FortiPoC:
     devices: dict
     # Dict[DeviceHint]
 
-    @classmethod
-    @property
-    def name(cls):  # Return the name of the Class itself
-        return cls.__name__
-
     def __iter__(self):
         # Makes the class an iterable which can iterate over the devices stored in the 'devices' dictionary
         # Leverage the iterator from 'devices' iterable
         return iter(self.devices.values())
 
+    @classmethod
+    @property
+    def name(cls):  # Return the name of the Class itself
+        """
+        """
+        return cls.__name__
+
 
 class FortiPoCFoundation1(FortiPoC):
+    """
+    """
+    lock: threading.Lock  # mutual exclusion (mutex) lock used to download and store missing firmware
     devices = {
         'FGT-A': FortiGate(offset=0, mgmt_ip='172.16.31.1/24',
                            wan=WAN(
@@ -187,6 +193,7 @@ class FortiPoCFoundation1(FortiPoC):
         # Initialize this particular PoC instance/object
         self.id = poc_id
         self.devices = {}
+        self.lock = threading.Lock()
 
         # "merge" the attributes from a device defined in the Class with its counter-part passed as argument
         for fpoc_devname, device in devices.items():
@@ -199,7 +206,7 @@ class FortiPoCFoundation1(FortiPoC):
 
             self.devices[fpoc_devname].name_fpoc = fpoc_devname
 
-        # Add mgmt information to each device (IP@, SSH/HTTPS ports)
+        # mgmt attributes of each device (IP@, SSH/HTTPS ports)
         for device in self.devices.values():
             device.mgmt_fpoc = FortiPoCFoundation1.mgmt_fpoc
             # IP of FortiPoC is retrieved from the fpoc selection list or from an IP provided by user

@@ -7,13 +7,13 @@ from fpoc.devices import Vyos
 from fpoc.exceptions import StopProcessingDevice, ReProcessDevice
 from fpoc.fortipoc import TypePoC
 
+
 def deploy(request: WSGIRequest, poc: TypePoC, device: Vyos):
     """
     Render the configuration (Django template) and deploy it
 
     :param request:
-    :param scenario:
+    :param poc:
     :param device:
     :return:
     """
-

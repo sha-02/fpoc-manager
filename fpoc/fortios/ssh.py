@@ -1,9 +1,8 @@
-import netmiko
 import re
 
+import netmiko
 from netmiko import NetmikoAuthenticationException
 
-import fpoc.fortipoc as fortipoc
 from fpoc.devices import FortiGate
 from fpoc.exceptions import StopProcessingDevice
 
@@ -45,14 +44,14 @@ def ssh_logon(device: FortiGate):
 
 
 def create_api_admin(device: FortiGate):
-    '''
+    """
     Create an API admin and retrieve an API key for this admin
     REQUIRES to ALTER the netmiko class for 'fortinet'
     => comment all code in FortinetSSH.session_preparation() method: only keep a 'pass' statement
 
     :param device:
     :return:
-    '''
+    """
 
     ssh = ssh_logon(device)
 
@@ -79,7 +78,7 @@ def create_api_admin(device: FortiGate):
 
     re_token = re.search('New API key:(.+)', output_generate_apikey, re.IGNORECASE)
 
-    if not re_token:    # API key failed to be retrieved => skip this device
+    if not re_token:  # API key failed to be retrieved => skip this device
         raise StopProcessingDevice(f'device={device.name} : failure to create the API admin or to retrieve '
                                    f'the API key')
 
@@ -90,20 +89,39 @@ def create_api_admin(device: FortiGate):
     device.output = output_create_admin + output_generate_apikey
 
 
-def retrieve_hostname(device: FortiGate)->str:
-    '''
+def retrieve_hostname(device: FortiGate) -> str:
+    """
 
     :param device:
     :return:
-    '''
+    """
     ssh = ssh_logon(device)
 
     # Create API admin
     device.output = ssh.send_command('get system status')
     re_token = re.search('Hostname: (.+)', device.output, re.IGNORECASE)
 
-    if not re_token:    # API key failed to be retrieved => skip this device
+    if not re_token:  # API key failed to be retrieved => skip this device
         raise StopProcessingDevice(f'device={device.name} : failure to retrieve the hostname via SSH')
 
     # Return the hostname
     return re_token.group(1).strip()
+
+
+def is_running_ha(device: FortiGate) -> bool:
+    """
+
+    :param device:
+    :return:
+    """
+    ssh = ssh_logon(device)
+
+    # Create API admin
+    device.output = ssh.send_command('get system status')
+    re_token = re.search('Current HA mode: (.+)', device.output, re.IGNORECASE)
+
+    if not re_token:  # API key failed to be retrieved => skip this device
+        raise StopProcessingDevice(f'device={device.name} : failure to retrieve the HA status via SSH')
+
+    # Return True if HA mode is not 'standalone', return False if HA mode is 'standalone'
+    return re_token.group(1).strip() != 'standalone'

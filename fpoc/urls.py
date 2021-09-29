@@ -33,18 +33,6 @@ Usability:
   would need to find a way to store info about 'context' as well
   --> tried in deploy_config() but the comment field is very limited in size so cannot write the whole 'context' there
   
-- access the devices via a link provided by the config generator
-  otherwise access is via FPoC and one have to remembver that FGT-1 in PoC is FGT-A in FUNDATION, etc...
-
-- ensure that there is no need to enter an empty dependency like this one:
-    device_dependencies = {
-        'FGT-A': ('PC_A1', 'PC_A2'),
-        'FGT-A_sec': ('PC_A1', 'PC_A2'),
-        'ISFW-A': (),  <--------------------- HERE
-        'FGT-B': ('PC_B1',),
-        'FGT-C': ('PC_C1',)
-    }
-
 - Use class Form to store the context elements of a scenario and generate the HTML code with template where the 
   accordion are all created automatically  
 
@@ -53,6 +41,4 @@ Usability:
     ORANGE color when retries
     GREEN color when device is finished processing
     Add the name of the device to the beginning of each line, similar to a debug => needed for threading
-
-- Optimize device launch by using Threading
 """

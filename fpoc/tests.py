@@ -1,7 +1,3 @@
-from django.test import TestCase
-import string
-from dataclasses import dataclass
-
 # Create your tests here.
 
 # class FortiOSversion:
@@ -116,13 +112,16 @@ from dataclasses import dataclass
 
 ##############################################
 
-import time, datetime
+import datetime
 import threading
+import time
 
 devices = ['FGT-A', 'FGT-B', 'FGT-C']
 
 
 def deploy(device: str, i: int):
+    """
+    """
     # if i == 1:
     #     return
 
@@ -136,12 +135,14 @@ def deploy(device: str, i: int):
 
 
 def deploy_config(device: str):
+    """
+    """
     i = 1
     print(f'{device} : starting')
     while True:
         try:
             deploy(device, i)
-        except UserWarning: # re-process device
+        except UserWarning:  # re-process device
             i = i + 1
             print(f'{device} : re-processing')
 
@@ -154,6 +155,8 @@ def deploy_config(device: str):
 
 
 def deploy_configs(devices: list, multithread=True):
+    """
+    """
     if multithread:
         threads = list()
         for device in devices:
@@ -166,6 +169,7 @@ def deploy_configs(devices: list, multithread=True):
     else:
         for device in devices:
             deploy_config(device)
+
 
 start_time = time.perf_counter()
 deploy_configs(devices)

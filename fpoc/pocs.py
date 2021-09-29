@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.template import loader
 
 from fpoc.deploy import start_poc
-from fpoc.devices import FortiGate, LXC, Vyos
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, Vyos
 from fpoc.fortipoc import FortiPoCFoundation1
 from collections import namedtuple
 
@@ -13,11 +13,12 @@ import sys
 
 APPNAME = "fpoc"
 
-
 Status = namedtuple('Status', 'is_valid is_invalid message')
 
 
 def bootstrap(request: WSGIRequest, poc_id: int):
+    """
+    """
     # This PoC is based on FortiPoC "Foundation1"
     devices = {
         'FGT-A': FortiGate(), 'FGT-A_sec': FortiGate(),
@@ -32,27 +33,32 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         dev.template_group = 'bootstrap_configs'
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
         dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ip}
+        if request.POST.get('HA') == 'FGCP':
+            dev.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=devname,
+                                  hbdev=[('port6', 0)], sessyncdev=['port6'],
+                                  monitordev=['port1', 'port2', 'port5'], priority=128)
+            if devname in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
+                dev.ha.role = FortiGate_HA.Roles.SECONDARY
+            else:
+                dev.ha.role = FortiGate_HA.Roles.PRIMARY
 
-    device_dependencies = {
-        'FGT-A': (), 'FGT-A_sec': (),
-        'FGT-B': (), 'FGT-B_sec': (),
-        'FGT-C': (), 'FGT-C_sec': (),
-        'FGT-D': (), 'FGT-D_sec': (),
-        'ISFW-A': (),
-    }
+    device_dependencies = {}  # No device dependencies for this PoC (no PC to configure, etc...)
 
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     if request.POST.get('targetedFOSversion') == '':
         return render(request, f'{APPNAME}/error.html', {'error_message': 'The FortiOS version must be specified'})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
                   {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
                    'devices': status_devices})
 
 
 def sdwan_simple(request: WSGIRequest, poc_id: int):
+    """
+    """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         # Hub is FGT-C from FortiPoC "Fundation1"
@@ -81,13 +87,16 @@ def sdwan_simple(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
                   {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
                    'devices': status_devices})
 
 
 def vpn_site2site(request: WSGIRequest, poc_id: int):
+    """
+    """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'vpn': request.POST.get('vpn'),  # 'ipsec', 'gre', ...
@@ -118,13 +127,16 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
                   {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
                    'devices': status_devices})
 
 
 def vpn_dialup(request: WSGIRequest, poc_id: int):
+    """
+    """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'ike': request.POST.get('ike'),  # 1 or 2
@@ -170,13 +182,16 @@ def vpn_dialup(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
                   {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
                    'devices': status_devices})
 
 
 def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
+    """
+    """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'mode': request.POST.get('mode'),  # 'active_passive' or 'active_active'
@@ -201,7 +216,6 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
     device_dependencies = {
         'FGT-A': ('PC_A1', 'PC_A2'),
         'FGT-A_sec': ('PC_A1', 'PC_A2'),
-        'ISFW-A': (),
         'FGT-B': ('PC_B1',),
         'FGT-C': ('PC_C1',)
     }
@@ -209,7 +223,8 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
     # context = {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices}
     # status = loader.render_to_string(f'{APPNAME}/deployment_status.html', context, request)
     # return HttpResponse(status)
@@ -219,6 +234,8 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
 
 
 def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
+    """
+    """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'
@@ -227,7 +244,6 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
         'override_with_hub_nexthop': bool(request.POST.get('override_with_hub_nexthop', False)),  # True or False
         'feasible_routes': request.POST.get('feasible_routes'),  # 'none', 'rfc1918', 'default_route'
         'remote_internet_mpls': bool(request.POST.get('remote_internet_mpls', False)),  # True or False
-        'HA_FGCP': bool(request.POST.get('HA_FGCP', False)),  # True or False
 
         # Hub is FGT-A from FortiPoC "Fundation1"
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -285,9 +301,12 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
         context['remote_internet_mpls'] = False
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-DC-3', template_group='FGT-DC', template_context={**context}),
+        'FGT-A': FortiGate(name='FGT-DC-3', template_group='FGT-DC', template_context={'i': 3, **context}),
+        'FGT-A_sec': FortiGate(name='FGT-DC-3_sec', template_group='Secondary', template_context={'i': 3}),
         'FGT-B': FortiGate(name='FGT-SDW-1', template_group='FGT-SDW', template_context={'i': 1, **context}),
+        'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='Secondary', template_context={'i': 1}),
         'FGT-C': FortiGate(name='FGT-SDW-2', template_group='FGT-SDW', template_context={'i': 2, **context}),
+        'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='Secondary', template_context={'i': 2}),
 
         'PC_A1': LXC(name='DC-server-4', template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'}),
         'PC_B1': LXC(name='Client-11', template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'}),
@@ -297,26 +316,47 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
     device_dependencies = {
         'FGT-A': ('PC_A1',),
         'FGT-B': ('PC_B1',),
-        'FGT-C': ('PC_C1',)
+        'FGT-C': ('PC_C1',),
     }
 
-    if context['HA_FGCP']:
-        devices.update({'FGT-A_sec': FortiGate(name='FGT-DC_sec', template_group='HA'),
-            'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='HA'),
-            'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='HA')})
+    # Settings used for HA
+    #
+    if request.POST.get('HA') == 'FGCP':
+        for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
+            devices[cluster[0]].ha.mode = devices[cluster[1]].ha.mode = FortiGate_HA.Modes.FGCP
+            devices[cluster[0]].ha.role = FortiGate_HA.Roles.PRIMARY
+            devices[cluster[1]].ha.role = FortiGate_HA.Roles.SECONDARY
+            devices[cluster[0]].ha.priority = 200
+            devices[cluster[1]].ha.priority = 100
+            devices[cluster[0]].ha.group_id = devices[cluster[1]].ha.group_id = 1
+            devices[cluster[0]].ha.group_name = devices[cluster[0]].name  # group_name defaults to the device name
+            devices[cluster[1]].ha.group_name = devices[cluster[1]].name
+            devices[cluster[0]].ha.hbdev = devices[cluster[1]].ha.hbdev = [('port6', 0)]  # heartbeat interfaces
+            devices[cluster[0]].ha.sessyncdev = devices[cluster[1]].ha.sessyncdev = ['port6']  # session synch interfaces
+            devices[cluster[0]].ha.monitordev = devices[cluster[1]].ha.monitordev = ['port1', 'port2', 'port5']  # monitored interfaces
 
-        device_dependencies.update({ 'FGT-A_sec': (), 'FGT-B_sec': (), 'FGT-C_sec': ()})
+    # The request.POST sends all secondary devices (FGT-A_sec, etc...) for simplicity
+    # The request.POST is a read-only QueryDict. So, to avoid configuring unrequested secondary devices I'm removing them
+    # from the list of 'devices' (which was also initialized with all devices for simplicity)
+    for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
+        if request.POST.get('HA') == 'standalone':  # No HA = all secondary devices must be removed from the list
+            del devices[cluster[1]]
+        elif not request.POST.get(cluster[0]):  # this device is not in the list of to-be-configured devices
+            del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
 
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices), device_dependencies)
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
     return render(request, f'{APPNAME}/deployment_status.html',
                   {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
                    'devices': status_devices})
 
 
 def inspect(request: WSGIRequest) -> Status:
+    """
+    """
     if request.POST.get('targetedFOSversion'):
         # Ensure the FOS version is of the form: <major>.<minor>.<patch>
         import re

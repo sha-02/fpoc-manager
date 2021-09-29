@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import ipaddress
+from enum import Enum
+
 
 @dataclass
 class WanSettings:
@@ -47,11 +49,11 @@ class Device:
     output: str = None  # output for the SSH commands executed on the device
     template_context: dict = None  # Dictionary needed for the Django template to render the template configuration
     template_group: str = None  # name of the template group to which belongs this device
-    template_filename: str = None # name of the file in the template group
+    template_filename: str = None  # name of the file in the template group
     config: str = None  # configuration to be deployed to the device
     commands: list = None  # List of CLI commands to be executed on the device
 
-    deployment_status: str = None # e.g. 'completed' or 'skipped'
+    deployment_status: str = None  # e.g. 'completed' or 'skipped'
 
     def __post_init__(self):  # Apply default values
         self.template_group = self.template_group or self.name  # initialize if it is None
@@ -59,7 +61,32 @@ class Device:
 
     @property
     def mgmt_subnet(self):
+        """
+        """
         return ipaddress.ip_interface(self.mgmt_ip).network.compressed  # e.g. '172.16.31.0/24'
+
+
+@dataclass
+class FortiGate_HA:
+    class Modes(Enum):
+        STANDALONE = 0
+        FGCP = 1
+        FGSP = 2
+        FGCP_FGSP = 3
+
+    class Roles(Enum):
+        STANDALONE = 0
+        PRIMARY = 1
+        SECONDARY = 2
+
+    mode: Modes = Modes.FGCP  # HA mode from Enum Modes
+    role: Roles = Roles.PRIMARY  # HA role from Enum Roles
+    group_id: int = None
+    group_name: str = None
+    hbdev: list = None  # list of HA heartbeat interfaces with their priorities (e.g. [('port6', 0), ('port7', 0)])
+    sessyncdev: list = None  # list of HA session synch devices (e.g. ['port6', 'port7'])
+    monitordev: list = None  # list of HA monitored interfaces (e.g., ['port1', 'port2',  'port5'])
+    priority: int = None  # HA priority
 
 
 @dataclass
@@ -68,19 +95,26 @@ class FortiGate(Device):
     apikey: str = None  # API key for the API admin
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
+    mgmt_interface: str = 'port10'  # FGT interface to which the mgmt IP@ is assigned (e.g., 'port10')
+    ha: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
 
     @property
     def FOS(self):  # long integer of the fos_version, e.g. "6.0.13" returns 6_000_013 (used for django template)
+        """
+        """
         major, minor, patch = self.fos_version.split('.')
-        return int(major)*1_000_000 + int(minor)*1_000 + int(patch)
+        return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
 
     def __post_init__(self):  # Apply default values
+        # attributes inherited from parent class
         super(FortiGate, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'admin'  # initialize if it is None
         self.password = self.password or 'fortinet'  # initialize if it is None
         self.apiadmin = self.apiadmin or 'adminapi'  # initialize if it is None
-        self.template_filename = self.template_filename or '_FGT.conf' # initialize if it is None
+        self.template_filename = self.template_filename or '_FGT.conf'  # initialize if it is None
         self.template_context['name'] = self.name
+        # attributes from local class
+        self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
 
 @dataclass

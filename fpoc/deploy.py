@@ -31,7 +31,7 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
     dev_keys_to_start = set()
     for devkey in request.POST.keys() & poc.devices.keys():
         dev_keys_to_start.add(devkey)  # add the device key
-        dev_keys_to_start.update(device_dependencies[devkey])  # update with the tuples listed in device_dependencies
+        dev_keys_to_start.update(device_dependencies.get(devkey, set()))  # update with the tuples listed in device_dependencies
 
     # {devkey: devices[devkey] for devkey in dev_keys_to_start}
     # +--> do not use dict comprehension because it creates an unordered list of devices due to using set()
@@ -51,11 +51,11 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
 
     # List of all config settings rendered from template
     status_devices = [
-        { 'name': device.name, 'name_fpoc': device.name_fpoc,
-          'deployment_status': device.deployment_status,
-          'ip': request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip,
-          'https': poc.BASE_PORT_HTTPS + device.offset if poc.manager_inside_fpoc else device.https_port,
-          'context': device.template_context, 'config': device.config} for device in poc ]
+        {'name': device.name, 'name_fpoc': device.name_fpoc,
+         'deployment_status': device.deployment_status,
+         'ip': request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip,
+         'https': poc.BASE_PORT_HTTPS + device.offset if poc.manager_inside_fpoc else device.https_port,
+         'context': device.template_context, 'config': device.config} for device in poc]
 
     return status_devices
 
@@ -66,6 +66,7 @@ def deploy_configs(request: WSGIRequest, poc: TypePoC, multithread=True):
 
     :param request:
     :param poc:
+    :param multithread:
     :return:
     """
     if multithread:
@@ -115,28 +116,16 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
             return None
 
         # except (ConnectionError, Timeout, TimeoutError, RemoteDisconnected, NetmikoTimeoutException) as ex:
-        #     nb_failures += 1
-        #     if nb_failures > 3:
-        #         print('\n*** ERROR ***', ex, f' *** {device.name} is skipped ***\n\n')  # display warning message
-        #         break  # exit the 'while True' loop to process the next device
-        #
-        #     print('\n*** Connection error *** ', ex,
-        #           f'\nWaiting for 15 seconds before re-processing {device.name} ...')
-        #     sleep(5)
-        #     print(f'Processing {device.name} once again')  # before reprocessing the device
-        #
-        # except Exception as ex:
-        #     print('\n*** ERROR ***', ex, f' *** {device.name} is skipped ***\n\n')  # display an error message
-        #     break  # exit the 'while True' loop to process the next device
-
         except Exception as ex:
             nb_failures += 1
             if nb_failures >= 5:
                 print(f'\n{device.name} : *** ERROR ***', ex, f' *** limit of 5 failures is reached, '
-                                             ' device is skipped ***\n\n')  # display message
+                                                              ' device is skipped ***\n\n')  # display message
+                device.deployment_status = 'skipped'
                 break  # exit the 'while True' loop to process the next device
 
-            print(f'\n{device.name} : error - ', ex, f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
+            print(f'\n{device.name} : error - ', ex,
+                  f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
             time.sleep(15)
             print(f'{device.name} : Processing device once again')  # before reprocessing the device
 
@@ -151,7 +140,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
     Render the configuration (Django template) and deploy it to the device
 
     :param request:
-    :param poc_id:
+    :param poc:
     :param device:
     :return:
     """

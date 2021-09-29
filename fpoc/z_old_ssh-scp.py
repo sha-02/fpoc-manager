@@ -18,6 +18,8 @@ fortigate = {
 
 
 def netmiko_kwargs(fgt):
+    """
+    """
     return {**fgt,
             'device_type': 'fortinet',
             # 'verbose': True,
@@ -32,6 +34,8 @@ def netmiko_kwargs(fgt):
 
 
 def paramiko_kwargs(fgt):
+    """
+    """
     dic = {**fgt, 'hostname': fgt['ip']}
     del (dic['ip'])
     return dic
@@ -80,6 +84,8 @@ def test_scp(fgt):
 
 
 def retrieve_bootstrap_config(fgt):
+    """
+    """
     ssh = netmiko.ConnectHandler(**netmiko_kwargs(fgt))
 
     # If the prompt contains a hostname of the form "FGVM<12-digits>" then this is a FortiPoC bootstrap config

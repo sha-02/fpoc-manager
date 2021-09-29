@@ -1,15 +1,14 @@
-from config.settings import BASE_DIR
-from requests.exceptions import Timeout
-
 import base64
 import re
 
-import requests, json
+import json
+import requests
 import urllib3
+from requests.exceptions import Timeout
 
-from fpoc.exceptions import StopProcessingDevice, ReProcessDevice
-import fpoc.fortipoc as fortipoc
+from config.settings import BASE_DIR
 from fpoc.devices import FortiGate
+from fpoc.exceptions import StopProcessingDevice
 
 # TODO:
 #
@@ -28,7 +27,7 @@ from fpoc.devices import FortiGate
 urllib3.disable_warnings()
 
 
-def retrieve_hostname(device: FortiGate)->str:
+def retrieve_hostname(device: FortiGate) -> str:
     """
     Retrieve the hostname of the FGT
 
@@ -53,6 +52,31 @@ def retrieve_hostname(device: FortiGate)->str:
     return response_json['results']['hostname']
 
 
+def is_running_ha(device: FortiGate) -> bool:
+    """
+    Retrieve the HA peers of the FGT
+
+    :param device:
+    :return:
+    """
+
+    url = f"https://{device.ip}:{device.https_port}" \
+          f"/api/v2/monitor/system/ha-peer?access_token={device.apikey}"
+
+    # print(url)
+    response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
+    if response.status_code != 200:
+        # API access failed => skip this device
+        raise StopProcessingDevice(f'{device.name} : failure to retrieve HA status of FGT'
+                                   f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
+
+    response_json = response.json()
+    # pprint(response_json)
+
+    # 'results' is a list of all HA peers. List is empty if no HA.
+    return bool(len(response_json['results']))
+
+
 def change_hostname(device: FortiGate, hostname: str):
     """
     Change the Hostname on the FGT
@@ -74,7 +98,7 @@ def change_hostname(device: FortiGate, hostname: str):
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
 
-def retrieve_fos_version(device: FortiGate)->str:
+def retrieve_fos_version(device: FortiGate) -> str:
     """
     Get the FOS version running on the FGT and update device.fos_version accordingly
 
@@ -208,7 +232,7 @@ def check_running_bootstrap(device: FortiGate):
 
 def check_having_bootstrap_revision(device: FortiGate):
     """
-    Check if there is a bootstrap config in the FGT's revision history.
+    Check if there is a bootstrap config in the FGT revision history.
 
     :param device:
     :return: True if there is a bootstrap revision. False otherwise.
@@ -241,6 +265,7 @@ def save_to_revision(device: FortiGate, comment: str):
     Save the current configuration running on the FGT into the revision history
 
     :param device:
+    :param comment:
     :return:
     """
     # Save the running config (bootstrap) in the revision history
@@ -273,7 +298,7 @@ def revert_to_revision(device: FortiGate, revision_id: int):
     try:
         response = requests.request("POST", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
                                     timeout=(5, 30), verify=False)
-    except Timeout as ex:
+    except Timeout:
         device.apikey = None  # Clear the API key since FGT is supposed to restart with bootstrap
         raise  # propagate the exception up the chain
 
