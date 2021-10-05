@@ -242,8 +242,7 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
         'duplicate_paths': request.POST.get('duplicate_paths'),
         # 'keep_duplicates', 'onnet_pref_spokes', 'offnet_filter_hub'
         'override_with_hub_nexthop': bool(request.POST.get('override_with_hub_nexthop', False)),  # True or False
-        'feasible_routes': request.POST.get('feasible_routes'),  # 'none', 'rfc1918', 'default_route'
-        'remote_internet_mpls': bool(request.POST.get('remote_internet_mpls', False)),  # True or False
+        'feasible_routes': request.POST.get('feasible_routes'),  # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
 
         # Hub is FGT-A from FortiPoC "Fundation1"
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -295,10 +294,6 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
         # There is no possible off-net prefix on a spoke when off-net prefixes are filtered by the Hub
         # So force 'override' to False
         context['override_with_hub_nexthop'] = False
-
-    if context['feasible_routes'] == 'default_route':
-        # feasible default-route already covers 'remote_internet_mpls'
-        context['remote_internet_mpls'] = False
 
     devices = {
         'FGT-A': FortiGate(name='FGT-DC-3', template_group='FGT-DC', template_context={'i': 3, **context}),
