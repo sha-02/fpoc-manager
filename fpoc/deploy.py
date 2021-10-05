@@ -53,11 +53,24 @@ def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> 
     status_devices = [
         {'name': device.name, 'name_fpoc': device.name_fpoc,
          'deployment_status': device.deployment_status,
-         'ip': request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip,
-         'https': poc.BASE_PORT_HTTPS + device.offset if poc.manager_inside_fpoc else device.https_port,
+         'URL': device_URL(request, poc, device),
          'context': device.template_context, 'config': device.config} for device in poc]
 
     return status_devices
+
+
+def device_URL(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -> str:
+    """
+    returns URL to access the device via the FortiPoC
+    """
+    ip = request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+
+    if isinstance(device, FortiGate):
+        return f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
+    if isinstance(device, LXC) or isinstance(device, Vyos):
+        return f'https://{ip}/term/dev_{device.name_fpoc}/ssh'
+
+    return f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
 
 
 def deploy_configs(request: WSGIRequest, poc: TypePoC, multithread=True):
