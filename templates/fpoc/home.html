@@ -330,16 +330,20 @@ $(document).ready(function(){
               <option value='ipip-ipsec-tunnel'>IP-in-IP over tunnel IPsec</option>
               <option value='geneve'>Geneve</option>
             </select>
-            IKE <select name="ike">
-              <option value=1>v1</option>
-              <option value=2 selected="selected">v2</option>
-            </select>
             Routing <select name="routing">
               <option value='static' selected="selected">static</option>
               <option value='ospf'>OSPF</option>
               <option value='ibgp'>iBGP (two peerings)</option>
               <option value='ibgp-loopback'>iBGP (peering over loopback via OSPF)</option>
               <option value='ebgp'>eBGP (two peerings)</option>
+            </select>
+            IKE <select name="ike">
+              <option value=1>v1</option>
+              <option value=2 selected="selected">v2</option>
+            </select>
+            Phase1 <select name="ipsec_phase1">
+              <option value='static2static' selected="selected">Static to Static</option>
+              <option value='static2dialup'>Static to Dialup</option>
             </select>
           <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_site2site' %}">Start</button>
         </fieldset>

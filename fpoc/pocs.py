@@ -100,14 +100,22 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'vpn': request.POST.get('vpn'),  # 'ipsec', 'gre', ...
-        'ike': request.POST.get('ike'),  # 1 or 2
         'routing': request.POST.get('routing'),  # 'static', 'ospf', 'ibgp', ...
+        'ike': request.POST.get('ike'),  # 1 or 2
+        'ipsec_phase1': request.POST.get('ipsec_phase1'),  # 'static2static', 'static2dialup'
 
         'fgta_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
         'fgta_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.11.1
         'fgtb_inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
         'fgtb_inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
     }
+
+    # If IPsec VPN with 'static2dialup' is selected then only static routing is possible
+    if context['vpn'] == 'ipsec' and context['ipsec_phase1'] == 'static2dialup':
+        context['routing'] = 'static'
+    # 'static2dialup' only applies to pure IPsec VPN, not GRE-IPsec, not IP-IP-IPsec, etc...
+    if context['ipsec_phase1'] == 'static2dialup' and context['vpn'] != 'ipsec':
+        context['ipsec_phase1'] = 'static2static'  # force to 'static2static' if it's not pure IPsec VPN
 
     # List of all devices for this Scenario
     devices = {
@@ -242,7 +250,8 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
         'duplicate_paths': request.POST.get('duplicate_paths'),
         # 'keep_duplicates', 'onnet_pref_spokes', 'offnet_filter_hub'
         'override_with_hub_nexthop': bool(request.POST.get('override_with_hub_nexthop', False)),  # True or False
-        'feasible_routes': request.POST.get('feasible_routes'),  # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
+        'feasible_routes': request.POST.get('feasible_routes'),
+        # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
 
         # Hub is FGT-A from FortiPoC "Fundation1"
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -327,8 +336,10 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
             devices[cluster[0]].ha.group_name = devices[cluster[0]].name  # group_name defaults to the device name
             devices[cluster[1]].ha.group_name = devices[cluster[1]].name
             devices[cluster[0]].ha.hbdev = devices[cluster[1]].ha.hbdev = [('port6', 0)]  # heartbeat interfaces
-            devices[cluster[0]].ha.sessyncdev = devices[cluster[1]].ha.sessyncdev = ['port6']  # session synch interfaces
-            devices[cluster[0]].ha.monitordev = devices[cluster[1]].ha.monitordev = ['port1', 'port2', 'port5']  # monitored interfaces
+            devices[cluster[0]].ha.sessyncdev = devices[cluster[1]].ha.sessyncdev = [
+                'port6']  # session synch interfaces
+            devices[cluster[0]].ha.monitordev = devices[cluster[1]].ha.monitordev = ['port1', 'port2',
+                                                                                     'port5']  # monitored interfaces
 
     # The request.POST sends all secondary devices (FGT-A_sec, etc...) for simplicity
     # The request.POST is a read-only QueryDict. So, to avoid configuring unrequested secondary devices I'm removing them
