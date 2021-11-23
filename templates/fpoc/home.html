@@ -286,7 +286,7 @@ $(document).ready(function(){
               <option value='none' selected="selected">No feasible route</option>
               <option value='rfc1918'>RFC1918 routes</option>
               <option value='remote_internet_all'>Default route (RBO/RIA) for all overlays</option>
-              <option value='remote_internet_mpls'>Default route (RBO/RIA) for MPLS only</option>
+              <option value='remote_internet_mpls' selected="selected">Default route (RBO/RIA) for MPLS</option>
             </select>
           </fieldset>
         <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_bgp_per_overlay' %}">Start</button>
