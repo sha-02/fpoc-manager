@@ -148,7 +148,7 @@ def vpn_dialup(request: WSGIRequest, poc_id: int):
     # This PoC is based on FortiPoC "Foundation1"
     context = {
         'ike': request.POST.get('ike'),  # 1 or 2
-        'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'
+        'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg' or 'None'
         'routing': request.POST.get('routing'),  # 'ike-routing', 'modecfg-routing', 'ospf', 'ibgp', 'ebgp',
         # 'ibgp-confederation'
         'advpn': bool(request.POST.get('advpn', False)),  # True or False
@@ -160,8 +160,12 @@ def vpn_dialup(request: WSGIRequest, poc_id: int):
     }
 
     # Some options are exclusive
-    if context['routing'] == 'ike-routing' or context['routing'] == 'modecfg-routing':
+    if context['routing'] == 'ike-routing':
         context['overlay'] = None
+        context['advpn'] = False
+
+    if context['routing'] == 'modecfg-routing':
+        context['overlay'] = 'mode-cfg'
         context['advpn'] = False
 
     devices = {
