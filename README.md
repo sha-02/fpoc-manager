@@ -11,9 +11,9 @@ $ source venv/bin/activate
 (venv) $ pip install -r requirements.txt
 ```
 
-# Rebase
+# Resynch
 ```
-git pull --rebase
+git pull
 ```
 
 # Start
