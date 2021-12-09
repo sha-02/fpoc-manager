@@ -33,7 +33,7 @@ $(document).ready(function(){
   <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
     <div class="p-2 bd-highlight">
       Name<select id="fpocSelection" name="fpocSelection">
-        <option value="0.0.0.0" selected="selected">internal</option>
+        <option value="0.0.0.0" selected>internal</option>
         <option value="10.5.58.151">radon01</option>
         <option value="10.5.55.1">spin01</option>
         <option value="10.5.55.10">spin10</option>
@@ -78,18 +78,18 @@ $(document).ready(function(){
         {% csrf_token %}
         <fieldset>
             HA <select name="HA">
-              <option value="standalone" selected="selected">standalone</option>
+              <option value="standalone" selected>standalone</option>
               <option value="FGCP">FGCP</option>
             </select>
-          <br><input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-A
-          <input type="checkbox" name="FGT-A_sec" value="FGT-A_sec" >FGT-A_sec
-          <br><input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-B
-          <input type="checkbox" name="FGT-B_sec" value="FGT-B_sec" >FGT-B_sec
-          <br><input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">FGT-C
-          <input type="checkbox" name="FGT-C_sec" value="FGT-C_sec" >FGT-C_sec
-          <br><input type="checkbox" name="FGT-D" value="FGT-D" checked="checked">FGT-D
-          <input type="checkbox" name="FGT-D_sec" value="FGT-D_sec" >FGT-D_sec
-          <br><input type="checkbox" name="ISFW-A" value="ISFW-A" >ISFW-A
+          <br><input type="checkbox" name="FGT-A" checked>FGT-A
+          <input type="checkbox" name="FGT-A_sec" >FGT-A_sec
+          <br><input type="checkbox" name="FGT-B" checked>FGT-B
+          <input type="checkbox" name="FGT-B_sec" >FGT-B_sec
+          <br><input type="checkbox" name="FGT-C" checked>FGT-C
+          <input type="checkbox" name="FGT-C_sec" >FGT-C_sec
+          <br><input type="checkbox" name="FGT-D" checked>FGT-D
+          <input type="checkbox" name="FGT-D_sec" >FGT-D_sec
+          <br><input type="checkbox" name="ISFW-A" >ISFW-A
         </fieldset>
       <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:bootstrap' %}">Start</button>
       </form>
@@ -115,9 +115,9 @@ $(document).ready(function(){
           {% csrf_token %}
           <fieldset>
             Devices
-            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-A
-            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-B
-            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">
+            <input type="checkbox" name="FGT-A" checked>FGT-A
+            <input type="checkbox" name="FGT-B" checked>FGT-B
+            <input type="checkbox" name="FGT-C" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">FGT-DC</span>
           </fieldset>
         <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_simple' %}">Start</button>
@@ -139,18 +139,17 @@ $(document).ready(function(){
     </div>
     <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
       <div class="card-body">
-<!--        <form id="formPoC_2" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
         <form id="formPoC_2" method="post" action="{% url 'fpoc:vpn_dialup' %}" onsubmit="collectFortiPoCElements(this.id)">
           {% csrf_token %}
           <fieldset>
             Devices
-            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">
+            <input type="checkbox" name="FGT-A" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">Hub</span>
-            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">
+            <input type="checkbox" name="FGT-B" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Spoke01</span>
-            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">
+            <input type="checkbox" name="FGT-C" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Spoke02</span>
-            <input type="checkbox" name="FGT-D" value="FGT-D" checked="checked">
+            <input type="checkbox" name="FGT-D" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">Spoke03</span>
           </fieldset>
           <fieldset>
@@ -184,22 +183,22 @@ $(document).ready(function(){
           <fieldset>
             IKE <select name="ike">
               <option value=1>v1</option>
-              <option value=2 selected="selected">v2</option>
+              <option value=2 selected>v2</option>
             </select>
             Routing <select name="routing">
               <option value='ike-routing'>IKE routing (RRI)</option>
               <option value='modecfg-routing'>Mode-Config routing</option>
               <option value='ospf'>OSPF</option>
-              <option value='ibgp' selected="selected">iBGP Route Reflector</option>
+              <option value='ibgp' selected>iBGP Route Reflector</option>
               <option value='ibgp-confederation'>iBGP Confederation</option>
               <option value='ebgp'>eBGP</option>
             </select>
             Overlay <select name="overlay">
             <option value='None'>No overlay IP</option>
-            <option value='modecfg' selected="selected">Dynamic (Mode-Config)</option>
+            <option value='modecfg' selected>Dynamic (Mode-Config)</option>
             <option value='static'>static (exchange-interface-ip)</option>
             </select>
-            <input type="checkbox" name="advpn" value=1 checked="checked">ADVPN
+            <input type="checkbox" name="advpn" value=1 checked>ADVPN
 
           <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_dialup' %}">Start</button>
         </fieldset>
@@ -221,26 +220,25 @@ $(document).ready(function(){
   </div>
   <div id="collapse-4" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
     <div class="card-body">
-      <h5>Dual Hub, Single tunnel to each Hub</h5>
-<!--        <form id="formPoC_4" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+      <h5>ADVPN Dual Hub - Single tunnel to each Hub</h5>
       <form id="formPoC_4" method="post" action="{% url 'fpoc:vpn_dualhub_singletunnel' %}" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
           <fieldset>
             Devices
-            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">
+            <input type="checkbox" name="FGT-A" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">Hub-1</span>
-            <input type="checkbox" name="FGT-A_sec" value="FGT-A_sec" checked="checked">
+            <input type="checkbox" name="FGT-A_sec" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-A_sec)">Hub-2</span>
-            <input type="checkbox" name="ISFW-A" value="ISFW-A" checked="checked">
+            <input type="checkbox" name="ISFW-A" checked>
               <span data-toggle="tooltip" data-placement="top" title="(ISFW-A)">ISFW</span>
-            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">
+            <input type="checkbox" name="FGT-B" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Spoke1</span>
-            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">
+            <input type="checkbox" name="FGT-C" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Spoke2</span>
           </fieldset>
           <fieldset>
             Mode <select name="mode">
-              <option value='active_passive' selected="selected">Active-Passive</option>
+              <option value='active_passive' selected>Active-Passive</option>
               <option value='active_active' >Active-Active</option>
             </select>
           </fieldset>
@@ -248,20 +246,19 @@ $(document).ready(function(){
       </form>
 
       <hr>
-      <h5>SDWAN+ADVPN (one BGP peering per overlay)</h5>
-<!--        <form id="formPoC_4" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
-      <form id="formPoC_5" method="post" action="{% url 'fpoc:sdwan_advpn_bgp_per_overlay' %}" onsubmit="collectFortiPoCElements(this.id)">
+      <h5>SDWAN+ADVPN - Single Hub</h5>
+      <form id="formPoC_5" method="post" action="{% url 'fpoc:sdwan_advpn_singlehub' %}" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
           <fieldset>
             Devices
-            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">
+            <input type="checkbox" name="FGT-A" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">FGT-DC-3</span>
-            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">
+            <input type="checkbox" name="FGT-B" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">FGT-SDW-1</span>
-            <input type="checkbox" name="FGT-C" value="FGT-C" checked="checked">
+            <input type="checkbox" name="FGT-C" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">FGT-SDW-2</span>
             HA <select name="HA">
-              <option value="standalone" selected="selected">standalone</option>
+              <option value="standalone" selected>standalone</option>
               <option value="FGCP">FGCP</option>
             </select>
             <input type="hidden" name="FGT-A_sec" value="FGT-A_sec">
@@ -271,12 +268,12 @@ $(document).ready(function(){
           <fieldset>
             Overlay <select name="overlay">
               <option value='static'>static (exchange-interface-ip)</option>
-              <option value='modecfg' selected="selected">Dynamic (Mode-Config)</option>
+              <option value='modecfg' selected>Dynamic (Mode-Config)</option>
             </select>
           </fieldset>
           <fieldset>
             Duplicate Add-Paths <select name="duplicate_paths">
-              <option value='keep_duplicates' selected="selected">Keep duplicates</option>
+              <option value='keep_duplicates' selected>Keep duplicates</option>
               <option value='onnet_pref_spokes'>On-net preference on the Spokes</option>
               <option value='offnet_filter_hub'>Off-net filtering on the Hub</option>
             </select>
@@ -284,13 +281,42 @@ $(document).ready(function(){
           </fieldset>
           <fieldset>
             Branches overlay static routes <select name="feasible_routes">
-              <option value='none' selected="selected">No feasible route</option>
+              <option value='none' selected>No feasible route</option>
               <option value='rfc1918'>RFC1918 routes</option>
               <option value='remote_internet_all'>Default route (RBO/RIA) for all overlays</option>
-              <option value='remote_internet_mpls' selected="selected">Default route (RBO/RIA) for MPLS</option>
+              <option value='remote_internet_mpls' selected>Default route (RBO/RIA) for MPLS</option>
             </select>
           </fieldset>
-        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_bgp_per_overlay' %}">Start</button>
+        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_singlehub' %}">Start</button>
+      </form>
+
+      <hr>
+      <h5>SDWAN+ADVPN - Dual DC & Dual Region (FOS 6.4+)</h5>
+      <form id="formPoC_6" method="post" action="{% url 'fpoc:sdwan_advpn_dualdc' %}" onsubmit="collectFortiPoCElements(this.id)">
+        {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">West DC-1</span>
+            <input type="checkbox" name="FGT-A_sec" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-A_sec)">West DC-2</span>
+            <input type="checkbox" name="FGT-C" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">West Branch-1</span>
+            <input type="checkbox" name="FGT-C_sec" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-C_sec)">West Branch-2</span>
+            <input type="checkbox" name="FGT-B">
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">East DC-3</span>
+            <input type="checkbox" name="FGT-D">
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">East Branch-3</span>
+          </fieldset>
+          <fieldset>
+            Remote Internet Access <select name="remote_internet">
+              <option value='none'>DIA only</option>
+              <option value='mpls' selected>RIA over MPLS</option>
+              <option value='all'>RIA over all overlays</option>
+            </select>
+          </fieldset>
+        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_dualdc' %}">Start</button>
       </form>
     </div>
   </div>
@@ -310,18 +336,16 @@ $(document).ready(function(){
     <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordionPoC">
       <div class="card-body">
         <h5>Two redundant static tunnels</h5>
-
-<!--        <form id="formPoC_3" method="post" action="{% url 'fpoc:display_request_parameters' %}" onsubmit="collectFortiPoCElements(this.id)">-->
         <form id="formPoC_3" method="post" action="{% url 'fpoc:vpn_site2site' %}" onsubmit="collectFortiPoCElements(this.id)">
           {% csrf_token %}
           <fieldset>
             Devices
-            <input type="checkbox" name="FGT-A" value="FGT-A" checked="checked">FGT-A
-            <input type="checkbox" name="FGT-B" value="FGT-B" checked="checked">FGT-B
+            <input type="checkbox" name="FGT-A" checked>FGT-A
+            <input type="checkbox" name="FGT-B" checked>FGT-B
           </fieldset>
           <fieldset>
             VPN <select name="vpn">
-              <option value='ipsec' selected="selected">IPsec</option>
+              <option value='ipsec' selected>IPsec</option>
               <option value='gre'>GRE</option>
               <option value='gre-ipsec-transport'>GRE over transport IPsec</option>
               <option value='gre-ipsec-tunnel'>GRE over tunnel IPsec</option>
@@ -332,7 +356,7 @@ $(document).ready(function(){
               <option value='geneve'>Geneve</option>
             </select>
             Routing <select name="routing">
-              <option value='static' selected="selected">static</option>
+              <option value='static' selected>static</option>
               <option value='ospf'>OSPF</option>
               <option value='ibgp'>iBGP (two peerings)</option>
               <option value='ibgp-loopback'>iBGP (peering over loopback via OSPF)</option>
@@ -340,10 +364,10 @@ $(document).ready(function(){
             </select>
             IKE <select name="ike">
               <option value=1>v1</option>
-              <option value=2 selected="selected">v2</option>
+              <option value=2 selected>v2</option>
             </select>
             Phase1 <select name="ipsec_phase1">
-              <option value='static2static' selected="selected">Static to Static</option>
+              <option value='static2static' selected>Static to Static</option>
               <option value='static2dialup'>Static to Dialup</option>
             </select>
           <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_site2site' %}">Start</button>

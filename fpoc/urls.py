@@ -15,7 +15,8 @@ urlpatterns = [
     path('poc/0/', pocs.bootstrap, {'poc_id': 0}, name='bootstrap'),
 
     path('poc/1/', pocs.sdwan_simple, {'poc_id': 1}, name='sdwan_simple'),
-    path('poc/5/', pocs.sdwan_advpn_bgp_per_overlay, {'poc_id': 5}, name='sdwan_advpn_bgp_per_overlay'),
+    path('poc/5/', pocs.sdwan_advpn_singlehub, {'poc_id': 5}, name='sdwan_advpn_singlehub'),
+    path('poc/6/', pocs.sdwan_advpn_dualdc, {'poc_id': 6}, name='sdwan_advpn_dualdc'),
 
     path('poc/2/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('poc/3/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),

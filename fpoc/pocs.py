@@ -245,7 +245,7 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
                    'devices': status_devices})
 
 
-def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
+def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int):
     """
     """
     # This PoC is based on FortiPoC "Foundation1"
@@ -257,7 +257,7 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
         'feasible_routes': request.POST.get('feasible_routes'),
         # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
 
-        # Hub is FGT-A from FortiPoC "Fundation1"
+        # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
         'hub_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
         'hub_lte': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -353,6 +353,60 @@ def sdwan_advpn_bgp_per_overlay(request: WSGIRequest, poc_id: int):
             del devices[cluster[1]]
         elif not request.POST.get(cluster[0]):  # this device is not in the list of to-be-configured devices
             del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
+
+    # This PoC is based on FortiPoC "Foundation1"
+    if inspect(request).is_invalid:
+        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
+    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+                               device_dependencies)
+    return render(request, f'{APPNAME}/deployment_status.html',
+                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
+                   'devices': status_devices})
+
+
+def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
+    """
+    """
+    # This PoC is based on FortiPoC "Foundation1"
+    context = {
+        'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
+
+        # Underlay IPs of the Hubs which are used as IPsec remote-gw by the branches
+        'dc1_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
+        'dc1_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
+        'dc1_mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
+
+        'dc2_inet1': FortiPoCFoundation1.devices['FGT-A_sec'].wan.inet1.subnet + '.2',  # 100.64.11.2
+        'dc2_inet2': FortiPoCFoundation1.devices['FGT-A_sec'].wan.inet2.subnet + '.2',  # 100.64.12.2
+        'dc2_mpls': FortiPoCFoundation1.devices['FGT-A_sec'].wan.mpls1.subnet + '.2',  # 10.0.14.2
+    }
+
+    devices = {
+        'FGT-A': FortiGate(name='FGT-W-DC1', template_group='WEST-DC', template_context={'dc_id': 1, **context}),
+        'FGT-A_sec': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context={'dc_id': 2, **context}),
+        'FGT-C': FortiGate(name='FGT-W-BR1', template_group='WEST-BRANCHES', template_context={'branch_id': 1, **context}),
+        'FGT-C_sec': FortiGate(name='FGT-W-BR2', template_group='WEST-BRANCHES', template_context={'branch_id': 2, **context}),
+
+        'FGT-B': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context={'dc_id': 3, **context}),
+        'FGT-D': FortiGate(name='FGT-E-BR3', template_group='EAST-BRANCHES', template_context={'branch_id': 3, **context}),
+
+        'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
+        'PC_A2': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
+        'PC_C1': LXC(name='PC-W-BR1', template_context={'ipmask': '10.0.1.101/24', 'gateway': '10.0.1.1'}),
+        'PC_C2': LXC(name='PC-W-BR2', template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'}),
+
+        'PC_B1': LXC(name='PC_E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'}),
+        'PC_D1': LXC(name='PC_E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
+    }
+
+    device_dependencies = {
+        'FGT-A': ('PC_A1',),
+        'FGT-A_sec': ('PC_A2',),
+        'FGT-B': ('PC_B1',),
+        'FGT-C': ('PC_C1',),
+        'FGT-C_sec': ('PC_C2',),
+        'FGT-D': ('PC_D1',),
+    }
 
     # This PoC is based on FortiPoC "Foundation1"
     if inspect(request).is_invalid:
