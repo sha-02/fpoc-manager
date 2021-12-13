@@ -376,36 +376,34 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
         'dc1_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
         'dc1_mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
 
-        'dc2_inet1': FortiPoCFoundation1.devices['FGT-A_sec'].wan.inet1.subnet + '.2',  # 100.64.11.2
-        'dc2_inet2': FortiPoCFoundation1.devices['FGT-A_sec'].wan.inet2.subnet + '.2',  # 100.64.12.2
-        'dc2_mpls': FortiPoCFoundation1.devices['FGT-A_sec'].wan.mpls1.subnet + '.2',  # 10.0.14.2
+        'dc2_inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
+        'dc2_inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
+        'dc2_mpls': FortiPoCFoundation1.devices['FGT-B'].wan.mpls1.subnet + '.2',  # 10.0.24.2
     }
 
     devices = {
         'FGT-A': FortiGate(name='FGT-W-DC1', template_group='WEST-DC', template_context={'dc_id': 1, **context}),
-        'FGT-A_sec': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context={'dc_id': 2, **context}),
+        'FGT-B': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context={'dc_id': 2, **context}),
+        'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context={'dc_id': 3, **context}),
         'FGT-C': FortiGate(name='FGT-W-BR1', template_group='WEST-BRANCHES', template_context={'branch_id': 1, **context}),
-        'FGT-C_sec': FortiGate(name='FGT-W-BR2', template_group='WEST-BRANCHES', template_context={'branch_id': 2, **context}),
-
-        'FGT-B': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context={'dc_id': 3, **context}),
-        'FGT-D': FortiGate(name='FGT-E-BR3', template_group='EAST-BRANCHES', template_context={'branch_id': 3, **context}),
+        'FGT-D': FortiGate(name='FGT-W-BR2', template_group='WEST-BRANCHES', template_context={'branch_id': 2, **context}),
+        'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='EAST-BRANCHES', template_context={'branch_id': 3, **context}),
 
         'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
-        'PC_A2': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
+        'PC_B1': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
+        'PC_B2': LXC(name='PC_E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'}),
         'PC_C1': LXC(name='PC-W-BR1', template_context={'ipmask': '10.0.1.101/24', 'gateway': '10.0.1.1'}),
-        'PC_C2': LXC(name='PC-W-BR2', template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'}),
-
-        'PC_B1': LXC(name='PC_E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'}),
-        'PC_D1': LXC(name='PC_E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
+        'PC_D1': LXC(name='PC-W-BR2', template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'}),
+        'PC_D2': LXC(name='PC_E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
     }
 
     device_dependencies = {
         'FGT-A': ('PC_A1',),
-        'FGT-A_sec': ('PC_A2',),
         'FGT-B': ('PC_B1',),
+        'FGT-B_sec': ('PC_B2',),
         'FGT-C': ('PC_C1',),
-        'FGT-C_sec': ('PC_C2',),
         'FGT-D': ('PC_D1',),
+        'FGT-D_sec': ('PC_D2',),
     }
 
     # This PoC is based on FortiPoC "Foundation1"
