@@ -187,6 +187,7 @@ class FortiPoCFoundation1(FortiPoC):
         'RTR-NAT_B': LXC(offset=20, mgmt_ip='172.16.31.8/24'),
         'RTR-NAT_C': LXC(offset=21, mgmt_ip='172.16.31.12/24'),
         'RTR-NAT_D': LXC(offset=22, mgmt_ip='172.16.31.18/24'),
+        'SRV_INET': LXC(offset=23, mgmt_ip='172.16.31.20/24'),
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int, devices: dict):
