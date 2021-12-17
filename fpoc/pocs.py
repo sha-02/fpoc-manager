@@ -371,23 +371,49 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
     context = {
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
 
-        # Underlay IPs of the Hubs which are used as IPsec remote-gw by the branches
-        'dc1_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
-        'dc1_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
-        'dc1_mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
-
-        'dc2_inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
-        'dc2_inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
-        'dc2_mpls': FortiPoCFoundation1.devices['FGT-B'].wan.mpls1.subnet + '.2',  # 10.0.24.2
+        # Underlay IPs of the Hubs which are used as IPsec remote-gw by the Branches
+        'datacenter': {
+            'west': {
+                'first': {
+                    'id': 1,
+                    'inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
+                    'inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
+                    'mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
+                },
+                'second': {
+                    'id': 2,
+                    'inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
+                    'inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
+                    'mpls': FortiPoCFoundation1.devices['FGT-B'].wan.mpls1.subnet + '.2',  # 10.0.24.2
+                },
+            },
+            'east': {
+                'first': {
+                    'id': 3,
+                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.3',  # 100.64.21.3
+                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.3',  # 100.64.22.3
+                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.3',  # 10.0.24.3
+                },
+                'second': {  # Fictitious second DC for East region
+                    'id': 4,
+                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.4',  # 100.64.21.4
+                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.4',  # 100.64.22.4
+                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.4',  # 10.0.24.4
+                }
+            }
+        }
     }
 
     devices = {
         'FGT-A': FortiGate(name='FGT-W-DC1', template_group='WEST-DC', template_context={'dc_id': 1, **context}),
         'FGT-B': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context={'dc_id': 2, **context}),
         'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context={'dc_id': 3, **context}),
-        'FGT-C': FortiGate(name='FGT-W-BR1', template_group='WEST-BRANCHES', template_context={'branch_id': 1, **context}),
-        'FGT-D': FortiGate(name='FGT-W-BR2', template_group='WEST-BRANCHES', template_context={'branch_id': 2, **context}),
-        'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='EAST-BRANCHES', template_context={'branch_id': 3, **context}),
+        'FGT-C': FortiGate(name='FGT-W-BR1', template_group='BRANCHES',
+                           template_context={'branch_id': 1, 'region': 'West', **context}),
+        'FGT-D': FortiGate(name='FGT-W-BR2', template_group='BRANCHES',
+                           template_context={'branch_id': 2, 'region': 'West', **context}),
+        'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='BRANCHES',
+                               template_context={'branch_id': 3, 'region': 'East', **context}),
 
         'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
         'PC_B1': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
