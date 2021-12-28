@@ -61,13 +61,13 @@ def sdwan_simple(request: WSGIRequest, poc_id: int):
     """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
-        # Hub is FGT-C from FortiPoC "Fundation1"
+        # Underlay IP@ of the Hub for IPsec VPN on Branches ('set remote-gw x.x.x.x')
         'hub': FortiPoCFoundation1.devices['FGT-C'].wan.inet1.subnet + '.1',  # 100.64.31.1
     }
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-A', template_group='FGT-i', template_context={'i': 1, **context}),
-        'FGT-B': FortiGate(name='FGT-B', template_group='FGT-i', template_context={'i': 2, **context}),
+        'FGT-A': FortiGate(name='FGT-A', template_group='FGT-i', template_context={'i': 1, 'overlay': '10.255', **context}),
+        'FGT-B': FortiGate(name='FGT-B', template_group='FGT-i', template_context={'i': 2, 'overlay': '10.254', **context}),
         'FGT-C': FortiGate(name='FGT-DC'),
 
         'PC_A1': LXC(name='PC-A1', template_context={'ipmask': '192.168.1.1/24', 'gateway': '192.168.1.254'}),
