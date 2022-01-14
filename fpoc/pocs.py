@@ -369,7 +369,9 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
     """
     # This PoC is based on FortiPoC "Foundation1"
     context = {
+        # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
+        'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
 
         # Underlay IPs of the Hubs which are used as IPsec remote-gw by the Branches
         'datacenter': {
@@ -404,23 +406,40 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
         }
     }
 
+    # For simplified template files because it is not possible to write conditional "{% with %}" statement with django templates
+    west_ASN_FOS7, east_ASN_FOS7 = 65012, 65003     # FOS >= 7.0: always eBGP for cross-region
+
+    if context['cross_region_advpn']:
+        west_ASN_FOS6, east_ASN_FOS6 = 65000, 65000  # FOS 6.4: iBGP if cross-region shortcuts
+    else:
+        west_ASN_FOS6, east_ASN_FOS6 = 65012, 65003  # FOS 6.4: eBGP if no cross-region shortcuts
+
+    west_ASN = {'local_ASN_FOS7':west_ASN_FOS7, 'remote_ASN_FOS7':east_ASN_FOS7,
+                'local_ASN_FOS6':west_ASN_FOS6, 'remote_ASN_FOS6':east_ASN_FOS6}
+    east_ASN = {'local_ASN_FOS7':east_ASN_FOS7, 'remote_ASN_FOS7':west_ASN_FOS7,
+                'local_ASN_FOS6':east_ASN_FOS6, 'remote_ASN_FOS6':west_ASN_FOS6}
+
+    ctx_dc1 = {'dc_id': 1, **west_ASN, **context}
+    ctx_dc2 = {'dc_id': 2, **west_ASN, **context}
+    ctx_dc3 = {'dc_id': 3, **east_ASN, **context}
+    ctx_br1 = {'branch_id': 1, 'region': 'West', **west_ASN, **context}
+    ctx_br2 = {'branch_id': 2, 'region': 'West', **west_ASN, **context}
+    ctx_br3 = {'branch_id': 3, 'region': 'East', **east_ASN, **context}
+
     devices = {
-        'FGT-A': FortiGate(name='FGT-W-DC1', template_group='WEST-DC', template_context={'dc_id': 1, **context}),
-        'FGT-B': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context={'dc_id': 2, **context}),
-        'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context={'dc_id': 3, **context}),
-        'FGT-C': FortiGate(name='FGT-W-BR1', template_group='BRANCHES',
-                           template_context={'branch_id': 1, 'region': 'West', **context}),
-        'FGT-D': FortiGate(name='FGT-W-BR2', template_group='BRANCHES',
-                           template_context={'branch_id': 2, 'region': 'West', **context}),
-        'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='BRANCHES',
-                               template_context={'branch_id': 3, 'region': 'East', **context}),
+        'FGT-A': FortiGate(name='FGT-W-DC1', template_group='WEST-DC', template_context=ctx_dc1),
+        'FGT-B': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context=ctx_dc2),
+        'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context=ctx_dc3),
+        'FGT-C': FortiGate(name='FGT-W-BR1', template_group='BRANCHES', template_context=ctx_br1),
+        'FGT-D': FortiGate(name='FGT-W-BR2', template_group='BRANCHES', template_context=ctx_br2),
+        'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='BRANCHES', template_context=ctx_br3),
 
         'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
         'PC_B1': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
-        'PC_B2': LXC(name='PC_E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'}),
+        'PC_B2': LXC(name='PC-E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'}),
         'PC_C1': LXC(name='PC-W-BR1', template_context={'ipmask': '10.0.1.101/24', 'gateway': '10.0.1.1'}),
         'PC_D1': LXC(name='PC-W-BR2', template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'}),
-        'PC_D2': LXC(name='PC_E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
+        'PC_D2': LXC(name='PC-E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
     }
 
     device_dependencies = {

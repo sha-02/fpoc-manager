@@ -315,6 +315,7 @@ $(document).ready(function(){
               <option value='mpls' selected>RIA over MPLS</option>
               <option value='all'>RIA over all overlays</option>
             </select>
+            <input type="checkbox" name="cross_region_advpn" value=1 checked>Cross-Region ADVPN shortcuts
           </fieldset>
         <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_dualdc' %}">Start</button>
       </form>
