@@ -55,27 +55,27 @@ def create_api_admin(device: FortiGate):
 
     ssh = ssh_logon(device)
 
-    # Create API admin
-    cli_commands = f'''
-    config system api-user
-        edit "{device.apiadmin}"
-            set accprofile "super_admin"
-            set vdom "root"
-            config trusthost
-                edit 1
-                    set ipv4-trusthost {device.mgmt_subnet}
-                next
-            end
-        next
-    end    
-    '''
-
-    # Create API admin
-    output_create_admin = ssh.send_config_set(cli_commands.splitlines())
+    # Check if there is an API admin already configured on this device
+    device.output = ssh.send_command(f'get sys api-user | grep "name: {device.apiadmin}"')
+    if device.output.strip() != f'name: {device.apiadmin}':  # API admin is not configured on the device
+        # Create API admin
+        cli_commands = f'''
+        config system api-user
+            edit "{device.apiadmin}"
+                set accprofile "super_admin"
+                set vdom "root"
+                config trusthost
+                    edit 1
+                        set ipv4-trusthost {device.mgmt_subnet}
+                    next
+                end
+            next
+        end    
+        '''
+        device.output += ssh.send_config_set(cli_commands.splitlines())
 
     # Generate and retrieve the API key for the API admin
     output_generate_apikey = ssh.send_command('exec api-user generate-key adminapi')
-
     re_token = re.search('New API key:(.+)', output_generate_apikey, re.IGNORECASE)
 
     if not re_token:  # API key failed to be retrieved => skip this device
@@ -86,7 +86,7 @@ def create_api_admin(device: FortiGate):
     device.apikey = re_token.group(1).strip()
 
     # Store the output of the SSH session (can be useful for debugging)
-    device.output = output_create_admin + output_generate_apikey
+    device.output += output_generate_apikey
 
 
 def retrieve_hostname(device: FortiGate) -> str:
@@ -97,11 +97,10 @@ def retrieve_hostname(device: FortiGate) -> str:
     """
     ssh = ssh_logon(device)
 
-    # Create API admin
     device.output = ssh.send_command('get system status')
     re_token = re.search('Hostname: (.+)', device.output, re.IGNORECASE)
 
-    if not re_token:  # API key failed to be retrieved => skip this device
+    if not re_token:  # failed to retrieve hostname => skip this device
         raise StopProcessingDevice(f'device={device.name} : failure to retrieve the hostname via SSH')
 
     # Return the hostname
@@ -116,11 +115,10 @@ def is_running_ha(device: FortiGate) -> bool:
     """
     ssh = ssh_logon(device)
 
-    # Create API admin
     device.output = ssh.send_command('get system status')
     re_token = re.search('Current HA mode: (.+)', device.output, re.IGNORECASE)
 
-    if not re_token:  # API key failed to be retrieved => skip this device
+    if not re_token:  # failed to retrieve HA status => skip this device
         raise StopProcessingDevice(f'device={device.name} : failure to retrieve the HA status via SSH')
 
     # Return True if HA mode is not 'standalone', return False if HA mode is 'standalone'

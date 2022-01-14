@@ -32,7 +32,7 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         dev.name = devname
         dev.template_group = 'bootstrap_configs'
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
-        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ip}
+        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ipmask}
         if request.POST.get('HA') == 'FGCP':
             dev.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=devname,
                                   hbdev=[('port6', 0)], sessyncdev=['port6'],

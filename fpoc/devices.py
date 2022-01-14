@@ -36,8 +36,8 @@ class Device:
     ssh_port: int = None  # e.g., 10100+offset (access from FortiPoC IP) or 22 (access from within FortiPoC)
     https_port: int = None  # e.g., 10400+offset (access from FortiPoC IP) or 443 (access from within FortiPoC)
 
-    mgmt_ip: str = None  # IP@ of this Device in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.12/24')
-    mgmt_fpoc: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
+    mgmt_ipmask: str = None  # IP@ of this Device in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.1/24')
+    mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name of the device
     name_fpoc: str = None  # Name of the device in the FortiPoC
@@ -63,7 +63,19 @@ class Device:
     def mgmt_subnet(self):
         """
         """
-        return ipaddress.ip_interface(self.mgmt_ip).network.compressed  # e.g. '172.16.31.0/24'
+        return ipaddress.ip_interface(self.mgmt_ipmask).network.compressed  # e.g. '172.16.31.0/24' when mgmt_ipmask='172.16.31.1/24'
+
+    @property
+    def mgmt_ip(self):
+        """
+        """
+        return ipaddress.ip_interface(self.mgmt_ipmask).ip.compressed  # e.g. '172.16.31.1' when mgmt_ipmask='172.16.31.1/24'
+
+    @property
+    def mgmt_fpoc_ip(self):
+        """
+        """
+        return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed  # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
 
 
 @dataclass
@@ -106,14 +118,16 @@ class FortiGate(Device):
         return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
 
     def __post_init__(self):  # Apply default values
-        # attributes inherited from parent class
         super(FortiGate, self).__post_init__()  # Call parent __post_init__
+        #
+        # attributes inherited from parent class
         self.username = self.username or 'admin'  # initialize if it is None
         self.password = self.password or 'fortinet'  # initialize if it is None
-        self.apiadmin = self.apiadmin or 'adminapi'  # initialize if it is None
         self.template_filename = self.template_filename or '_FGT.conf'  # initialize if it is None
         self.template_context['name'] = self.name
+        #
         # attributes from local class
+        self.apiadmin = 'adminapi'
         self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
 

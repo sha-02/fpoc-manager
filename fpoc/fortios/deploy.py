@@ -21,11 +21,10 @@ def prepare_api(device: FortiGate):
     print(f'{device.name} : Checking if FGT has an API key')
 
     if not device.apikey:
-        # There is no API key for this FGT. Connect to the device via SSH to create an admin api-user,
+        # There is no API key for this FGT. Connect to the device via SSH to create an admin api-user (if none exists),
         # generate and retrieve an API key for this admin
-        print(f'{device.name} : No API key. Adding an API admin and retrieving an API key via an SSH session')
-
-        fortios.create_api_admin(device)  # creates API admin and updates the device.apikey
+        print(f'{device.name} : No API key. Adding an API admin (if none exists) and retrieving his API key via SSH')
+        fortios.create_api_admin(device)  # creates API admin (if needed) and updates the device.apikey
         # print(output)
 
     # There is an API key for this FGT
@@ -186,7 +185,6 @@ def render_bootstrap_config(device: FortiGate):
     :param device:
     :return:
     """
-    import ipaddress
 
     # Check if there is a bootstrap config for this FOS firmware on the disk (file name e.g. '6.4.6.out')
     bootstrap_path = f'{BASE_DIR}/templates/fpoc/fpoc00/bootstrap_configs'
@@ -200,11 +198,12 @@ def render_bootstrap_config(device: FortiGate):
 
     # Render the bootstrap configuration
 
-    device.template_context['ip'] = device.mgmt_ip  # mgmt IP in the OOB MGMT subnet (e.g., 172.16.31.12)
+    device.template_context['ip'] = device.mgmt_ipmask  # mgmt IP in the OOB MGMT subnet (e.g., 172.16.31.12/24)
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['mgmt_fpoc'] = ipaddress.ip_interface(device.mgmt_fpoc).ip.compressed  # management IP of
-    # the FortiPoC inside the OOB mgmt subnet (e.g., 172.16.31.254)
+    device.template_context['mgmt_subnet'] = device.mgmt_subnet  # e.g. 172.16.31.0/24
+    device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # e.g., 172.16.31.254
     device.template_context['mgmt_interface'] = device.mgmt_interface
+    device.template_context['apiadmin'] = device.apiadmin
     device.template_context['HA'] = device.ha
 
     device.config = loader.render_to_string(f'fpoc/fpoc00/bootstrap_configs/{device.fos_version}.conf',
@@ -272,14 +271,13 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     :param device:
     :return:
     """
-    import ipaddress
 
     # Prepare the FGT: API admin, API key and FortiOS version
     #
     if request.POST.get('previewOnly') and request.POST.get('targetedFOSversion'):
         device.fos_version = request.POST['targetedFOSversion']  # FOS version assigned to FGTs for config rendering
     else:
-        prepare_api(device)  # create API admin and key
+        prepare_api(device)  # create API admin and key if needed
         # ensure FGT runs the desired FortiOS version if user asked for a specific FOS version
         prepare_fortios_version(device, fos_version_target=request.POST.get('targetedFOSversion'), lock=poc.lock)
 
@@ -300,7 +298,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # Add information to the template context of this device
     device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['mgmt_fpoc'] = ipaddress.ip_interface(device.mgmt_fpoc).ip.compressed  # 172.16.31.254
+    device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
     device.template_context['HA'] = device.ha
     device.template_context['wan'] = device.wan
 
