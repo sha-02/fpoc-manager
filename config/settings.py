@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '43)%4yx)aa@a=+_c(fn&kf3g29xax+=+a&key9i=!98zyim=8j'
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = True
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 # ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
 ALLOWED_HOSTS = ["*"]
@@ -65,6 +66,17 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
 TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.jinja2.Jinja2',
+        'DIRS': ['templates_jinja'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'environment': 'config.jinja.JinjaEnvironment',
+            'extensions': [
+                'jinja2.ext.debug',
+            ],
+        },
+    },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': ['templates'],
@@ -175,3 +187,9 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
+
+# FPoC configuration settings
+PATH_FPOC_FIRMWARE = f'{BASE_DIR}/firmware'
+PATH_FPOC_TEMPLATES = f'{BASE_DIR}/templates_jinja/fpoc'
+PATH_FPOC_BOOTSTRAP_CONFIGS = f'{PATH_FPOC_TEMPLATES}/fpoc00/bootstrap_configs'
+PATH_FPOC_CONFIG_SAVE = f'{PATH_FPOC_TEMPLATES}/configs'

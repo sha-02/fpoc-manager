@@ -20,7 +20,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
     #
 
     template_name = f'fpoc/lxc.conf'
-    device.config = loader.render_to_string(template_name, device.template_context, request)
+    device.config = loader.render_to_string(template_name, device.template_context, request, using='jinja2')
     # print(cli_settings)
 
     # Save this CLI configuration script to disk

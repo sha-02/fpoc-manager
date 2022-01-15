@@ -1,6 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
-from config.settings import BASE_DIR
+from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE
 import threading
 
 import fpoc.fortios as fortios
@@ -74,16 +74,15 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # firmware filename can also be prefixed by the version. So filename can be, for e.g.:
     # - 'FGT_VM64_KVM-v6-build1911-FORTINET.out'
     # - or '6.4.7_FGT_VM64_KVM-v6-build1911-FORTINET.out'
-    firmware_path = f'{BASE_DIR}/templates/firmware'
     for firmware in (firmwares[fos_version_target]["filename"],
                      fos_version_target + '_' + firmwares[fos_version_target]["filename"]):
         try:
-            with open(f'{firmware_path}/{firmware}', "rb"):
+            with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', "rb"):
                 break
         except FileNotFoundError:
             pass
     else:
-        print(f'{device.name} : Firmware not found in folder {firmware_path}')
+        print(f'{device.name} : Firmware not found in folder {PATH_FPOC_FIRMWARE}')
         print(f'{device.name} : Downloading firmware image from store... ')
         firmware = firmwares[fos_version_target]["filename"]
         firmware_download(firmware)
@@ -92,7 +91,7 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # release the lock so that other treads can now check the existence of the firmware file
     lock.release()  # release the lock so that other treads
 
-    print(f'{device.name} : Found firmware {firmware} in folder {firmware_path}')
+    print(f'{device.name} : Found firmware {firmware} in folder {PATH_FPOC_FIRMWARE}')
     print(f'{device.name} : Uploading firmware... ')
     fortios.upload_firmware(device, firmware)
     print(f'{device.name} : Firmware uploaded.')
@@ -127,8 +126,7 @@ def firmware_download(firmware: str):
     response = requests.get(download_url, verify=False)
     response.raise_for_status()  # Check that the request was successful
 
-    firmware_path = f'{BASE_DIR}/templates/firmware'
-    with open(f'{firmware_path}/{firmware}', "wb") as f:
+    with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', "wb") as f:
         f.write(response.content)
 
 
@@ -187,13 +185,12 @@ def render_bootstrap_config(device: FortiGate):
     """
 
     # Check if there is a bootstrap config for this FOS firmware on the disk (file name e.g. '6.4.6.out')
-    bootstrap_path = f'{BASE_DIR}/templates/fpoc/fpoc00/bootstrap_configs'
     try:
-        with open(f'{bootstrap_path}/{device.fos_version}.conf', mode='r') as f:
+        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{device.fos_version}.conf', mode='r') as f:
             f.read()
     except:
         print(
-            f'{device.name} : Could not find bootstrap configuration "{device.fos_version}.conf" in folder {bootstrap_path}')
+            f'{device.name} : Could not find bootstrap configuration "{device.fos_version}.conf" in folder {PATH_FPOC_BOOTSTRAP_CONFIGS}')
         raise StopProcessingDevice
 
     # Render the bootstrap configuration
@@ -207,7 +204,7 @@ def render_bootstrap_config(device: FortiGate):
     device.template_context['HA'] = device.ha
 
     device.config = loader.render_to_string(f'fpoc/fpoc00/bootstrap_configs/{device.fos_version}.conf',
-                                            device.template_context, request=None)
+                                            device.template_context, request=None, using='jinja2')
 
 
 def upload_bootstrap_config(device: FortiGate):
@@ -246,7 +243,7 @@ def should_upload_boostrap(device: FortiGate) -> bool:
 def save_config(device: FortiGate, poc_id: int):
     """
     """
-    filename = f'{BASE_DIR}/templates/fpoc/configs/fpoc{poc_id:02}_{device.name}.conf'
+    filename = f'{PATH_FPOC_CONFIG_SAVE}/fpoc{poc_id:02}_{device.name}.conf'
     with open(filename, 'w') as f:
         if is_config_snippets(device.config):
             f.write(f'# fpoc{poc_id:02} {device.name} FortiOS {device.fos_version}')
@@ -303,7 +300,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     device.template_context['wan'] = device.wan
 
     device.config = loader.render_to_string(f'fpoc/fpoc{poc.id:02}/{device.template_group}/{device.template_filename}',
-                                            device.template_context, request)
+                                            device.template_context, request, using='jinja2')
     # print(cli_settings)
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)

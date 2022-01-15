@@ -30,3 +30,5 @@ tenacity==7.0.0
 textfsm==1.1.0
 urllib3==1.26.4
 whitenoise==5.2.0
+
+Jinja2~=3.0.3
