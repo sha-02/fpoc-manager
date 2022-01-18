@@ -1,6 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
-from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE
+from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
 import threading
 
 import fpoc.fortios as fortios
@@ -89,12 +89,13 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
         print(f'{device.name} : Download completed.')
 
     # release the lock so that other treads can now check the existence of the firmware file
-    lock.release()  # release the lock so that other treads
+    lock.release()
 
     print(f'{device.name} : Found firmware {firmware} in folder {PATH_FPOC_FIRMWARE}')
     print(f'{device.name} : Uploading firmware... ')
     fortios.upload_firmware(device, firmware)
     print(f'{device.name} : Firmware uploaded.')
+    device.apikey = None  # Reset the API key
     raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
 
