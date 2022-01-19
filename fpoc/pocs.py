@@ -104,6 +104,7 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
         'ike': request.POST.get('ike'),  # 1 or 2
         'ipsec_phase1': request.POST.get('ipsec_phase1'),  # 'static2static', 'static2dialup'
 
+        # Used as 'remote-gw' for IPsec tunnels
         'fgta_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
         'fgta_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.11.1
         'fgtb_inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
@@ -119,8 +120,8 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
 
     # List of all devices for this Scenario
     devices = {
-        'FGT-A': FortiGate(name='FGT-A', template_group='FGT-i', template_context={'i': 1, **context}),
-        'FGT-B': FortiGate(name='FGT-B', template_group='FGT-i', template_context={'i': 2, **context}),
+        'FGT-A': FortiGate(name='FGT-A', template_group='SITES', template_context={'i': 1, **context}),
+        'FGT-B': FortiGate(name='FGT-B', template_group='SITES', template_context={'i': 2, **context}),
         'PC_A1': LXC(name='PC-A1', template_context={'ipmask': '192.168.1.1/24', 'gateway': '192.168.1.254'}),
         'PC_A2': LXC(name='PC-A11', template_context={'ipmask': '192.168.11.1/24', 'gateway': '192.168.11.254'}),
         'PC_B1': LXC(name='PC-B2', template_context={'ipmask': '192.168.2.1/24', 'gateway': '192.168.2.254'}),
