@@ -406,30 +406,17 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
         }
     }
 
-    # For simplified template files because it is not possible to write conditional "{% with %}" statement with django templates
-    west_ASN_FOS7, east_ASN_FOS7 = 65012, 65003     # FOS >= 7.0: always eBGP for cross-region
-
-    if context['cross_region_advpn']:
-        west_ASN_FOS6, east_ASN_FOS6 = 65000, 65000  # FOS 6.4: iBGP if cross-region shortcuts
-    else:
-        west_ASN_FOS6, east_ASN_FOS6 = 65012, 65003  # FOS 6.4: eBGP if no cross-region shortcuts
-
-    west_ASN = {'local_ASN_FOS7':west_ASN_FOS7, 'remote_ASN_FOS7':east_ASN_FOS7,
-                'local_ASN_FOS6':west_ASN_FOS6, 'remote_ASN_FOS6':east_ASN_FOS6}
-    east_ASN = {'local_ASN_FOS7':east_ASN_FOS7, 'remote_ASN_FOS7':west_ASN_FOS7,
-                'local_ASN_FOS6':east_ASN_FOS6, 'remote_ASN_FOS6':west_ASN_FOS6}
-
-    ctx_dc1 = {'dc_id': 1, **west_ASN, **context}
-    ctx_dc2 = {'dc_id': 2, **west_ASN, **context}
-    ctx_dc3 = {'dc_id': 3, **east_ASN, **context}
-    ctx_br1 = {'branch_id': 1, 'region': 'West', **west_ASN, **context}
-    ctx_br2 = {'branch_id': 2, 'region': 'West', **west_ASN, **context}
-    ctx_br3 = {'branch_id': 3, 'region': 'East', **east_ASN, **context}
+    ctx_dc1 = {'dc_id': 1, 'region': 'West', **context}
+    ctx_dc2 = {'dc_id': 2, 'region': 'West', **context}
+    ctx_dc3 = {'dc_id': 3, 'region': 'East', **context}
+    ctx_br1 = {'branch_id': 1, 'region': 'West', **context}
+    ctx_br2 = {'branch_id': 2, 'region': 'West', **context}
+    ctx_br3 = {'branch_id': 3, 'region': 'East', **context}
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-W-DC1', template_group='WEST-DC', template_context=ctx_dc1),
-        'FGT-B': FortiGate(name='FGT-W-DC2', template_group='WEST-DC', template_context=ctx_dc2),
-        'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='EAST-DC', template_context=ctx_dc3),
+        'FGT-A': FortiGate(name='FGT-W-DC1', template_group='DATACENTERS', template_context=ctx_dc1),
+        'FGT-B': FortiGate(name='FGT-W-DC2', template_group='DATACENTERS', template_context=ctx_dc2),
+        'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='DATACENTERS', template_context=ctx_dc3),
         'FGT-C': FortiGate(name='FGT-W-BR1', template_group='BRANCHES', template_context=ctx_br1),
         'FGT-D': FortiGate(name='FGT-W-BR2', template_group='BRANCHES', template_context=ctx_br2),
         'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='BRANCHES', template_context=ctx_br3),
