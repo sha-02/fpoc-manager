@@ -66,16 +66,15 @@ def sdwan_simple(request: WSGIRequest, poc_id: int):
     }
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-A', template_group='FGT-i', template_context={'i': 1, 'overlay': '10.255', **context}),
-        'FGT-B': FortiGate(name='FGT-B', template_group='FGT-i', template_context={'i': 2, 'overlay': '10.254', **context}),
-        'FGT-C': FortiGate(name='FGT-DC'),
+        'FGT-A': FortiGate(name='FGT-A', template_group='BRANCHES', template_context={'i': 1, 'overlay': '10.255', **context}),
+        'FGT-B': FortiGate(name='FGT-B', template_group='BRANCHES', template_context={'i': 2, 'overlay': '10.254', **context}),
+        'FGT-C': FortiGate(name='FGT-DC', template_group='DATACENTER'),
 
         'PC_A1': LXC(name='PC-A1', template_context={'ipmask': '192.168.1.1/24', 'gateway': '192.168.1.254'}),
         'PC_A2': LXC(name='PC-A2', template_context={'ipmask': '192.168.1.2/24', 'gateway': '192.168.1.254'}),
         'PC_B1': LXC(name='PC-B1', template_context={'ipmask': '192.168.2.1/24', 'gateway': '192.168.2.254'}),
         'PC_B2': LXC(name='PC-B2', template_context={'ipmask': '192.168.2.2/24', 'gateway': '192.168.2.254'}),
-        'PC_C1': LXC(name='DC-Server',
-                     template_context={'ipmask': '192.168.255.100/24', 'gateway': '192.168.255.254'}),
+        'PC_C1': LXC(name='DC-Server', template_context={'ipmask': '192.168.0.100/24', 'gateway': '192.168.0.254'}),
     }
 
     device_dependencies = {
