@@ -451,19 +451,21 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
 def inspect(request: WSGIRequest) -> Status:
     """
     """
+    import ipaddress
+
     if request.POST.get('targetedFOSversion'):
         # Ensure the FOS version is of the form: <major>.<minor>.<patch>
         import re
         if not re.match('^\d{1,2}.\d{1,2}.\d{1,2}$', request.POST.get('targetedFOSversion')):
             return Status(False, True, f"This is not a valid FortiOS version: {request.POST.get('targetedFOSversion')}")
 
-    if request.POST.get('fpocIP'):
-        # Ensure a valid IP address is provided
-        import ipaddress
-        try:
-            ipaddress.ip_address(request.POST.get('fpocIP'))  # throws an exception if the IP address is not valid
-        except:
-            return Status(False, True, f"This is not a valid IP address: {request.POST.get('fpocIP')}")
+    for ipaddr in (request.POST.get('fpocIP'), request.POST.get('fmgIP')):
+        if ipaddr:
+            # Ensure a valid IP address is provided
+            try:
+                ipaddress.ip_address(ipaddr)  # throws an exception if the IP address is not valid
+            except:
+                return Status(False, True, f"This is not a valid IP address: {ipaddr}")
 
     if request.POST.get('previewOnly') and not request.POST.get('targetedFOSversion'):
         return Status(False, True, 'FOS version must be specified when preview-only is selected')

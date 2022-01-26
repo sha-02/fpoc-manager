@@ -282,6 +282,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
+        device.template_context['fmg_ip'] = request.POST.get('fmgIP')  # 172.16.31.200
         render_bootstrap_config(device)
         if not request.POST.get('previewOnly') and should_upload_boostrap(device):
             upload_bootstrap_config(device)
@@ -297,6 +298,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
     device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
+    device.template_context['fmg_ip'] = request.POST.get('fmgIP')  # 172.16.31.200
     device.template_context['HA'] = device.ha
     device.template_context['wan'] = device.wan
 

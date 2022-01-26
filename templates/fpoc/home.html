@@ -12,6 +12,7 @@ function collectFortiPoCElements(formID)
   // Assign all the global FortiPoC Elements to the form being submitted
   document.getElementById('fpocSelection').setAttribute('form', formID);
   document.getElementById('fpocIP').setAttribute('form', formID);
+  document.getElementById('fmgIP').setAttribute('form', formID);
   document.getElementById('previewOnly').setAttribute('form', formID);
   document.getElementById('targetedFOSversion').setAttribute('form', formID);
 }
@@ -41,6 +42,9 @@ $(document).ready(function(){
     </div>
     <div class="p-2 bd-highlight">
       or IP<input type="text" id="fpocIP" name="fpocIP" maxlength="15" size="15">
+    </div>
+    <div class="p-2 bd-highlight">
+      FMG <input type="text" id="fmgIP" name="fmgIP" maxlength="15" size="15" value="172.16.31.200">
     </div>
   </div>
   <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
