@@ -165,11 +165,11 @@ def is_running_ha(device: FortiGate) -> bool:
 
 def is_running_bootstrap(device: FortiGate) -> bool:
     """
-    Check if FGT is running a bootstrap config (its hostname is 'BOOTSTRAP_CONFIG'). Return True or False.
+    Check if FGT is running a bootstrap config (its hostname contains 'BOOTSTRAP_CONFIG'). Return True or False.
     """
-    bootstrap = retrieve_hostname(device) == 'BOOTSTRAP_CONFIG'
+    bootstrap = 'BOOTSTRAP_CONFIG' in retrieve_hostname(device)
     if bootstrap:
-        print(f'{device.name} : FGT is running a bootstrap config (its hostname is "BOOTSTRAP_CONFIG")')
+        print(f'{device.name} : FGT is running a bootstrap config (its hostname contains "BOOTSTRAP_CONFIG")')
     else:
         print(f'\n{device.name} : FGT is not running a boostrap configuration')
 

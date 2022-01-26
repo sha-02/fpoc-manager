@@ -21,18 +21,18 @@ def bootstrap(request: WSGIRequest, poc_id: int):
     """
     # This PoC is based on FortiPoC "Foundation1"
     devices = {
-        'FGT-A': FortiGate(), 'FGT-A_sec': FortiGate(),
-        'FGT-B': FortiGate(), 'FGT-B_sec': FortiGate(),
-        'FGT-C': FortiGate(), 'FGT-C_sec': FortiGate(),
-        'FGT-D': FortiGate(), 'FGT-D_sec': FortiGate(),
-        'ISFW-A': FortiGate(),
+        'FGT-A': FortiGate(name='FGT-A'), 'FGT-A_sec': FortiGate(name='FGT-A_sec'),
+        'FGT-B': FortiGate(name='FGT-B'), 'FGT-B_sec': FortiGate(name='FGT-B_sec'),
+        'FGT-C': FortiGate(name='FGT-C'), 'FGT-C_sec': FortiGate(name='FGT-C_sec'),
+        'FGT-D': FortiGate(name='FGT-D'), 'FGT-D_sec': FortiGate(name='FGT-D_sec'),
+        'ISFW-A': FortiGate(name='ISFW-A'),
     }
 
     for devname, dev in devices.items():
         dev.name = devname
         dev.template_group = 'bootstrap_configs'
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
-        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ipmask}
+        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ipmask, 'name': devname}
         if request.POST.get('HA') == 'FGCP':
             dev.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=devname,
                                   hbdev=[('port6', 0)], sessyncdev=['port6'],
