@@ -73,6 +73,7 @@ TEMPLATES = [
         'OPTIONS': {
             'environment': 'config.jinja.JinjaEnvironment',
             'extensions': [
+                'jinja2.ext.do',
                 'jinja2.ext.debug',
             ],
         },
