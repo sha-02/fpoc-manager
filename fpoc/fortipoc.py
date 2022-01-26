@@ -38,7 +38,7 @@ class FortiPoCFoundation1(FortiPoC):
     """
     lock: threading.Lock  # mutual exclusion (mutex) lock used to download and store missing firmware
     devices = {
-        'FGT-A': FortiGate(offset=0, mgmt_ipmask='172.16.31.1/24',
+        'FGT-A': FortiGate(offset=0, mgmt_ipmask='172.16.31.11/24',
                            wan=WAN(
                                inet=WanSettings('port1', 0, '198.51.100'),
                                inet1=WanSettings('port1', 11, '100.64.11'),
@@ -54,7 +54,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet3_dnat=WanSettings('port1', 231, '192.168.231'),
                                mpls1=WanSettings('port2', 14, '10.0.14'), mpls2=WanSettings('port2', 15, '10.0.15'))),
 
-        'FGT-A_sec': FortiGate(offset=1, mgmt_ipmask='172.16.31.13/24',
+        'FGT-A_sec': FortiGate(offset=1, mgmt_ipmask='172.16.31.12/24',
                                wan=WAN(
                                    inet=WanSettings('port1', 0, '198.51.100'),
                                    inet1=WanSettings('port1', 11, '100.64.11'),
@@ -71,7 +71,7 @@ class FortiPoCFoundation1(FortiPoC):
                                    mpls1=WanSettings('port2', 14, '10.0.14'),
                                    mpls2=WanSettings('port2', 15, '10.0.15'))),
 
-        'FGT-B': FortiGate(offset=2, mgmt_ipmask='172.16.31.2/24',
+        'FGT-B': FortiGate(offset=2, mgmt_ipmask='172.16.31.21/24',
                            wan=WAN(
                                inet=WanSettings('port1', 0, '203.0.113'),
                                inet1=WanSettings('port1', 21, '100.64.21'),
@@ -87,7 +87,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet3_dnat=WanSettings('port1', 231, '192.168.231'),
                                mpls1=WanSettings('port2', 24, '10.0.24'), mpls2=WanSettings('port2', 25, '10.0.25'))),
 
-        'FGT-B_sec': FortiGate(offset=3, mgmt_ipmask='172.16.31.14/24',
+        'FGT-B_sec': FortiGate(offset=3, mgmt_ipmask='172.16.31.22/24',
                                wan=WAN(
                                    inet=WanSettings('port1', 0, '203.0.113'),
                                    inet1=WanSettings('port1', 21, '100.64.21'),
@@ -104,7 +104,7 @@ class FortiPoCFoundation1(FortiPoC):
                                    mpls1=WanSettings('port2', 24, '10.0.24'),
                                    mpls2=WanSettings('port2', 25, '10.0.25'))),
 
-        'FGT-C': FortiGate(offset=4, mgmt_ipmask='172.16.31.9/24',
+        'FGT-C': FortiGate(offset=4, mgmt_ipmask='172.16.31.31/24',
                            wan=WAN(
                                inet=WanSettings('port1', 0, '192.0.2'),
                                inet1=WanSettings('port1', 31, '100.64.31'),
@@ -120,7 +120,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet3_dnat=WanSettings('port1', 231, '192.168.231'),
                                mpls1=WanSettings('port2', 34, '10.0.34'), mpls2=WanSettings('port2', 35, '10.0.35'))),
 
-        'FGT-C_sec': FortiGate(offset=5, mgmt_ipmask='172.16.31.15/24',
+        'FGT-C_sec': FortiGate(offset=5, mgmt_ipmask='172.16.31.32/24',
                                wan=WAN(
                                    inet=WanSettings('port1', 0, '192.0.2'),
                                    inet1=WanSettings('port1', 31, '100.64.31'),
@@ -137,7 +137,7 @@ class FortiPoCFoundation1(FortiPoC):
                                    mpls1=WanSettings('port2', 34, '10.0.34'),
                                    mpls2=WanSettings('port2', 35, '10.0.35'))),
 
-        'FGT-D': FortiGate(offset=6, mgmt_ipmask='172.16.31.22/24',
+        'FGT-D': FortiGate(offset=6, mgmt_ipmask='172.16.31.41/24',
                            wan=WAN(
                                inet=WanSettings('port1', 0, '100.64.40'),
                                inet1=WanSettings('port1', 41, '100.64.41'),
@@ -153,7 +153,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet3_dnat=WanSettings('port1', 231, '192.168.231'),
                                mpls1=WanSettings('port2', 44, '10.0.44'), mpls2=WanSettings('port2', 45, '10.0.45'))),
 
-        'FGT-D_sec': FortiGate(offset=7, mgmt_ipmask='172.16.31.23/24',
+        'FGT-D_sec': FortiGate(offset=7, mgmt_ipmask='172.16.31.42/24',
                                wan=WAN(
                                    inet=WanSettings('port1', 0, '100.64.40'),
                                    inet1=WanSettings('port1', 41, '100.64.41'),
@@ -170,22 +170,22 @@ class FortiPoCFoundation1(FortiPoC):
                                    mpls1=WanSettings('port2', 44, '10.0.44'),
                                    mpls2=WanSettings('port2', 45, '10.0.45'))),
 
-        'ISFW-A': FortiGate(offset=8, mgmt_ipmask='172.16.31.19/24'),
+        'ISFW-A': FortiGate(offset=8, mgmt_ipmask='172.16.31.13/24'),
         'Internet': Vyos(offset=9, mgmt_ipmask='172.16.31.251/24'),
         'MPLS': Vyos(offset=10, mgmt_ipmask='172.16.31.252/24'),
-        'PC_A1': LXC(offset=11, mgmt_ipmask='172.16.31.3/24'),
-        'PC_A2': LXC(offset=12, mgmt_ipmask='172.16.31.5/24'),
-        'PC_B1': LXC(offset=13, mgmt_ipmask='172.16.31.4/24'),
-        'PC_B2': LXC(offset=14, mgmt_ipmask='172.16.31.6/24'),
-        'PC_C1': LXC(offset=15, mgmt_ipmask='172.16.31.10/24'),
-        'PC_C2': LXC(offset=16, mgmt_ipmask='172.16.31.11/24'),
-        'PC_D1': LXC(offset=17, mgmt_ipmask='172.16.31.16/24'),
-        'PC_D2': LXC(offset=18, mgmt_ipmask='172.16.31.17/24'),
-        'RTR-NAT_A': LXC(offset=19, mgmt_ipmask='172.16.31.7/24'),
-        'RTR-NAT_B': LXC(offset=20, mgmt_ipmask='172.16.31.8/24'),
-        'RTR-NAT_C': LXC(offset=21, mgmt_ipmask='172.16.31.12/24'),
-        'RTR-NAT_D': LXC(offset=22, mgmt_ipmask='172.16.31.18/24'),
-        'SRV_INET': LXC(offset=23, mgmt_ipmask='172.16.31.20/24'),
+        'PC_A1': LXC(offset=11, mgmt_ipmask='172.16.31.111/24'),
+        'PC_A2': LXC(offset=12, mgmt_ipmask='172.16.31.112/24'),
+        'PC_B1': LXC(offset=13, mgmt_ipmask='172.16.31.121/24'),
+        'PC_B2': LXC(offset=14, mgmt_ipmask='172.16.31.122/24'),
+        'PC_C1': LXC(offset=15, mgmt_ipmask='172.16.31.131/24'),
+        'PC_C2': LXC(offset=16, mgmt_ipmask='172.16.31.132/24'),
+        'PC_D1': LXC(offset=17, mgmt_ipmask='172.16.31.141/24'),
+        'PC_D2': LXC(offset=18, mgmt_ipmask='172.16.31.142/24'),
+        'RTR-NAT_A': LXC(offset=19, mgmt_ipmask='172.16.31.10/24'),
+        'RTR-NAT_B': LXC(offset=20, mgmt_ipmask='172.16.31.20/24'),
+        'RTR-NAT_C': LXC(offset=21, mgmt_ipmask='172.16.31.30/24'),
+        'RTR-NAT_D': LXC(offset=22, mgmt_ipmask='172.16.31.40/24'),
+        'SRV_INET': LXC(offset=23, mgmt_ipmask='172.16.31.100/24'),
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int, devices: dict):
