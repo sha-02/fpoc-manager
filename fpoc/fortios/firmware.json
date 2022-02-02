@@ -1,4 +1,8 @@
 {
+  "7.0.4": {
+    "build": "0301",
+    "filename": "FGT_VM64_KVM-v7.0.4-build0301-FORTINET.out"
+  },
   "7.0.3": {
     "build": "0237",
     "filename": "FGT_VM64_KVM-v7.0.3-build0237-FORTINET.out"
