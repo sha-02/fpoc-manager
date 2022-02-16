@@ -3,7 +3,7 @@ import typing
 import copy
 import threading
 
-from fpoc.devices import FortiGate, LXC, Vyos
+from fpoc.devices import FortiGate, LXC, Vyos, FortiManager
 from fpoc.devices import WAN, WanSettings
 
 # Type Hint:
@@ -186,6 +186,7 @@ class FortiPoCFoundation1(FortiPoC):
         'RTR-NAT_C': LXC(offset=21, mgmt_ipmask='172.16.31.30/24'),
         'RTR-NAT_D': LXC(offset=22, mgmt_ipmask='172.16.31.40/24'),
         'SRV_INET': LXC(offset=23, mgmt_ipmask='172.16.31.100/24'),
+        'FMG': FortiManager(offset=25, mgmt_ipmask='172.16.31.200/24'),
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int, devices: dict):

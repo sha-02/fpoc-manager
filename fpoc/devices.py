@@ -143,8 +143,16 @@ class LXC(Device):
 
 
 @dataclass
-class Vyos(Device):  # Apply default values
-    def __post_init__(self):
+class Vyos(Device):
+    def __post_init__(self):  # Apply default values
         super(Vyos, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'vyos'  # initialize if it is None
         self.password = self.password or 'vyos'  # initialize if it is None
+
+
+@dataclass
+class FortiManager(Device):
+    def __post_init__(self):  # Apply default values
+        super(FortiManager, self).__post_init__()  # Call parent __post_init__
+        self.username = self.username or 'admin'  # initialize if it is None
+        self.password = self.password or 'fortinet'  # initialize if it is None

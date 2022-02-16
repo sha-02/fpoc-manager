@@ -4,7 +4,7 @@ from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, PAT
 import threading
 
 import fpoc.fortios as fortios
-from fpoc.devices import FortiGate, FortiGate_HA
+from fpoc.devices import FortiGate, FortiGate_HA, FortiManager
 from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 from fpoc.fortipoc import TypePoC
 
@@ -44,7 +44,7 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, lock: th
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
         print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED' before updating the firmware")
-        fortios.change_hostname(device, 'FIRMWARE_UPDATED')
+        fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_fpoc}')  # FortiPoC device name is used here
         print(f"{device.name} : Hostname changed")
         update_fortios_version(device, fos_version_target, lock)
 
@@ -204,8 +204,9 @@ def render_bootstrap_config(device: FortiGate):
     device.template_context['apiadmin'] = device.apiadmin
     device.template_context['HA'] = device.ha
 
+    # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     device.config = loader.render_to_string(f'fpoc/fpoc00/bootstrap_configs/{device.fos_version}.conf',
-                                            device.template_context, request=None, using='jinja2')
+                                            device.template_context, using='jinja2')
 
 
 def upload_bootstrap_config(device: FortiGate):
@@ -282,7 +283,8 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
-        device.template_context['fmg_ip'] = request.POST.get('fmgIP')  # 172.16.31.200
+        device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt_ip if any(
+            (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
         render_bootstrap_config(device)
         if not request.POST.get('previewOnly') and should_upload_boostrap(device):
             upload_bootstrap_config(device)
@@ -298,12 +300,15 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
     device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
-    device.template_context['fmg_ip'] = request.POST.get('fmgIP')  # 172.16.31.200
     device.template_context['HA'] = device.ha
     device.template_context['wan'] = device.wan
+    device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt_ip if any(
+        (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
+    device.template_context['FMG_FORTIGATE_ID'] = None
 
+    # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     device.config = loader.render_to_string(f'fpoc/fpoc{poc.id:02}/{device.template_group}/{device.template_filename}',
-                                            device.template_context, request, using='jinja2')
+                                            device.template_context, using='jinja2')
     # print(cli_settings)
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)

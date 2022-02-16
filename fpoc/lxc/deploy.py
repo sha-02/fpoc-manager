@@ -20,7 +20,8 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
     #
 
     template_name = f'fpoc/lxc.conf'
-    device.config = loader.render_to_string(template_name, device.template_context, request, using='jinja2')
+    # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for Linux CLI settings
+    device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
     # print(cli_settings)
 
     # Save this CLI configuration script to disk

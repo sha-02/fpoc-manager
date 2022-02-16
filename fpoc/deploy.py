@@ -14,7 +14,7 @@ import fpoc.lxc as lxc
 import fpoc.vyos as vyos
 from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 from fpoc.fortipoc import TypePoC, TypeDevice
-from fpoc.devices import FortiGate, LXC, Vyos
+from fpoc.devices import FortiGate, LXC, Vyos, FortiManager
 
 
 def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> list:
@@ -65,7 +65,7 @@ def device_URL(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -> str:
     """
     ip = request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
 
-    if isinstance(device, FortiGate):
+    if isinstance(device, FortiGate) or isinstance(device, FortiManager):
         return f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
     if isinstance(device, LXC) or isinstance(device, Vyos):
         return f'https://{ip}/term/dev_{device.name_fpoc}/ssh'
@@ -164,5 +164,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
         lxc.deploy(request, poc, device)
     elif isinstance(device, Vyos):
         vyos.deploy(request, poc, device)
+    elif isinstance(device, FortiManager):
+        pass    # Nothing to deploy on FMG
     else:
         raise StopProcessingDevice(f'{device.name} : the type of this device is not supported for deployment')

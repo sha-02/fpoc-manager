@@ -19,10 +19,7 @@
     <a href="#{{device.name}}">{{device.name}}</a>
 
     <!-- dump the context dictionary -->
-    {% for param in device.context.items %}
-        {{param}}
-    {% endfor %}
-
+    {{device.context}}
     <br><br>
 {% empty %}
 {% endfor %}
@@ -36,5 +33,8 @@
 {% empty %}
     <h3>No configuration was generated</h3>
 {% endfor %}
+
+<h3>Jinja code for FortiManager Provisioning Templates</h3>
+{{fortimanager|safe}}
 
 {% endblock content %}

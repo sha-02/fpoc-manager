@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.template import loader
 
 from fpoc.deploy import start_poc
-from fpoc.devices import FortiGate, FortiGate_HA, LXC, Vyos
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
 from fpoc.fortipoc import FortiPoCFoundation1
 from collections import namedtuple
 
@@ -25,7 +25,7 @@ def bootstrap(request: WSGIRequest, poc_id: int):
         'FGT-B': FortiGate(name='FGT-B'), 'FGT-B_sec': FortiGate(name='FGT-B_sec'),
         'FGT-C': FortiGate(name='FGT-C'), 'FGT-C_sec': FortiGate(name='FGT-C_sec'),
         'FGT-D': FortiGate(name='FGT-D'), 'FGT-D_sec': FortiGate(name='FGT-D_sec'),
-        'ISFW-A': FortiGate(name='ISFW-A'),
+        'ISFW-A': FortiGate(name='ISFW-A'), 'FMG': FortiManager(name='FMG'),
     }
 
     for devname, dev in devices.items():
@@ -420,6 +420,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
         'FGT-C': FortiGate(name='FGT-W-BR1', template_group='BRANCHES', template_context=ctx_br1),
         'FGT-D': FortiGate(name='FGT-W-BR2', template_group='BRANCHES', template_context=ctx_br2),
         'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='BRANCHES', template_context=ctx_br3),
+        'FMG': FortiManager(name='FMG'),
 
         'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
         'PC_B1': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
@@ -443,9 +444,41 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
     status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
                                device_dependencies)
+
+    #  For FortiManager provisioning templates: generate the Jinja dict to import into FMG
+    #
+    fortimanager = ''
+    if request.POST.get('FMG'):
+        # Only keep FortiGates, skip other devices (LXC, VyOS, ...)
+        status_fortigates = [ device for device in status_devices if device['context'].get('fos_version') is not None ]
+
+        # Create a dictionary of the form:  { 'fgt1_name': 'fgt1_context_dict', 'fgt2_name': 'fgt2_context_dict', ...}
+        # Then serialize the contexts in JSON so that they can be used as a Jinja variable
+        # Problem with context objects like 'HA' and 'WanSettings' is that they cannot be used as Jinja variable
+        # context is first serialize as a JSON string with jsonpickle (which nicely handles complex objects serialization)
+        # then it is reloaded as a dict. After reload, objects like 'HA' or 'WanSettings' are no longer objects since they
+        # were changed to regular key:value pairs by jsonpickle during the serialization process.
+        # One must use json.loads and not jsonpickle.decode to reload the JSON string into a dict otherwise jsonpickle
+        # cleverly rebuilds the original 'HA'/'WanSettings' objects !
+        # We need to pass a context dict to Jinja (in order to loop through the items), that's why the serialized context
+        # must be deserialized
+
+        import jsonpickle, json
+        fortigates = dict()
+        for device in status_fortigates:
+            fortigates[device['name']] = json.loads(jsonpickle.encode(device['context']))
+            for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
+                del fortigates[device['name']][k]
+
+        # Render the Jinja dict to be imported in FortiManager
+        fortimanager = loader.render_to_string(f'{APPNAME}/fortimanager_provisioning.html',
+                                               {'fortigates': fortigates}, using='jinja2')
+
+    # Render the deployment status using Django template engine
     return render(request, f'{APPNAME}/deployment_status.html',
                   {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+                   'devices': status_devices,
+                   'fortimanager': fortimanager})
 
 
 def inspect(request: WSGIRequest) -> Status:
@@ -459,7 +492,7 @@ def inspect(request: WSGIRequest) -> Status:
         if not re.match('^\d{1,2}.\d{1,2}.\d{1,2}$', request.POST.get('targetedFOSversion')):
             return Status(False, True, f"This is not a valid FortiOS version: {request.POST.get('targetedFOSversion')}")
 
-    for ipaddr in (request.POST.get('fpocIP'), request.POST.get('fmgIP')):
+    for ipaddr in (request.POST.get('fpocIP'), ):
         if ipaddr:
             # Ensure a valid IP address is provided
             try:
