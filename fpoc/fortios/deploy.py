@@ -306,7 +306,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     device.template_context['FMG_FORTIGATE_ID'] = None
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'fpoc/{poc.__class__.name}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
+    device.config = loader.render_to_string(f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
                                             device.template_context, using='jinja2')
     # print(cli_settings)
 
