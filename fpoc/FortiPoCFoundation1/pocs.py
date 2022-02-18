@@ -1,25 +1,21 @@
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import loader
+from django.http import HttpResponse
 
-from fpoc.deploy import start_poc
-from fpoc.devices import FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
-from fpoc.fortipoc import FortiPoCFoundation1
 from collections import namedtuple
 
-import ipaddress
-import sys
+from fpoc import start_poc, FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
+from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1
 
-APPNAME = "fpoc"
+APPNAME = "fpoc/FortiPoCFoundation1"
 
 Status = namedtuple('Status', 'is_valid is_invalid message')
 
 
-def bootstrap(request: WSGIRequest, poc_id: int):
+def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     devices = {
         'FGT-A': FortiGate(name='FGT-A'), 'FGT-A_sec': FortiGate(name='FGT-A_sec'),
         'FGT-B': FortiGate(name='FGT-B'), 'FGT-B_sec': FortiGate(name='FGT-B_sec'),
@@ -30,7 +26,6 @@ def bootstrap(request: WSGIRequest, poc_id: int):
 
     for devname, dev in devices.items():
         dev.name = devname
-        dev.template_group = 'bootstrap_configs'
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
         dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ipmask, 'name': devname}
         if request.POST.get('HA') == 'FGCP':
@@ -44,22 +39,16 @@ def bootstrap(request: WSGIRequest, poc_id: int):
 
     device_dependencies = {}  # No device dependencies for this PoC (no PC to configure, etc...)
 
-    # This PoC is based on FortiPoC "Foundation1"
-    if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
+    # Check the request, render and deploy the configs
     if request.POST.get('targetedFOSversion') == '':
         return render(request, f'{APPNAME}/error.html', {'error_message': 'The FortiOS version must be specified'})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+
+    return start(request, poc_id, devices, device_dependencies)
 
 
-def sdwan_simple(request: WSGIRequest, poc_id: int):
+def sdwan_simple(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     context = {
         # Underlay IP@ of the Hub for IPsec VPN on Branches ('set remote-gw x.x.x.x')
         'hub': FortiPoCFoundation1.devices['FGT-C'].wan.inet1.subnet + '.1',  # 100.64.31.1
@@ -83,20 +72,13 @@ def sdwan_simple(request: WSGIRequest, poc_id: int):
         'FGT-C': ('PC_C1',)
     }
 
-    # This PoC is based on FortiPoC "Foundation1"
-    if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices, device_dependencies)
 
 
-def vpn_site2site(request: WSGIRequest, poc_id: int):
+def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     context = {
         'vpn': request.POST.get('vpn'),  # 'ipsec', 'gre', ...
         'routing': request.POST.get('routing'),  # 'static', 'ospf', 'ibgp', ...
@@ -132,20 +114,13 @@ def vpn_site2site(request: WSGIRequest, poc_id: int):
         'FGT-B': ('PC_B1', 'PC_B2'),
     }
 
-    # This PoC is based on FortiPoC "Foundation1"
-    if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices, device_dependencies)
 
 
-def vpn_dialup(request: WSGIRequest, poc_id: int):
+def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     context = {
         'ike': request.POST.get('ike'),  # 1 or 2
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg' or 'None'
@@ -191,20 +166,13 @@ def vpn_dialup(request: WSGIRequest, poc_id: int):
         'FGT-D': ('PC_D1',),
     }
 
-    # This PoC is based on FortiPoC "Foundation1"
-    if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices, device_dependencies)
 
 
-def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
+def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     context = {
         'mode': request.POST.get('mode'),  # 'active_passive' or 'active_active'
         # TODO: active_active configuration is not done in config templates
@@ -232,23 +200,13 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int):
         'FGT-C': ('PC_C1',)
     }
 
-    # This PoC is based on FortiPoC "Foundation1"
-    if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
-    # context = {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name, 'devices': status_devices}
-    # status = loader.render_to_string(f'{APPNAME}/deployment_status.html', context, request)
-    # return HttpResponse(status)
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices, device_dependencies)
 
 
-def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int):
+def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     context = {
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'
         'duplicate_paths': request.POST.get('duplicate_paths'),
@@ -354,20 +312,13 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int):
         elif not request.POST.get(cluster[0]):  # this device is not in the list of to-be-configured devices
             del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
 
-    # This PoC is based on FortiPoC "Foundation1"
-    if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices})
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices, device_dependencies)
 
 
-def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
+def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    # This PoC is based on FortiPoC "Foundation1"
     context = {
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
@@ -439,10 +390,35 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
         'FGT-D_sec': ('PC_D2',),
     }
 
-    # This PoC is based on FortiPoC "Foundation1"
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices, device_dependencies)
+
+
+def inspect(request: WSGIRequest) -> Status:
+    """
+    """
+    import ipaddress
+
+    for ipaddr in (request.POST.get('fpocIP'), ):
+        if ipaddr:
+            # Ensure a valid IP address is provided
+            try:
+                ipaddress.ip_address(ipaddr)  # throws an exception if the IP address is not valid
+            except:
+                return Status(False, True, f"This is not a valid IP address: {ipaddr}")
+
+    if request.POST.get('previewOnly') and not request.POST.get('targetedFOSversion'):
+        return Status(False, True, 'FOS version must be specified when preview-only is selected')
+
+    return Status(True, False, 'request is valid')
+
+
+def start(request: WSGIRequest, poc_id: int, devices: dict, device_dependencies: dict) -> HttpResponse:
     if inspect(request).is_invalid:
         return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
-    status_devices = start_poc(request, FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
+
+    status_devices = start_poc(request,
+                               FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
                                device_dependencies)
 
     #  For FortiManager provisioning templates: generate the Jinja dict to import into FMG
@@ -450,7 +426,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
     fortimanager = ''
     if request.POST.get('FMG'):
         # Only keep FortiGates, skip other devices (LXC, VyOS, ...)
-        status_fortigates = [ device for device in status_devices if device['context'].get('fos_version') is not None ]
+        status_fortigates = [device for device in status_devices if device['context'].get('fos_version') is not None]
 
         # Create a dictionary of the form:  { 'fgt1_name': 'fgt1_context_dict', 'fgt2_name': 'fgt2_context_dict', ...}
         # Then serialize the contexts in JSON so that they can be used as a Jinja variable
@@ -475,32 +451,4 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int):
                                                {'fortigates': fortigates}, using='jinja2')
 
     # Render the deployment status using Django template engine
-    return render(request, f'{APPNAME}/deployment_status.html',
-                  {'fortipoc': 'FortiPoCFoundation1/' + sys._getframe().f_code.co_name + f' (id={poc_id})',
-                   'devices': status_devices,
-                   'fortimanager': fortimanager})
-
-
-def inspect(request: WSGIRequest) -> Status:
-    """
-    """
-    import ipaddress
-
-    if request.POST.get('targetedFOSversion'):
-        # Ensure the FOS version is of the form: <major>.<minor>.<patch>
-        import re
-        if not re.match('^\d{1,2}.\d{1,2}.\d{1,2}$', request.POST.get('targetedFOSversion')):
-            return Status(False, True, f"This is not a valid FortiOS version: {request.POST.get('targetedFOSversion')}")
-
-    for ipaddr in (request.POST.get('fpocIP'), ):
-        if ipaddr:
-            # Ensure a valid IP address is provided
-            try:
-                ipaddress.ip_address(ipaddr)  # throws an exception if the IP address is not valid
-            except:
-                return Status(False, True, f"This is not a valid IP address: {ipaddr}")
-
-    if request.POST.get('previewOnly') and not request.POST.get('targetedFOSversion'):
-        return Status(False, True, 'FOS version must be specified when preview-only is selected')
-
-    return Status(True, False, 'request is valid')
+    return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices, 'fortimanager': fortimanager})

@@ -2,6 +2,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.shortcuts import render
 
+from fpoc.fortios import fortios_firmware
+
 #
 # return render(request, 'fpoc/fpoc01/snr01/_FGT.conf', {'FGT': 'B'})
 #######
@@ -22,11 +24,16 @@ from django.shortcuts import render
 #
 #     return output
 
-APPNAME = "fpoc"
+APPNAME = "fpoc/FortiPoCFoundation1"
 
 
 class HomePageView(TemplateView):
     template_name = f'{APPNAME}/home.html'
+
+    def get_context_data(self, **kwargs):
+       context = super(HomePageView, self).get_context_data(**kwargs)
+       context['firmware'] = fortios_firmware()
+       return context
 
 
 class AboutPageView(TemplateView):

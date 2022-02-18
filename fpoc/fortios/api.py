@@ -7,8 +7,8 @@ import urllib3
 from requests.exceptions import Timeout
 
 from config.settings import PATH_FPOC_FIRMWARE
-from fpoc.devices import FortiGate
-from fpoc.exceptions import StopProcessingDevice
+from fpoc import FortiGate
+from fpoc import StopProcessingDevice
 
 # TODO:
 #

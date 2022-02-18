@@ -192,5 +192,6 @@ ACCOUNT_UNIQUE_EMAIL = True
 # FPoC configuration settings
 PATH_FPOC_FIRMWARE = f'{BASE_DIR}/firmware'
 PATH_FPOC_TEMPLATES = f'{BASE_DIR}/templates_jinja/fpoc'
-PATH_FPOC_BOOTSTRAP_CONFIGS = f'{PATH_FPOC_TEMPLATES}/fpoc00/bootstrap_configs'
-PATH_FPOC_CONFIG_SAVE = f'{PATH_FPOC_TEMPLATES}/configs'
+PATH_FPOC_BOOTSTRAP_CONFIGS = f'{PATH_FPOC_TEMPLATES}/bootstrap_configs'
+RELPATH_FPOC_BOOTSTRAP_CONFIGS = 'fpoc/bootstrap_configs'
+PATH_FPOC_CONFIG_SAVE = f'{PATH_FPOC_TEMPLATES}/rendered_configs'

@@ -25,8 +25,6 @@ $(document).ready(function(){
 });
 </script>
 
-<h3>FortiPoC</h3>
-
 <!-- FortiPoC access -->
 
 <div class="d-flex justify-content-between ">
@@ -48,10 +46,17 @@ $(document).ready(function(){
       <input type="checkbox" id="previewOnly" name="previewOnly"> preview-only
     </div>
     <div class="p-2 bd-highlight">
-      <input type="text" id="targetedFOSversion" name="targetedFOSversion" maxlength="7" size="7"> FOS version
+      <select id="targetedFOSversion" name="targetedFOSversion">
+        <option value="">Any</option>
+        {% for build in firmware %}
+          <option value="{{build}}">{{build}}</option>
+        {% endfor %}
+          <option value="0.0.0.0">Tests</option>
+      </select> FOS version
     </div>
   </div>
 </div>
+
 
 
 <!--<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">-->
@@ -73,15 +78,10 @@ $(document).ready(function(){
   </div>
   <div id="collapse-0" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
     <div class="card-body">
-      <h5>FortiPoC Fundation1</h5>
       <form id="formPoC_0" method="post" action="{% url 'fpoc:bootstrap' %}" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
         <fieldset>
-            HA <select name="HA">
-              <option value="standalone" selected>standalone</option>
-              <option value="FGCP">FGCP</option>
-            </select>
-          <br><input type="checkbox" name="FGT-A" checked>FGT-A
+          <input type="checkbox" name="FGT-A" checked>FGT-A
           <input type="checkbox" name="FGT-A_sec" >FGT-A_sec
           <br><input type="checkbox" name="FGT-B" checked>FGT-B
           <input type="checkbox" name="FGT-B_sec" >FGT-B_sec
@@ -91,8 +91,12 @@ $(document).ready(function(){
           <input type="checkbox" name="FGT-D_sec" >FGT-D_sec
           <br><input type="checkbox" name="ISFW-A" >ISFW-A
           <input type="checkbox" name="FMG" checked>FortiManager
+          <br>HA <select name="HA">
+              <option value="standalone" selected>standalone</option>
+              <option value="FGCP">FGCP</option>
+            </select>
         </fieldset>
-      <button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:bootstrap' %}">Start</button>
+      <br><button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:bootstrap' %}">Start</button>
       </form>
     </div>
   </div>

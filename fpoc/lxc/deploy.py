@@ -2,8 +2,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
 
 import fpoc.ssh
-from fpoc.devices import LXC
-from fpoc.fortipoc import TypePoC
+from fpoc import TypePoC, LXC
 
 
 def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):

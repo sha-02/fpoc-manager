@@ -5,7 +5,6 @@
 
 {% block content %}
 
-<h2>{{fortipoc}}</h2>
 {% for device in devices %}
     <a href="{{device.URL}}" target="_blank">{{device.name}}</a> ({{device.name_fpoc}}) => {{device.deployment_status}}
     <br>
@@ -34,7 +33,9 @@
     <h3>No configuration was generated</h3>
 {% endfor %}
 
-<h3>Jinja code for FortiManager Provisioning Templates</h3>
-{{fortimanager|safe}}
+{% if fortimanager %}
+    <h3>Jinja script for FortiManager Provisioning Templates</h3>
+    {{fortimanager|safe}}
+{% endif %}
 
 {% endblock content %}

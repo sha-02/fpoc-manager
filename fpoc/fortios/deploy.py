@@ -1,12 +1,11 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
-from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
+from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
 import threading
 
 import fpoc.fortios as fortios
-from fpoc.devices import FortiGate, FortiGate_HA, FortiManager
-from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
-from fpoc.fortipoc import TypePoC
+from fpoc import FortiGate, FortiGate_HA, FortiManager, TypePoC
+from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 
 
 def prepare_api(device: FortiGate):
@@ -205,7 +204,7 @@ def render_bootstrap_config(device: FortiGate):
     device.template_context['HA'] = device.ha
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'fpoc/fpoc00/bootstrap_configs/{device.fos_version}.conf',
+    device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.fos_version}.conf',
                                             device.template_context, using='jinja2')
 
 
@@ -307,7 +306,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     device.template_context['FMG_FORTIGATE_ID'] = None
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'fpoc/fpoc{poc.id:02}/{device.template_group}/{device.template_filename}',
+    device.config = loader.render_to_string(f'fpoc/{poc.__class__.name}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
                                             device.template_context, using='jinja2')
     # print(cli_settings)
 

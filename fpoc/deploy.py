@@ -12,9 +12,8 @@ import threading
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
-from fpoc.fortipoc import TypePoC, TypeDevice
-from fpoc.devices import FortiGate, LXC, Vyos, FortiManager
+from fpoc import TypePoC, TypeDevice, FortiGate, LXC, Vyos, FortiManager
+from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 
 
 def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> list:
