@@ -241,10 +241,10 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     return False
 
 
-def save_config(device: FortiGate, poc_id: int):
+def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
     """
     """
-    filename = f'{PATH_FPOC_CONFIG_SAVE}/fpoc{poc_id:02}_{device.name}.conf'
+    filename = f'{PATH_FPOC_CONFIG_SAVE}/{fortipoc_name}_poc{poc_id:02}_{device.name}.conf'
     with open(filename, 'w') as f:
         if is_config_snippets(device.config):
             f.write(f'# fpoc{poc_id:02} {device.name} FortiOS {device.fos_version}')
@@ -287,7 +287,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
         render_bootstrap_config(device)
         if not request.POST.get('previewOnly') and should_upload_boostrap(device):
             upload_bootstrap_config(device)
-            save_config(device, 0)  # Save the bootstrap config
+            save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         raise CompletedDeviceProcessing
 
     # Render the config (CLI script or full-config)
@@ -314,7 +314,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     if not request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
         render_bootstrap_config(device)
         upload_bootstrap_config(device)
-        save_config(device, 0)  # Save the bootstrap config
+        save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if device.ha.mode == FortiGate_HA.Modes.FGCP and device.ha.role == FortiGate_HA.Roles.SECONDARY:
             raise CompletedDeviceProcessing
         else:
@@ -322,7 +322,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
             raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to load the config and reboot
 
     # Save this CLI configuration to disk
-    save_config(device, poc.id)
+    save_config(poc.__class__.__name__, device, poc.id)
 
     # Deploy the config
     if request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
