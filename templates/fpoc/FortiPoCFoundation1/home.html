@@ -300,7 +300,7 @@ $(document).ready(function(){
       <form id="formPoC_6" method="post" action="{% url 'fpoc:sdwan_advpn_dualdc' %}" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
           <fieldset>
-            Devices
+            FGT
             <input type="checkbox" name="FGT-A" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">West DC-1</span>
             <input type="checkbox" name="FGT-B" checked>
@@ -315,6 +315,21 @@ $(document).ready(function(){
               <span data-toggle="tooltip" data-placement="top" title="(FGT-D_sec)">East Branch-3</span>
             <input type="checkbox" name="FMG">
               <span data-toggle="tooltip" data-placement="top" title="(FMG)">FortiManager</span>
+          </fieldset>
+          <fieldset>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">West DC-1</span>
+            <input type="checkbox" name="PC_B1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">West DC-2</span>
+            <input type="checkbox" name="PC_C1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">West Branch-1</span>
+            <input type="checkbox" name="PC_D1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">West Branch-2</span>
+            <input type="checkbox" name="PC_B2">
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">East DC-3</span>
+            <input type="checkbox" name="PC_D2">
+              <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">East Branch-3</span>
           </fieldset>
           <fieldset>
             Remote Internet Access <select name="remote_internet">

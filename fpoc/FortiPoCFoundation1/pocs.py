@@ -381,17 +381,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_D2': LXC(name='PC-E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
     }
 
-    device_dependencies = {
-        'FGT-A': ('PC_A1',),
-        'FGT-B': ('PC_B1',),
-        'FGT-B_sec': ('PC_B2',),
-        'FGT-C': ('PC_C1',),
-        'FGT-D': ('PC_D1',),
-        'FGT-D_sec': ('PC_D2',),
-    }
-
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices, device_dependencies={})
 
 
 def inspect(request: WSGIRequest) -> Status:
