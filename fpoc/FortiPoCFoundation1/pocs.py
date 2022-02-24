@@ -123,7 +123,7 @@ def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     context = {
         'ike': request.POST.get('ike'),  # 1 or 2
-        'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg' or 'None'
+        'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg' or 'unnumbered'
         'routing': request.POST.get('routing'),  # 'ike-routing', 'modecfg-routing', 'ospf', 'ibgp', 'ebgp',
         # 'ibgp-confederation'
         'advpn': bool(request.POST.get('advpn', False)),  # True or False
@@ -136,12 +136,27 @@ def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
 
     # Some options are exclusive
     if context['routing'] == 'ike-routing':
-        context['overlay'] = None
+        context['overlay'] = 'unnumbered'
         context['advpn'] = False
 
     if context['routing'] == 'modecfg-routing':
         context['overlay'] = 'mode-cfg'
         context['advpn'] = False
+
+    if context['routing'] in ('ebgp', 'ibgp-confederation') and context['overlay'] == 'mode-cfg':
+        # Each site has its own ASN (for 'ebgp') or its own sub-confed (for 'ibgp-confederation')
+        # So the Hub cannot use dynamic peering, it must use static peering
+        # mode-cfg cannot therefore be used since the Spokes' overlay-ip is not predictable with mode-cfg
+        context['overlay'] = 'static'
+
+    if context['routing'] in ('ebgp', 'ibgp-confederation') and context['overlay'] == 'unnumbered':
+        # Unnumbered tunnels on Hub and Spokes is possible with BGP
+        # BGP must be bound on loopbacks and 'exchange-interface-ip' is used to exchange the loopback IP addresses
+        # Generating this config is not yet supported so, for the time being, overlay is forced to 'static'
+        context['overlay'] = 'static'
+
+    if context['routing'] == 'ospf' and context['overlay'] == 'unnumbered':
+        context['overlay'] = 'mode-cfg'  # An overlay-IP is mandatory for OSPF. Let's force to 'mode-cfg'.
 
     devices = {
         'FGT-A': FortiGate(name='Hub', template_group='Hubs',
