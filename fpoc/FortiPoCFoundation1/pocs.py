@@ -174,15 +174,8 @@ def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_D1': LXC(name='PC-3', template_context={'ipmask': '192.168.3.1/24', 'gateway': '192.168.3.254'}),
     }
 
-    device_dependencies = {
-        'FGT-A': ('PC_A1',),
-        'FGT-B': ('PC_B1',),
-        'FGT-C': ('PC_C1',),
-        'FGT-D': ('PC_D1',),
-    }
-
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices, device_dependencies={})
 
 
 def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
