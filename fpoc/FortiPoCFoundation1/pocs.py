@@ -287,12 +287,6 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_C1': LXC(name='Client-22', template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'}),
     }
 
-    device_dependencies = {
-        'FGT-A': ('PC_A1',),
-        'FGT-B': ('PC_B1',),
-        'FGT-C': ('PC_C1',),
-    }
-
     # Settings used for HA
     #
     if request.POST.get('HA') == 'FGCP':
@@ -321,7 +315,7 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
             del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
 
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices, device_dependencies={})
 
 
 def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:

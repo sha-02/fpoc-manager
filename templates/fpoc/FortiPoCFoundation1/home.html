@@ -266,13 +266,20 @@ $(document).ready(function(){
       <form id="formPoC_5" method="post" action="{% url 'fpoc:sdwan_advpn_singlehub' %}" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
           <fieldset>
-            Devices
+            FGT
             <input type="checkbox" name="FGT-A" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">FGT-DC-3</span>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">DataCenter</span>
             <input type="checkbox" name="FGT-B" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">FGT-SDW-1</span>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Branch-1</span>
             <input type="checkbox" name="FGT-C" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">FGT-SDW-2</span>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Branch-2</span>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">DataCenter</span>
+            <input type="checkbox" name="PC_B1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">Branch-1</span>
+            <input type="checkbox" name="PC_C1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">Branch-2</span>
             HA <select name="HA">
               <option value="standalone" selected>standalone</option>
               <option value="FGCP">FGCP</option>
