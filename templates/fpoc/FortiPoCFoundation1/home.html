@@ -273,17 +273,17 @@ $(document).ready(function(){
               <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Branch-1</span>
             <input type="checkbox" name="FGT-C" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Branch-2</span>
-            LXC
+            HA <select name="HA">
+              <option value="standalone" selected>standalone</option>
+              <option value="FGCP">FGCP</option>
+            </select>
+            <br>LXC
             <input type="checkbox" name="PC_A1" checked>
               <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">DataCenter</span>
             <input type="checkbox" name="PC_B1" checked>
               <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">Branch-1</span>
             <input type="checkbox" name="PC_C1" checked>
               <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">Branch-2</span>
-            HA <select name="HA">
-              <option value="standalone" selected>standalone</option>
-              <option value="FGCP">FGCP</option>
-            </select>
             <input type="hidden" name="FGT-A_sec" value="FGT-A_sec">
             <input type="hidden" name="FGT-B_sec" value="FGT-B_sec">
             <input type="hidden" name="FGT-C_sec" value="FGT-C_sec">
