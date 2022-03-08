@@ -12,6 +12,7 @@ urlpatterns = [
     path('about/', views.AboutPageView.as_view(), name='about'),
     path('test/', views.display_request_parameters, name='display_request_parameters'),
 
+    path('poweron/', pocs.poweron, name='poweron'),
     path('bootstrap/', pocs.bootstrap, {'poc_id': 0}, name='bootstrap'),
 
     path('sdwan_simple/', pocs.sdwan_simple, {'poc_id': 1}, name='sdwan_simple'),

@@ -158,6 +158,7 @@ class FortiPoCFoundation1(FortiPoC):
         'RTR-NAT_C': LXC(offset=21, mgmt_ipmask='172.16.31.30/24'),
         'RTR-NAT_D': LXC(offset=22, mgmt_ipmask='172.16.31.40/24'),
         'SRV_INET': LXC(offset=23, mgmt_ipmask='172.16.31.100/24'),
+        'WAN_CTRL': LXC(offset=24, mgmt_ipmask='172.16.31.250/24'),
         'FMG': FortiManager(offset=25, mgmt_ipmask='172.16.31.200/24'),
     }
 

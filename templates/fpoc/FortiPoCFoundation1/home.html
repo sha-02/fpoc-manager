@@ -72,13 +72,14 @@ $(document).ready(function(){
   <div class="card-header" id="heading-0">
     <h2 class="mb-0">
       <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-0" aria-expanded="true" aria-controls="collapse-0">
-        Bootstrap configurations
+        FortiPoCFoundation1
       </button>
     </h2>
   </div>
   <div id="collapse-0" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
     <div class="card-body">
-      <form id="formPoC_0" method="post" action="{% url 'fpoc:bootstrap' %}" onsubmit="collectFortiPoCElements(this.id)">
+      <!-- 'Bootstrap' form -->
+      <form id="formPoC_0" method="post" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
         <fieldset>
           <input type="checkbox" name="FGT-A" checked>FGT-A
@@ -90,13 +91,16 @@ $(document).ready(function(){
           <br><input type="checkbox" name="FGT-D" checked>FGT-D
           <input type="checkbox" name="FGT-D_sec" >FGT-D_sec
           <br><input type="checkbox" name="ISFW-A" >ISFW-A
-          <input type="checkbox" name="FMG" checked>FortiManager
-          <br>HA <select name="HA">
+          <br><br>For bootstrap configuration:
+          <br>HA settings <select name="HA">
               <option value="standalone" selected>standalone</option>
               <option value="FGCP">FGCP</option>
             </select>
+          <br><input type="checkbox" name="FMG" checked> central-management settings
         </fieldset>
-      <br><button class="btn btn-info btn-sm" type="submit" title="{% url 'fpoc:bootstrap' %}">Start</button>
+        <br>
+        <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected FGT and all LXC/VyOS" formaction="{% url 'fpoc:poweron' %}">Power On</button>
+        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'fpoc:bootstrap' %}" >Bootstrap</button>
       </form>
     </div>
   </div>
