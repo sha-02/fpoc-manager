@@ -4,7 +4,7 @@ from config.settings import PATH_FPOC_CONFIG_SAVE
 
 
 def poweron_devices(devices: list, host: str, admin: str, pwd: str) -> tuple:
-    inventory = 'FortiPoC ansible_host=' + host + 'ansible_user=' + admin + 'ansible_password=' + pwd
+    inventory = 'FortiPoC ansible_host=' + host + ' ansible_user=' + admin + ' ansible_password=' + pwd
 
     playbook = [
       {
