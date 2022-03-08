@@ -13,7 +13,8 @@ def syscall_realtime(command, *, split=True) -> tuple:
         if output == '' and process.poll() is not None:
             break
         if output:
+            output = output.decode('utf-8').strip()
+            print(output)
             result += output
-            print(output.decode('utf-8').strip())
 
     return process.poll(), result
