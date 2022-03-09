@@ -29,8 +29,7 @@ def poweron(request: WSGIRequest) -> HttpResponse:
 
     # the intersection of the keys of request.POST dict and the 'fortigates' set produces the keys of each
     # fortigate to be started for this poc. Then LXC and VyOS set is added (union)
-    # devices_to_start = sorted(list((request.POST.keys() & fortigates) | lxc_vyos))
-    devices_to_start = sorted(list((request.POST.keys() & fortigates)))
+    devices_to_start = sorted(list((request.POST.keys() & fortigates) | lxc_vyos))
 
     poc = FortiPoCFoundation1(request)
 
