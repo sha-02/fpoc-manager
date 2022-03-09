@@ -49,7 +49,7 @@ class Device:
     output: str = None  # output for the SSH commands executed on the device
     template_context: dict = None  # Dictionary needed for the Django template to render the template configuration
     template_group: str = None  # name of the template group to which belongs this device
-    template_filename: str = None  # name of the file in the template group
+    template_filename: str = None  # name of the file in the template group (e.g. '_FGT.conf')
     config: str = None  # configuration to be deployed to the device
     commands: list = None  # List of CLI commands to be executed on the device
 
@@ -107,8 +107,22 @@ class FortiGate(Device):
     apikey: str = None  # API key for the API admin
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
-    mgmt_interface: str = 'port10'  # FGT interface to which the mgmt IP@ is assigned (e.g., 'port10')
+    mgmt_interface: str = None  # FGT interface to which the mgmt IP@ is assigned (e.g., 'port10')
     ha: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
+
+    def __post_init__(self):  # Apply default values
+        super(FortiGate, self).__post_init__()  # Call parent __post_init__
+        #
+        # initialize attributes inherited from parent class
+        self.username = self.username or 'admin'  # initialize if it is None
+        self.password = self.password or 'fortinet'  # initialize if it is None
+        self.template_filename = self.template_filename or '_FGT.conf'  # initialize if it is None
+        self.template_context['name'] = self.name
+        #
+        # initialize attributes from local class
+        self.apiadmin = 'adminapi'
+        self.mgmt_interface = 'port10'
+        self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
     @property
     def FOS(self):  # long integer of the fos_version, e.g. "6.0.13" returns 6_000_013 (used for django template)
@@ -116,19 +130,6 @@ class FortiGate(Device):
         """
         major, minor, patch = self.fos_version.split('.')
         return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
-
-    def __post_init__(self):  # Apply default values
-        super(FortiGate, self).__post_init__()  # Call parent __post_init__
-        #
-        # attributes inherited from parent class
-        self.username = self.username or 'admin'  # initialize if it is None
-        self.password = self.password or 'fortinet'  # initialize if it is None
-        self.template_filename = self.template_filename or '_FGT.conf'  # initialize if it is None
-        self.template_context['name'] = self.name
-        #
-        # attributes from local class
-        self.apiadmin = 'adminapi'
-        self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
 
 @dataclass

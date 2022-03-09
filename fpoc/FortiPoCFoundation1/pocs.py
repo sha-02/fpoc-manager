@@ -21,20 +21,24 @@ def poweron(request: WSGIRequest) -> HttpResponse:
     # For clarity, I'm not using a set comprehension
     fortigates = set()
     lxc_vyos = set()
-    for device_name, device_object in FortiPoCFoundation1.devices.items():
-        if isinstance(device_object, FortiGate):
-            fortigates.add(device_name)
-        elif isinstance(device_object, LXC) or isinstance(device_object, Vyos):
-            lxc_vyos.add(device_name)
+    for fpoc_devname, device in FortiPoCFoundation1.devices.items():
+        if isinstance(device, FortiGate):
+            fortigates.add(fpoc_devname)
+        elif isinstance(device, LXC) or isinstance(device, Vyos):
+            lxc_vyos.add(fpoc_devname)
 
     # the intersection of the keys of request.POST dict and the 'fortigates' set produces the keys of each
     # fortigate to be started for this poc. Then LXC and VyOS set is added (union)
-    devices_to_start = sorted(list((request.POST.keys() & fortigates) | lxc_vyos))
+    # devices_to_start = sorted(list((request.POST.keys() & fortigates) | lxc_vyos))
+    devices_to_start = sorted(list((request.POST.keys() & fortigates)))
+
+    poc = FortiPoCFoundation1(request)
 
     # TODO: admin & pwd should be stored in DB so that it can be customized per FortiPoC (like WAN_CTRL)
-    _, result = ansible.poweron_devices(devices_to_start, host=FortiPoCFoundation1.ip, admin='admin', pwd='')
+    _, result = ansible.poweron_devices(devices_to_start, host=poc.ip, admin='admin', pwd='')
+    result = '<pre> ' + result + ' </pre>'
 
-    return render(request, f'{APPNAME}/error.html', {'error_message': result})
+    return render(request, f'{APPNAME}/message.html', {'title': 'Power-On', 'header': 'Power-On status', 'message': result})
 
 
 def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -65,7 +69,7 @@ def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
 
     # Check the request, render and deploy the configs
     if request.POST.get('targetedFOSversion') == '':
-        return render(request, f'{APPNAME}/error.html', {'error_message': 'The FortiOS version must be specified'})
+        return render(request, f'{APPNAME}/message.html', {'title': 'Error', 'header': 'Error', 'message': 'The FortiOS version must be specified'})
 
     return start(request, poc_id, devices, device_dependencies)
 
@@ -432,7 +436,7 @@ def inspect(request: WSGIRequest) -> Status:
 
 def start(request: WSGIRequest, poc_id: int, devices: dict, device_dependencies: dict) -> HttpResponse:
     if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/error.html', {'error_message': inspect(request).message})
+        return render(request, f'{APPNAME}/message.html', {'title': 'Error', 'header': 'Error', 'message': inspect(request).message})
 
     status_devices = start_poc(request,
                                FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),

@@ -10,10 +10,10 @@ def syscall_realtime(command, *, split=True) -> tuple:
     result = ''
     while True:
         output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
+        if output == b'' and process.poll() is not None:
             break
-        if output:
-            output = output.decode('utf-8').strip()
+        else:
+            output = output.decode('utf-8')
             print(output)
             result += output
 
