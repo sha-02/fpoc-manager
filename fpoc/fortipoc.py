@@ -6,16 +6,20 @@ class FortiPoC:
     ip = '172.16.31.254'  # IP@ used by fpoc-manager to access the FortiPoC VM
     # it is the mgmt_fpoc IP@ when the fpoc-manager runs inside the FortiPoC VM
     devices: dict
+
     # Dict[DeviceHint]
 
     def __iter__(self):
-        # Makes the class an iterable which can iterate over the devices stored in the 'devices' dictionary
-        # Leverage the iterator from 'devices' iterable
+        """"
+        Makes the class an iterable which can iterate over the devices stored in the 'devices' dictionary
+        Leverage the iterator from 'devices' iterable
+        """
         return iter(self.devices.values())
 
     @classmethod
     @property
-    def name(cls):  # Return the name of the Class itself
+    def name(cls):
         """
+        Return the name of the Class itself
         """
         return cls.__name__

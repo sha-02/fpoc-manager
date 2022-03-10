@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
+from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1, FortiGate, LXC, Vyos
 
 #
 # return render(request, 'fpoc/fpoc01/snr01/_FGT.conf', {'FGT': 'B'})
@@ -33,6 +34,9 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
        context = super(HomePageView, self).get_context_data(**kwargs)
        context['firmware'] = fortios_firmware()
+       context['fortigates'] = FortiPoCFoundation1.devices_of_type(FortiGate).keys()
+       context['lxces'] = FortiPoCFoundation1.devices_of_type(LXC).keys()
+       context['vyoses'] = FortiPoCFoundation1.devices_of_type(Vyos).keys()
        return context
 
 

@@ -162,22 +162,26 @@ class FortiPoCFoundation1(FortiPoC):
         'FMG': FortiManager(offset=25, mgmt_ipmask='172.16.31.200/24'),
     }
 
-    def __init__(self, request: WSGIRequest, poc_id: int = 0, devices: dict = {}):
-        # Initialize this particular PoC instance/object
+    def __init__(self, request: WSGIRequest, poc_id: int = 0, devices: dict = None, fpoc_devnames: list = None):
+        """
+        Build a poc for some devices
+        'devices' or 'fpoc_devnames' provides the list of devices to keep (filter) out of the class 'devices'
+        The devices to be kept/filtered can be provided in two ways:
+        - via 'devices': dict of devices of the form {'fpoc_devname': FortiGate(...), 'fpoc_devname': LXC(...), ...}
+        - via 'fpoc_devnames': list of device names
+
+        Each device name (in list 'fpoc_devnames' or the keys in 'devices' dict) must correspond to a key in
+        FOUNDATION1.devices dictionary.
+        """
+
+        # The poc instance self.devices dict can be built from 'devices' or from 'fpoc_devname'
+        # One of them must be passed as argument, not both
+        if devices and fpoc_devnames:
+            raise TypeError("'devices' and 'fpoc_devnames' cannot be both provided")
+
+        # Initialize this poc instance
         self.id = poc_id
-        self.devices = {}
         self.lock = threading.Lock()
-
-        # "merge" the attributes from a device defined in the Class with its counter-part passed as argument
-        for fpoc_devname, device in devices.items():
-            # Retrieve all underlay WAN info from the Class device
-            self.devices[fpoc_devname] = copy.copy(FortiPoCFoundation1.devices[fpoc_devname])  # Shallow copy is Ok
-            # Retrieve all attributes from the device passed as argument
-            for k, v in device.__dict__.items():
-                if v is not None:
-                    self.devices[fpoc_devname].__dict__[k] = v
-
-            self.devices[fpoc_devname].name_fpoc = fpoc_devname
 
         # IP of FortiPoC is retrieved from the fpoc selection list or from an IP provided by user
         fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('fpocSelection')
@@ -188,8 +192,34 @@ class FortiPoCFoundation1(FortiPoC):
             self.manager_inside_fpoc = False
             self.ip = fpoc_ip  # device is accessed via the FortiPoC IP
 
-        # mgmt attributes of each device (IP@, SSH/HTTPS ports)
-        for device in self.devices.values():
+        #
+        # build the dict of all devices needed for this poc: self.devices
+        #
+
+        # If no specific device filter is requested then the list of devices for this instance
+        # (self.devices) is inherited from its class and contain all devices.
+        if devices is None and fpoc_devnames is None:
+            pass  # Nothing to do, self.devices is FOUNDATION1.devices
+
+        elif fpoc_devnames:  # Build the poc self.devices dict from the list of fpoc device name in 'fpoc_devnames'
+            self.devices = { fpoc_devname: FortiPoCFoundation1.devices[fpoc_devname] for fpoc_devname in fpoc_devnames }
+
+        elif devices:  # Build the poc self.devices dict from the 'devices' dict
+            self.devices = {}
+            # "merge" the attributes from a device defined in the Class with its counter-part passed as argument
+            for fpoc_devname, device in devices.items():
+                # Retrieve all underlay WAN info from the Class device
+                self.devices[fpoc_devname] = copy.copy(FortiPoCFoundation1.devices[fpoc_devname])  # Shallow copy is Ok
+                # Retrieve all attributes from the device passed as argument
+                for k, v in device.__dict__.items():
+                    if v is not None:
+                        self.devices[fpoc_devname].__dict__[k] = v
+
+        # Now that the list of devices is built (either from class or from filter), configure some attributes for
+        # each device (IP@, SSH/HTTPS ports)
+        for fpoc_devname, device in self.devices.items():
+            device.name_fpoc = fpoc_devname
+            device.name = device.name or device.name_fpoc  # init to 'name_fpoc' if 'name' is None
             device.mgmt_fpoc_ipmask = FortiPoCFoundation1.mgmt_fpoc_ipmask
             if fpoc_ip == '0.0.0.0':  # fpoc-manager is running inside the FortiPoC
                 # self.ip and self.manager_inside_fpoc values are inherited from the Class
@@ -201,3 +231,25 @@ class FortiPoCFoundation1(FortiPoC):
                 device.ip = fpoc_ip  # device is accessed via the FortiPoC IP
                 device.https_port = FortiPoCFoundation1.BASE_PORT_HTTPS + device.offset
                 device.ssh_port = FortiPoCFoundation1.BASE_PORT_SSH + device.offset
+
+    def devices_of_type(*args) -> dict:
+        """
+        Returns a dict of devices of the same type (e.g., 'FortiGate' or 'LXC' or 'Vyos')
+        The 'type' is passed as a mandatory positional argument (at 1st or 2nd position depending on the kind of call)
+        Can be called as an instance method or as a class method
+        Call as a class method:
+            FortiPoCFoundation1.devices_of_type(FortiGate)  => args == (FortiGate)
+        Call as an instance method:
+            FortiPoCFoundation1().devices_of_type(FortiGate) => args == (<object-instance>, FortiGate)
+        """
+        if (not args  # called as a class method without device type
+                or isinstance(args[0], FortiPoCFoundation1) and len(args) == 1):  # called as an instance method without device type
+            raise TypeError('Invalid number of arguments, a device type must be provided')
+
+        if isinstance(args[0], FortiPoCFoundation1):  # called as an instance method
+            self, type_ = args
+        else:  # called as a class method
+            self = FortiPoCFoundation1
+            type_ = args[0]
+
+        return {k: v for k, v in self.devices.items() if isinstance(v, type_)}

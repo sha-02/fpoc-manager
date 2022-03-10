@@ -66,7 +66,7 @@ $(document).ready(function(){
 <div class="accordion" id="accordionPoC">
 
   <!-- ========================================================================================================= -->
-  <!-- Bootstrap configurations -->
+  <!-- FortiPoCFoundation1 -->
   <!-- ========================================================================================================= -->
   <div class="card">
   <div class="card-header" id="heading-0">
@@ -82,25 +82,38 @@ $(document).ready(function(){
       <form id="formPoC_0" method="post" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
         <fieldset>
-          <input type="checkbox" name="FGT-A" checked>FGT-A
-          <input type="checkbox" name="FGT-A_sec" >FGT-A_sec
-          <br><input type="checkbox" name="FGT-B" checked>FGT-B
-          <input type="checkbox" name="FGT-B_sec" >FGT-B_sec
-          <br><input type="checkbox" name="FGT-C" checked>FGT-C
-          <input type="checkbox" name="FGT-C_sec" >FGT-C_sec
-          <br><input type="checkbox" name="FGT-D" checked>FGT-D
-          <input type="checkbox" name="FGT-D_sec" >FGT-D_sec
-          <br><input type="checkbox" name="ISFW-A" >ISFW-A
-          <br><br>For bootstrap configuration:
-          <br>HA settings <select name="HA">
-              <option value="standalone" selected>standalone</option>
-              <option value="FGCP">FGCP</option>
-            </select>
-          <br><input type="checkbox" name="FMG" checked> central-management settings
+          <div class="container">
+            <div class="row">
+              <div class="col">
+                FortiGates
+                {% for fgt in fortigates %}
+                  <br><input type="checkbox" name="{{fgt}}" checked> {{fgt}}
+                {% endfor %}
+                <hr>HA <select name="HA">
+                    <option value="standalone" selected>standalone</option>
+                    <option value="FGCP">FGCP</option>
+                  </select>
+                <br><input type="checkbox" name="FMG"> central-management
+              </div>
+              <div class="col">
+                LXC
+                {% for lxc in lxces %}
+                  <br><input type="checkbox" name="{{lxc}}" checked> {{lxc}}
+                {% endfor %}
+              </div>
+              <div class="col">
+                VyOS
+                {% for vyos in vyoses %}
+                  <br><input type="checkbox" name="{{vyos}}" checked> {{vyos}}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
         </fieldset>
         <br>
-        <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected FGT and all LXC/VyOS" formaction="{% url 'fpoc:poweron' %}">Power On</button>
-        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'fpoc:bootstrap' %}" >Bootstrap</button>
+        <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices" formaction="{% url 'fpoc:poweron' %}">Power-On Devices</button>
+        <button type="submit" class="btn btn-warning btn-sm" title="Upgrade/Downgrade FortiGates" formaction="{% url 'fpoc:upgrade' %}">Upgrade FortiGates</button>
+        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'fpoc:bootstrap' %}" >Deploy Bootstrap Config to FortiGates</button>
       </form>
     </div>
   </div>
@@ -123,13 +136,20 @@ $(document).ready(function(){
         <form id="formPoC_1" method="post" action="{% url 'fpoc:sdwan_simple' %}" onsubmit="collectFortiPoCElements(this.id)">
           {% csrf_token %}
           <fieldset>
-            Devices
+            FGT
             <input type="checkbox" name="FGT-A" checked>FGT-A
             <input type="checkbox" name="FGT-B" checked>FGT-B
             <input type="checkbox" name="FGT-C" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">FGT-DC</span>
+            <br>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>PC-A1
+            <input type="checkbox" name="PC_A2" checked>PC-A2
+            <input type="checkbox" name="PC_B1" checked>PC-B1
+            <input type="checkbox" name="PC_B2" checked>PC-B2
+            <input type="checkbox" name="PC_C1" checked>DC-Server
           </fieldset>
-        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_simple' %}">Start</button>
+        <br><button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_simple' %}">Start</button>
         </form>
       </div>
     </div>
@@ -387,6 +407,15 @@ $(document).ready(function(){
             Devices
             <input type="checkbox" name="FGT-A" checked>FGT-A
             <input type="checkbox" name="FGT-B" checked>FGT-B
+            <br>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>PC-A1
+            <input type="checkbox" name="PC_A2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A2)">PC-A11</span>
+            <input type="checkbox" name="PC_B1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">PC-B2</span>
+            <input type="checkbox" name="PC_B2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">PC-B22</span>
           </fieldset>
           <fieldset>
             VPN <select name="vpn">

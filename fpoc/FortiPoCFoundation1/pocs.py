@@ -1,3 +1,5 @@
+import threading
+
 from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render
 from django.template import loader
@@ -5,7 +7,9 @@ from django.http import HttpResponse
 
 from collections import namedtuple
 
-from fpoc import start_poc, FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
+import fpoc
+import fpoc.fortios as fortios
+from fpoc import FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
 from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1
 import fpoc.ansible as ansible
 
@@ -14,45 +18,76 @@ APPNAME = "fpoc/FortiPoCFoundation1"
 Status = namedtuple('Status', 'is_valid is_invalid message')
 
 
+def upgrade(request: WSGIRequest) -> HttpResponse:
+    """
+    """
+
+    fos_version_target = request.POST.get('targetedFOSversion')
+    if not fos_version_target:
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': 'FortiOS version must be provided'})
+
+    # the intersection of the keys of request.POST dict and the foundation1 dict keys produces the keys of each
+    # device to be upgraded
+    fortigates = FortiPoCFoundation1.devices_of_type(FortiGate)  # All FortiGate devices
+    fortigates = sorted(list(request.POST.keys() & fortigates.keys()))
+
+    if request.POST.get('previewOnly'):
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Upgrade', 'header': 'Upgrade preview', 'message': fortigates})
+
+    def _upgrade_fgt(device: FortiGate, fos_version_target: str, lock: threading.Lock):
+        fortios.prepare_api(device)  # create API admin and key if needed
+        fortios.update_fortios_version(device, fos_version_target, lock)  # Upgrade/Downgrade FortiGate
+
+    poc = FortiPoCFoundation1(request, fpoc_devnames=fortigates)
+    threads = list()
+    for fgt in poc:
+        print(f'{fgt.name} : Upgrading to FortiOS', request.POST.get('targetedFOSversion'), ' ...')
+        thread = threading.Thread(target=_upgrade_fgt, args=(fgt, fos_version_target, poc.lock))
+        threads.append(thread)
+        thread.start()
+
+    for index, thread in enumerate(threads):
+        thread.join()
+
+    return render(request, f'{APPNAME}/message.html',
+                  {'title': 'Upgrade', 'header': 'Upgrade status', 'message': fortigates})
+
+
 def poweron(request: WSGIRequest) -> HttpResponse:
     """
     """
-    # Built a 'set' made of all the FortiGates in FortiPocFundation1
-    # For clarity, I'm not using a set comprehension
-    fortigates = set()
-    lxc_vyos = set()
-    for fpoc_devname, device in FortiPoCFoundation1.devices.items():
-        if isinstance(device, FortiGate):
-            fortigates.add(fpoc_devname)
-        elif isinstance(device, LXC) or isinstance(device, Vyos):
-            lxc_vyos.add(fpoc_devname)
+    fundation1_devices = FortiPoCFoundation1.devices_of_type(FortiGate)  # All FortiGate devices
+    fundation1_devices.update(FortiPoCFoundation1.devices_of_type(LXC))  # + all LXC devices
+    fundation1_devices.update(FortiPoCFoundation1.devices_of_type(Vyos))  # + all VyOS devices
 
-    # the intersection of the keys of request.POST dict and the 'fortigates' set produces the keys of each
-    # fortigate to be started for this poc. Then LXC and VyOS set is added (union)
-    devices_to_start = sorted(list((request.POST.keys() & fortigates) | lxc_vyos))
+    # the intersection of the keys of request.POST dict and the fundation1 dict keys produces the keys of each
+    # device to be powered on
+    devices_to_start = sorted(list(request.POST.keys() & fundation1_devices.keys()))
 
+    if request.POST.get('previewOnly'):
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Power-On', 'header': 'Power-On preview', 'message': devices_to_start})
+
+    # Create an FPOC instance because we need to know the IP@ to be used to reach the FPOC
     poc = FortiPoCFoundation1(request)
 
     # TODO: admin & pwd should be stored in DB so that it can be customized per FortiPoC (like WAN_CTRL)
     _, result = ansible.poweron_devices(devices_to_start, host=poc.ip, admin='admin', pwd='')
     result = '<pre> ' + result + ' </pre>'
 
-    return render(request, f'{APPNAME}/message.html', {'title': 'Power-On', 'header': 'Power-On status', 'message': result})
+    return render(request, f'{APPNAME}/message.html',
+                  {'title': 'Power-On', 'header': 'Power-On status', 'message': result})
 
 
 def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    devices = {
-        'FGT-A': FortiGate(name='FGT-A'), 'FGT-A_sec': FortiGate(name='FGT-A_sec'),
-        'FGT-B': FortiGate(name='FGT-B'), 'FGT-B_sec': FortiGate(name='FGT-B_sec'),
-        'FGT-C': FortiGate(name='FGT-C'), 'FGT-C_sec': FortiGate(name='FGT-C_sec'),
-        'FGT-D': FortiGate(name='FGT-D'), 'FGT-D_sec': FortiGate(name='FGT-D_sec'),
-        'ISFW-A': FortiGate(name='ISFW-A'), 'FMG': FortiManager(name='FMG'),
-    }
+    devices = FortiPoCFoundation1.devices_of_type(FortiGate)  # All FortiGate devices
+    devices['FMG'] = FortiManager(name='FMG')
 
     for devname, dev in devices.items():
-        dev.name = devname
         dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
         dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ipmask, 'name': devname}
         if request.POST.get('HA') == 'FGCP':
@@ -64,13 +99,12 @@ def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
             else:
                 dev.ha.role = FortiGate_HA.Roles.PRIMARY
 
-    device_dependencies = {}  # No device dependencies for this PoC (no PC to configure, etc...)
-
     # Check the request, render and deploy the configs
     if request.POST.get('targetedFOSversion') == '':
-        return render(request, f'{APPNAME}/message.html', {'title': 'Error', 'header': 'Error', 'message': 'The FortiOS version must be specified'})
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': 'The FortiOS version must be specified'})
 
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices)
 
 
 def sdwan_simple(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -82,8 +116,10 @@ def sdwan_simple(request: WSGIRequest, poc_id: int) -> HttpResponse:
     }
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-A', template_group='BRANCHES', template_context={'i': 1, 'overlay': '10.255', **context}),
-        'FGT-B': FortiGate(name='FGT-B', template_group='BRANCHES', template_context={'i': 2, 'overlay': '10.254', **context}),
+        'FGT-A': FortiGate(name='FGT-A', template_group='BRANCHES',
+                           template_context={'i': 1, 'overlay': '10.255', **context}),
+        'FGT-B': FortiGate(name='FGT-B', template_group='BRANCHES',
+                           template_context={'i': 2, 'overlay': '10.254', **context}),
         'FGT-C': FortiGate(name='FGT-DC', template_group='DATACENTER'),
 
         'PC_A1': LXC(name='PC-A1', template_context={'ipmask': '192.168.1.1/24', 'gateway': '192.168.1.254'}),
@@ -93,14 +129,8 @@ def sdwan_simple(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_C1': LXC(name='DC-Server', template_context={'ipmask': '192.168.0.100/24', 'gateway': '192.168.0.254'}),
     }
 
-    device_dependencies = {
-        'FGT-A': ('PC_A1', 'PC_A2'),
-        'FGT-B': ('PC_B1', 'PC_B2'),
-        'FGT-C': ('PC_C1',)
-    }
-
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices)
 
 
 def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -136,13 +166,8 @@ def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_B2': LXC(name='PC-B22', template_context={'ipmask': '192.168.22.1/24', 'gateway': '192.168.22.254'}),
     }
 
-    device_dependencies = {
-        'FGT-A': ('PC_A1', 'PC_A2'),
-        'FGT-B': ('PC_B1', 'PC_B2'),
-    }
-
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices)
 
 
 def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -202,7 +227,7 @@ def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
     }
 
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies={})
+    return start(request, poc_id, devices)
 
 
 def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -228,15 +253,15 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_C1': LXC(name='PC-2', template_context={'ipmask': '192.168.4.44/24', 'gateway': '192.168.4.1'}),
     }
 
-    device_dependencies = {
-        'FGT-A': ('PC_A1', 'PC_A2'),
-        'FGT-A_sec': ('PC_A1', 'PC_A2'),
-        'FGT-B': ('PC_B1',),
-        'FGT-C': ('PC_C1',)
-    }
+    # device_dependencies = {
+    #     'FGT-A': ('PC_A1', 'PC_A2'),
+    #     'FGT-A_sec': ('PC_A1', 'PC_A2'),
+    #     'FGT-B': ('PC_B1',),
+    #     'FGT-C': ('PC_C1',)
+    # }
 
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies)
+    return start(request, poc_id, devices)
 
 
 def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -342,7 +367,7 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
             del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
 
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies={})
+    return start(request, poc_id, devices)
 
 
 def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -411,7 +436,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
     }
 
     # Check request, render and deploy configs
-    return start(request, poc_id, devices, device_dependencies={})
+    return start(request, poc_id, devices)
 
 
 def inspect(request: WSGIRequest) -> Status:
@@ -419,7 +444,7 @@ def inspect(request: WSGIRequest) -> Status:
     """
     import ipaddress
 
-    for ipaddr in (request.POST.get('fpocIP'), ):
+    for ipaddr in (request.POST.get('fpocIP'),):
         if ipaddr:
             # Ensure a valid IP address is provided
             try:
@@ -433,13 +458,25 @@ def inspect(request: WSGIRequest) -> Status:
     return Status(True, False, 'request is valid')
 
 
-def start(request: WSGIRequest, poc_id: int, devices: dict, device_dependencies: dict) -> HttpResponse:
+def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
     if inspect(request).is_invalid:
-        return render(request, f'{APPNAME}/message.html', {'title': 'Error', 'header': 'Error', 'message': inspect(request).message})
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': inspect(request).message})
 
-    status_devices = start_poc(request,
-                               FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices),
-                               device_dependencies)
+    # Create the list of devices which must be used for this PoC
+
+    # the intersection of the keys of request.POST dict and the keys of 'devices' dict produces the keys of each
+    # device to be used for this poc.
+    fpoc_devnames = request.POST.keys() & devices.keys()
+
+    # # Delete devices from 'devices' which do not need to be started
+    # # +--> do not use dict comprehension because it creates an unordered list of devices due to using set()
+    for fpoc_devname in list(devices.keys()):  # use list of keys() otherwise exception raised bcse
+        # the dict changes size during iteration
+        if fpoc_devname not in fpoc_devnames:
+            del (devices[fpoc_devname])  # this device was not requested to be started for this PoC
+
+    status_devices = fpoc.start(request, poc=FortiPoCFoundation1(request=request, poc_id=poc_id, devices=devices))
 
     #  For FortiManager provisioning templates: generate the Jinja dict to import into FMG
     #
@@ -471,4 +508,5 @@ def start(request: WSGIRequest, poc_id: int, devices: dict, device_dependencies:
                                                {'fortigates': fortigates}, using='jinja2')
 
     # Render the deployment status using Django template engine
-    return render(request, f'{APPNAME}/deployment_status.html', {'devices': status_devices, 'fortimanager': fortimanager})
+    return render(request, f'{APPNAME}/deployment_status.html',
+                  {'devices': status_devices, 'fortimanager': fortimanager})

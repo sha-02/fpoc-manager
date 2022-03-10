@@ -46,6 +46,8 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, lock: th
         fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_fpoc}')  # FortiPoC device name is used here
         print(f"{device.name} : Hostname changed")
         update_fortios_version(device, fos_version_target, lock)
+        device.apikey = None  # Reset the API key
+        raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
     print('')  # because of the print("... is running FOS ...", end='')
 
@@ -94,8 +96,6 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     print(f'{device.name} : Uploading firmware... ')
     fortios.upload_firmware(device, firmware)
     print(f'{device.name} : Firmware uploaded.')
-    device.apikey = None  # Reset the API key
-    raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
 
 def fortios_firmware() -> dict:

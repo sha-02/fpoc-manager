@@ -16,30 +16,13 @@ from fpoc import TypePoC, TypeDevice, FortiGate, LXC, Vyos, FortiManager
 from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 
 
-def start_poc(request: WSGIRequest, poc: TypePoC, device_dependencies: dict) -> list:
+def start(request: WSGIRequest, poc: TypePoC) -> list:
     """
 
     :param request: request.POST contains, among other things, the devices to be started for this poc
     :param poc: contains all the devices defined for this poc
-    :param device_dependencies:
     :return:
     """
-
-    # the intersection of the keys of request.POST dict and the keys of poc.devices dict produces the keys of each
-    # device to be started for this poc. Also add the keys of the device dependencies.
-    dev_keys_to_start = set()
-    for devkey in request.POST.keys() & poc.devices.keys():
-        dev_keys_to_start.add(devkey)  # add the device key
-        dev_keys_to_start.update(device_dependencies.get(devkey, set()))  # update with the tuples listed in device_dependencies
-
-    # {devkey: devices[devkey] for devkey in dev_keys_to_start}
-    # +--> do not use dict comprehension because it creates an unordered list of devices due to using set()
-    # Delete devices from 'devices' which do not need to be started
-    # for devkey in poc.devices.copy():  # use a copy otherwise an exception is raised because the dict changes size
-    for devkey in list(poc.devices.keys()):  # use list of keys() otherwise exception raised bcse the dict changes size
-        # during iteration
-        if devkey not in dev_keys_to_start:
-            del (poc.devices[devkey])  # this device was not requested to be started for this PoC
 
     start_time = time.perf_counter()
     deploy_configs(request, poc)
