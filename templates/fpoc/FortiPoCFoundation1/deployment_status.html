@@ -6,7 +6,11 @@
 {% block content %}
 
 {% for device in devices %}
-    <a href="{{device.URL}}" target="_blank">{{device.name}}</a> ({{device.name_fpoc}}) =>
+    {{device.name}}
+    ({{device.name_fpoc}})
+    [<a href="{{device.URL.1}}" target="_blank">{{device.URL.0}}</a>]
+    [<a href="{{device.URL_console}}" target="_blank">console</a>]
+    =>
     {% if device.deployment_status == "skipped" %}
         <strong>{{device.deployment_status}}</strong>
     {% else %}

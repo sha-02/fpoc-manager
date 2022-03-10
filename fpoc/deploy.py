@@ -36,21 +36,36 @@ def start(request: WSGIRequest, poc: TypePoC) -> list:
         {'name': device.name, 'name_fpoc': device.name_fpoc,
          'deployment_status': device.deployment_status,
          'URL': device_URL(request, poc, device),
+         'URL_console': device_URL_console(request, poc, device),
          'context': device.template_context, 'config': device.config} for device in poc]
 
     return status_devices
 
 
-def device_URL(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -> str:
+def device_URL(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -> tuple:
     """
-    returns URL to access the device via the FortiPoC
+    returns URL to access the device via the FortiPoC (HTTPS for FGT/FMG, SSH for LXC/VyOS)
     """
     ip = request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
 
     if isinstance(device, FortiGate) or isinstance(device, FortiManager):
-        return f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
+        return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
     if isinstance(device, LXC) or isinstance(device, Vyos):
-        return f'https://{ip}/term/dev_{device.name_fpoc}/ssh'
+        return 'SSH', f'https://{ip}/term/dev_{device.name_fpoc}/ssh'
+
+    return 'HTTPS', f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
+
+
+def device_URL_console(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -> str:
+    """
+    returns URL to access the device via its FortiPoC console
+    """
+    ip = request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+
+    if isinstance(device, FortiGate) or isinstance(device, FortiManager) or isinstance(device, Vyos):
+        return f'https://{ip}/term/dev_{device.name_fpoc}/cons'
+    if isinstance(device, LXC):
+        return f'https://{ip}/term/dev_{device.name_fpoc}/lxcbash'
 
     return f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
 
