@@ -27,6 +27,13 @@ class WAN:
     mpls1: WanSettings
     mpls2: WanSettings
 
+    def __iter__(self):
+        """"
+        Makes the class an iterable which can iterate over the WAN interfaces
+        Leverage the iterator from the class '__dict__' iterable
+        """
+        return iter(self.__dict__.items())
+
 
 @dataclass
 class Device:

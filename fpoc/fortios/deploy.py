@@ -235,10 +235,7 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     if device.ha.mode != FortiGate_HA.Modes.STANDALONE:
         print(f"{device.name} : HA must be deployed")
 
-    if not is_running_bootstrap(device):  # FGT is not running bootstrap config
-        return True
-
-    return False
+    return is_running_bootstrap(device)  # Returns True if FGT is not running bootstrap config, False otherwise.
 
 
 def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
@@ -285,8 +282,12 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
         device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt_ip if any(
             (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
         render_bootstrap_config(device)
-        if not request.POST.get('previewOnly') and should_upload_boostrap(device):
-            upload_bootstrap_config(device)
+        if not request.POST.get('previewOnly'):
+            upload_bootstrap_config(device)  # for this PoC, the bootstrap config is pushed unconditionally, without
+            # checking if there is a bootstrap config already running on the FGT. This is because there are different
+            # possible options for the bootstrap config (e.g., 'WAN_underlays', 'fmg_ip')
+            # It's simpler to push the bootstrap config unconditionally than having to check whether the bootstrap
+            # config running on the FGT has the same options as the ones requested
             save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         raise CompletedDeviceProcessing
 

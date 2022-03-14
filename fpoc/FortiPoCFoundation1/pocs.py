@@ -84,26 +84,36 @@ def poweron(request: WSGIRequest) -> HttpResponse:
 def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    devices = FortiPoCFoundation1.devices_of_type(FortiGate)  # All FortiGate devices
-    devices['FMG'] = FortiManager(name='FMG')
-
-    for devname, dev in devices.items():
-        dev.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
-        dev.template_context = {'ip': FortiPoCFoundation1.devices[devname].mgmt_ipmask, 'name': devname}
-        if request.POST.get('HA') == 'FGCP':
-            dev.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=devname,
-                                  hbdev=[('port6', 0)], sessyncdev=['port6'],
-                                  monitordev=['port1', 'port2', 'port5'], priority=128)
-            if devname in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
-                dev.ha.role = FortiGate_HA.Roles.SECONDARY
-            else:
-                dev.ha.role = FortiGate_HA.Roles.PRIMARY
-
-    # Check the request, render and deploy the configs
+    # Check the request
     if request.POST.get('targetedFOSversion') == '':
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': 'The FortiOS version must be specified'})
 
+    devices = FortiPoCFoundation1.devices_of_type(FortiGate)  # All FortiGate devices
+
+    for fpoc_devname, device in devices.items():
+        device.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
+
+        device.template_context = {'ip': FortiPoCFoundation1.devices[fpoc_devname].mgmt_ipmask, 'name': fpoc_devname }
+        if bool(request.POST.get('WAN_underlays', False)) and device.wan is not None:
+            device.template_context['WAN_underlays'] = True
+            device.template_context['WAN'] = device.wan
+            device.template_context['ip_lastbyte'] = device.offset + 1
+        else:
+            device.template_context['WAN_underlays'] = False
+
+        if request.POST.get('HA') == 'FGCP':
+            device.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=fpoc_devname,
+                                  hbdev=[('port6', 0)], sessyncdev=['port6'],
+                                  monitordev=['port1', 'port2', 'port5'], priority=128)
+            if fpoc_devname in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
+                device.ha.role = FortiGate_HA.Roles.SECONDARY
+            else:
+                device.ha.role = FortiGate_HA.Roles.PRIMARY
+
+    devices['FMG'] = FortiManager(name='FMG')
+
+    # Render and deploy the configs
     return start(request, poc_id, devices)
 
 

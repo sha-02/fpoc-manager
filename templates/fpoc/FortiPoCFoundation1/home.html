@@ -89,11 +89,13 @@ $(document).ready(function(){
                 {% for fgt in fortigates %}
                   <br><input type="checkbox" name="{{fgt}}" checked> {{fgt}}
                 {% endfor %}
-                <hr>HA <select name="HA">
+                <hr>
+                WAN underlays <input type="checkbox" name="WAN_underlays">
+                <br>HA <select name="HA">
                     <option value="standalone" selected>standalone</option>
                     <option value="FGCP">FGCP</option>
                   </select>
-                <br><input type="checkbox" name="FMG"> central-management
+                <br>central-management <input type="checkbox" name="FMG">
               </div>
               <div class="col">
                 LXC
