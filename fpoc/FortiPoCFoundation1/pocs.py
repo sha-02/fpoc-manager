@@ -497,12 +497,12 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
 
         # Create a dictionary of the form:  { 'fgt1_name': 'fgt1_context_dict', 'fgt2_name': 'fgt2_context_dict', ...}
         # Then serialize the contexts in JSON so that they can be used as a Jinja variable
-        # Problem with context objects like 'HA' and 'WanSettings' is that they cannot be used as Jinja variable
+        # Problem with context objects like 'HA' and 'Interface' is that they cannot be used as Jinja variable
         # context is first serialize as a JSON string with jsonpickle (which nicely handles complex objects serialization)
-        # then it is reloaded as a dict. After reload, objects like 'HA' or 'WanSettings' are no longer objects since they
+        # then it is reloaded as a dict. After reload, objects like 'HA' or 'Interface' are no longer objects since they
         # were changed to regular key:value pairs by jsonpickle during the serialization process.
         # One must use json.loads and not jsonpickle.decode to reload the JSON string into a dict otherwise jsonpickle
-        # cleverly rebuilds the original 'HA'/'WanSettings' objects !
+        # cleverly rebuilds the original 'HA'/'Interface' objects !
         # We need to pass a context dict to Jinja (in order to loop through the items), that's why the serialized context
         # must be deserialized
 

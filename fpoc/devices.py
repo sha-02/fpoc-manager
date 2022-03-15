@@ -4,28 +4,29 @@ from enum import Enum
 
 
 @dataclass
-class WanSettings:
+class Interface:
     port: str  # e.g. 'port1'
     vlanid: int  # e.g, 11
     subnet: str  # e.g., '198.51.100'
+    # info: str = None # e.g., it can be an alias for FortiOS or a traffic-class for VyOS
 
 
 @dataclass
 class WAN:
-    inet: WanSettings
-    inet_snat: WanSettings
-    inet_dnat: WanSettings
-    inet1: WanSettings
-    inet1_snat: WanSettings
-    inet1_dnat: WanSettings
-    inet2: WanSettings
-    inet2_snat: WanSettings
-    inet2_dnat: WanSettings
-    inet3: WanSettings
-    inet3_snat: WanSettings
-    inet3_dnat: WanSettings
-    mpls1: WanSettings
-    mpls2: WanSettings
+    inet: Interface
+    inet_snat: Interface
+    inet_dnat: Interface
+    inet1: Interface
+    inet1_snat: Interface
+    inet1_dnat: Interface
+    inet2: Interface
+    inet2_snat: Interface
+    inet2_dnat: Interface
+    inet3: Interface
+    inet3_snat: Interface
+    inet3_dnat: Interface
+    mpls1: Interface
+    mpls2: Interface
 
     def __iter__(self):
         """"
@@ -46,7 +47,7 @@ class Device:
     mgmt_ipmask: str = None  # IP@ of this Device in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.1/24')
     mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
 
-    name: str = None  # Name of the device
+    name: str = None  # Name of the device for the poc
     name_fpoc: str = None  # Name of the device in the FortiPoC
     username: str = None  # username for SSH session
     password: str = None  # password for SSH session

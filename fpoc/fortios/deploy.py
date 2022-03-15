@@ -235,7 +235,7 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     if device.ha.mode != FortiGate_HA.Modes.STANDALONE:
         print(f"{device.name} : HA must be deployed")
 
-    return is_running_bootstrap(device)  # Returns True if FGT is not running bootstrap config, False otherwise.
+    return not is_running_bootstrap(device)  # Returns False if FGT is not running bootstrap config, True otherwise.
 
 
 def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
