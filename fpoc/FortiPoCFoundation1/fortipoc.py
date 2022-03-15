@@ -8,7 +8,6 @@ from fpoc import FortiPoC, FortiGate, LXC, Vyos, FortiManager, WAN, Interface
 class FortiPoCFoundation1(FortiPoC):
     """
     """
-    lock: threading.Lock  # mutual exclusion (mutex) lock used to download and store missing firmware
     devices = {
         'FGT-A': FortiGate(offset=0, mgmt_ipmask='172.16.31.11/24',
                            wan=WAN(
