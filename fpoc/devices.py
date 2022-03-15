@@ -3,12 +3,45 @@ import ipaddress
 from enum import Enum
 
 
-@dataclass
 class Interface:
-    port: str  # e.g. 'port1'
-    vlanid: int  # e.g, 11
-    subnet: str  # e.g., '198.51.100'
-    # info: str = None # e.g., it can be an alias for FortiOS or a traffic-class for VyOS
+    # port: str  # e.g. 'port1'
+    # vlanid: int  # e.g, 11
+    # _ipaddress: ipaddress
+
+    def __init__(self, port:str, vlanid: int, address: str):
+        self.port = port
+        self.vlanid = vlanid
+
+        if len(address.split('.')) == 3:  # address is a subnet of the form '198.51.100'
+            # kept for backward compatibility with previous code
+            self._ipaddress = ipaddress.ip_network(address+'.0/24')
+        elif '/' in address:  # address is an IP@ or a subnet of the form '198.51.100.1/24'
+            self._ipaddress = ipaddress.ip_interface(address)
+        else:  # address is an IP@ of the form '198.51.100.1'
+            self._ipaddress = ipaddress.ip_address(address)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={self.ipmask})'
+
+    @property
+    def interface(self) -> str:  # alias for 'port'
+        return self.port
+
+    @property
+    def subnet(self) -> str:  # e.g., '198.51.100' for subnet '198.51.100.0/24' (for compatibility with previous code)
+        return '.'.join(self._ipaddress.network_address.compressed.split('.')[0:3])
+
+    @property
+    def subnetmask(self) -> str:
+        return self._ipaddress.network.compressed  # e.g. '172.16.31.0/24'
+
+    @property
+    def ip(self) -> str:
+        return self._ipaddress.ip.compressed  # e.g. '172.16.31.1'
+
+    @property
+    def ipmask(self) -> str:
+        return self._ipaddress.with_prefixlen  # e.g. '172.16.31.1/24'
 
 
 @dataclass
@@ -44,7 +77,7 @@ class Device:
     ssh_port: int = None  # e.g., 10100+offset (access from FortiPoC IP) or 22 (access from within FortiPoC)
     https_port: int = None  # e.g., 10400+offset (access from FortiPoC IP) or 443 (access from within FortiPoC)
 
-    mgmt_ipmask: str = None  # IP@ of this Device in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.1/24')
+    mgmt: Interface = None  # (port, vlanid, ipaddress/mask) for the OOB mgmt inside the FortiPoC (eg, ('port10', 0, '172.16.31.1/24'))
     mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name of the device for the poc
@@ -66,18 +99,6 @@ class Device:
     def __post_init__(self):  # Apply default values
         self.template_group = self.template_group or self.name  # initialize if it is None
         self.template_context = self.template_context or {}  # initialize if it is None
-
-    @property
-    def mgmt_subnet(self):
-        """
-        """
-        return ipaddress.ip_interface(self.mgmt_ipmask).network.compressed  # e.g. '172.16.31.0/24' when mgmt_ipmask='172.16.31.1/24'
-
-    @property
-    def mgmt_ip(self):
-        """
-        """
-        return ipaddress.ip_interface(self.mgmt_ipmask).ip.compressed  # e.g. '172.16.31.1' when mgmt_ipmask='172.16.31.1/24'
 
     @property
     def mgmt_fpoc_ip(self):
@@ -115,7 +136,6 @@ class FortiGate(Device):
     apikey: str = None  # API key for the API admin
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
-    mgmt_interface: str = None  # FGT interface to which the mgmt IP@ is assigned (e.g., 'port10')
     ha: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
 
     def __post_init__(self):  # Apply default values
@@ -129,7 +149,6 @@ class FortiGate(Device):
         #
         # initialize attributes from local class
         self.apiadmin = 'adminapi'
-        self.mgmt_interface = 'port10'
         self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
     @property

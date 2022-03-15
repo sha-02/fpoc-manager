@@ -195,11 +195,9 @@ def render_bootstrap_config(device: FortiGate):
 
     # Render the bootstrap configuration
 
-    device.template_context['ip'] = device.mgmt_ipmask  # mgmt IP in the OOB MGMT subnet (e.g., 172.16.31.12/24)
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['mgmt_subnet'] = device.mgmt_subnet  # e.g. 172.16.31.0/24
+    device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
     device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # e.g., 172.16.31.254
-    device.template_context['mgmt_interface'] = device.mgmt_interface
     device.template_context['apiadmin'] = device.apiadmin
     device.template_context['HA'] = device.ha
 
@@ -279,7 +277,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
-        device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt_ip if any(
+        device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt.ip if any(
             (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
         render_bootstrap_config(device)
         if not request.POST.get('previewOnly'):
@@ -302,7 +300,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
     device.template_context['HA'] = device.ha
     device.template_context['wan'] = device.wan
-    device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt_ip if any(
+    device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt.ip if any(
         (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
     device.template_context['FMG_FORTIGATE_ID'] = None
 
