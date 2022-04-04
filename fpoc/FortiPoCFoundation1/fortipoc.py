@@ -180,16 +180,16 @@ class FortiPoCFoundation1(FortiPoC):
 
         # Initialize this poc instance
         self.id = poc_id
-        self.lock = threading.Lock()
+        self.lock = threading.Lock()  # mutual exclusion (mutex) lock used for concurrency (e.g., download FOS firmware)
 
         # IP of FortiPoC is retrieved from the fpoc selection list or from an IP provided by user
         fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('fpocSelection')
         if fpoc_ip == '0.0.0.0':  # fpoc-manager is running inside the FortiPoC
-            # self.ip and self.manager_inside_fpoc values are inherited from the Class
-            pass
+            self.manager_inside_fpoc = True
+            self.ip = '172.16.31.254'  # device is accessed by fpoc-manager via the FortiPoC OOB inside IP
         else:  # fpoc-manager is running outside the FortiPoC
             self.manager_inside_fpoc = False
-            self.ip = fpoc_ip  # device is accessed via the FortiPoC IP
+            self.ip = fpoc_ip  # device is accessed by fpoc-manager via the FortiPoC outside IP
 
         #
         # build the dict of all devices needed for this poc: self.devices
@@ -220,14 +220,13 @@ class FortiPoCFoundation1(FortiPoC):
             device.name_fpoc = fpoc_devname
             device.name = device.name or device.name_fpoc  # init to 'name_fpoc' if 'name' is None
             device.mgmt_fpoc_ipmask = FortiPoCFoundation1.mgmt_fpoc_ipmask
-            if fpoc_ip == '0.0.0.0':  # fpoc-manager is running inside the FortiPoC
-                # self.ip and self.manager_inside_fpoc values are inherited from the Class
-                # device is accessed via its mgmt-ip inside the FortiPoC
+            if self.manager_inside_fpoc:  # fpoc-manager is running inside the FortiPoC
+                # device is accessed via its mgmt-ip inside the FortiPoC OOB
                 device.ip = device.mgmt.ip  # e.g. 172.16.31.1
                 device.https_port = 443
                 device.ssh_port = 22
             else:  # fpoc-manager is running outside the FortiPoC
-                device.ip = fpoc_ip  # device is accessed via the FortiPoC IP
+                device.ip = fpoc_ip  # device is accessed via the FortiPoC outside IP
                 device.https_port = FortiPoCFoundation1.BASE_PORT_HTTPS + device.offset
                 device.ssh_port = FortiPoCFoundation1.BASE_PORT_SSH + device.offset
 
