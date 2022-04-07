@@ -97,7 +97,7 @@ def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
         device.template_context = {'name': fpoc_devname, 'mgmt': FortiPoCFoundation1.devices[fpoc_devname].mgmt}
         if bool(request.POST.get('WAN_underlays', False)) and device.wan is not None:
             device.template_context['WAN_underlays'] = True
-            device.template_context['WAN'] = device.wan
+            device.template_context['wan'] = device.wan
             device.template_context['ip_lastbyte'] = device.offset + 1
         else:
             device.template_context['WAN_underlays'] = False
