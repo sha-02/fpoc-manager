@@ -286,7 +286,8 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
             # possible options for the bootstrap config (e.g., 'WAN_underlays', 'fmg_ip')
             # It's simpler to push the bootstrap config unconditionally than having to check whether the bootstrap
             # config running on the FGT has the same options as the ones requested
-            save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
+
+        save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         raise CompletedDeviceProcessing
 
     # Render the config (CLI script or full-config)
