@@ -341,7 +341,8 @@ $(document).ready(function(){
 
       <hr>
       <h5>SDWAN+ADVPN - Dual DC & Dual Region (FOS 6.4+)</h5>
-      <form id="formPoC_6" method="post" action="{% url 'fpoc:sdwan_advpn_dualdc' %}" onsubmit="collectFortiPoCElements(this.id)">
+<!--      <form id="formPoC_6" method="post" action="{% url 'fpoc:sdwan_advpn_dualdc' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+      <form id="formPoC_6" method="post" onsubmit="collectFortiPoCElements(this.id)">
         {% csrf_token %}
           <fieldset>
             FGT
@@ -382,9 +383,58 @@ $(document).ready(function(){
               <option value='all'>RIA over all overlays</option>
             </select>
             <input type="checkbox" name="cross_region_advpn" value=1 checked>Cross-Region ADVPN shortcuts
+            <input type="checkbox" name="bidirectional_sdwan" value=1>Bidirectional SDWAN (Hub-side steering)
           </fieldset>
-        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_dualdc' %}">Start</button>
+<!--        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_dualdc' %}">Start</button>-->
+        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc' %}" >BGP per overlay (6.4+)</button>
+        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_nobgprr' %}" formaction="{% url 'fpoc:sdwan_advpn_nobgprr' %}" >BGP per overlay without RR (7.2+)</button>
       </form>
+
+<!--      <h5>SDWAN+ADVPN without BGP Route Reflection - Dual DC & Dual Region (FOS 7.2+)</h5>-->
+<!--      <form id="formPoC_7" method="post" action="{% url 'fpoc:sdwan_advpn_nobgprr' %}" onsubmit="collectFortiPoCElements(this.id)">-->
+<!--        {% csrf_token %}-->
+<!--          <fieldset>-->
+<!--            FGT-->
+<!--            <input type="checkbox" name="FGT-A" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">West DC-1</span>-->
+<!--            <input type="checkbox" name="FGT-B" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">West DC-2</span>-->
+<!--            <input type="checkbox" name="FGT-C" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">West Branch-1</span>-->
+<!--            <input type="checkbox" name="FGT-D" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">West Branch-2</span>-->
+<!--            <input type="checkbox" name="FGT-B_sec">-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-B_sec)">East DC-3</span>-->
+<!--            <input type="checkbox" name="FGT-D_sec">-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-D_sec)">East Branch-3</span>-->
+<!--            <input type="checkbox" name="FMG">-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(FMG)">FortiManager</span>-->
+<!--          </fieldset>-->
+<!--          <fieldset>-->
+<!--            LXC-->
+<!--            <input type="checkbox" name="PC_A1" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">West DC-1</span>-->
+<!--            <input type="checkbox" name="PC_B1" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">West DC-2</span>-->
+<!--            <input type="checkbox" name="PC_C1" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">West Branch-1</span>-->
+<!--            <input type="checkbox" name="PC_D1" checked>-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">West Branch-2</span>-->
+<!--            <input type="checkbox" name="PC_B2">-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">East DC-3</span>-->
+<!--            <input type="checkbox" name="PC_D2">-->
+<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">East Branch-3</span>-->
+<!--          </fieldset>-->
+<!--          <fieldset>-->
+<!--            Remote Internet Access <select name="remote_internet">-->
+<!--              <option value='none'>DIA only</option>-->
+<!--              <option value='mpls' selected>RIA over MPLS</option>-->
+<!--              <option value='all'>RIA over all overlays</option>-->
+<!--            </select>-->
+<!--            <input type="checkbox" name="cross_region_advpn" value=1 checked>Cross-Region ADVPN shortcuts-->
+<!--          </fieldset>-->
+<!--        <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_advpn_nobgprr' %}">Start</button>-->
+<!--      </form>-->
     </div>
   </div>
 </div>

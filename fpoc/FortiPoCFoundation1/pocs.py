@@ -387,6 +387,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
+        'bidirectional_sdwan': bool(request.POST.get('bidirectional_sdwan', False)),  # True or False
 
         # Underlay IPs of the Hubs which are used as IPsec remote-gw by the Branches
         'datacenter': {

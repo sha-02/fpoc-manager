@@ -18,7 +18,12 @@ urlpatterns = [
 
     path('sdwan_simple/', pocs.sdwan_simple, {'poc_id': 1}, name='sdwan_simple'),
     path('sdwan_advpn_singlehub/', pocs.sdwan_advpn_singlehub, {'poc_id': 5}, name='sdwan_advpn_singlehub'),
+
+    # Dual-DC, Dual-Region with different designs:
+    # - "one BGP peering per overlay" design
+    # - "BGP without route reflection" design
     path('sdwan_advpn_dualdc/', pocs.sdwan_advpn_dualdc, {'poc_id': 6}, name='sdwan_advpn_dualdc'),
+    path('sdwan_advpn_nobgprr/', pocs.sdwan_advpn_dualdc, {'poc_id': 7}, name='sdwan_advpn_nobgprr'),
 
     path('vpn_dialup/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('vpn_site2site/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),
