@@ -104,8 +104,8 @@ def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
 
         if request.POST.get('HA') == 'FGCP':
             device.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=fpoc_devname,
-                                  hbdev=[('port6', 0)], sessyncdev=['port6'],
-                                  monitordev=['port1', 'port2', 'port5'], priority=128)
+                                     hbdev=[('port6', 0)], sessyncdev=['port6'],
+                                     monitordev=['port1', 'port2', 'port5'], priority=128)
             if fpoc_devname in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
                 device.ha.role = FortiGate_HA.Roles.SECONDARY
             else:
@@ -284,6 +284,7 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'override_with_hub_nexthop': bool(request.POST.get('override_with_hub_nexthop', False)),  # True or False
         'feasible_routes': request.POST.get('feasible_routes'),
         # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
+        'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
 
         # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -343,11 +344,37 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='Secondary', template_context={'i': 1}),
         'FGT-C': FortiGate(name='FGT-SDW-2', template_group='FGT-SDW', template_context={'i': 2, **context}),
         'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='Secondary', template_context={'i': 2}),
-
-        'PC_A1': LXC(name='DC-server-4', template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'}),
-        'PC_B1': LXC(name='Client-11', template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'}),
-        'PC_C1': LXC(name='Client-22', template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'}),
     }
+
+    if not context['vrf_aware_overlay']:
+        devices['PC_A1'] = LXC(name='DC-server-4',
+                               template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'})
+        devices['PC_B1'] = LXC(name='Client-11',
+                               template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'})
+        devices['PC_C1'] = LXC(name='Client-22',
+                               template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'})
+    else:
+        devices['PC_A1'] = LXC(name='DC-server-4',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.3.4/24'},
+                                                            {'vlan': 1001, 'ipmask': '192.168.13.4/24'},
+                                                            {'vlan': 1002, 'ipmask': '192.168.23.4/24'},
+                                                            {'vlan': 1003, 'ipmask': '192.168.33.4/24'},
+                                                            ],
+                                                 'gateway': '192.168.3.3'})
+        devices['PC_B1'] = LXC(name='Client-11',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.1.11/24'},
+                                                            {'vlan': 1001, 'ipmask': '192.168.11.11/24'},
+                                                            {'vlan': 1002, 'ipmask': '192.168.21.11/24'},
+                                                            {'vlan': 1003, 'ipmask': '192.168.31.11/24'},
+                                                            ],
+                                                 'gateway': '192.168.1.1'})
+        devices['PC_C1'] = LXC(name='Client-22',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.2.22/24'},
+                                                            {'vlan': 1001, 'ipmask': '192.168.12.22/24'},
+                                                            {'vlan': 1002, 'ipmask': '192.168.22.22/24'},
+                                                            {'vlan': 1003, 'ipmask': '192.168.32.22/24'},
+                                                            ],
+                                                 'gateway': '192.168.2.2'})
 
     # Settings used for HA
     #
