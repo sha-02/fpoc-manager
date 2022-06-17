@@ -277,14 +277,102 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
 def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
+    if poc_id == 5:  # FOS 6.2+
+        devices, context = sdwan_advpn_singlehub_fos62(request)
+    else:  # FOS 7.0+, poc_id == 8
+        devices, context = sdwan_advpn_singlehub_fos70(request)
+
+    # Settings used for HA
+    #
+    if request.POST.get('HA') == 'FGCP':
+        for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
+            devices[cluster[0]].ha.mode = devices[cluster[1]].ha.mode = FortiGate_HA.Modes.FGCP
+            devices[cluster[0]].ha.role = FortiGate_HA.Roles.PRIMARY
+            devices[cluster[1]].ha.role = FortiGate_HA.Roles.SECONDARY
+            devices[cluster[0]].ha.priority = 200
+            devices[cluster[1]].ha.priority = 100
+            devices[cluster[0]].ha.group_id = devices[cluster[1]].ha.group_id = 1
+            devices[cluster[0]].ha.group_name = devices[cluster[0]].name  # group_name defaults to the device name
+            devices[cluster[1]].ha.group_name = devices[cluster[1]].name
+            devices[cluster[0]].ha.hbdev = devices[cluster[1]].ha.hbdev = [('port6', 0)]  # heartbeat interfaces
+            devices[cluster[0]].ha.sessyncdev = devices[cluster[1]].ha.sessyncdev = [
+                'port6']  # session synch interfaces
+            devices[cluster[0]].ha.monitordev = devices[cluster[1]].ha.monitordev = ['port1', 'port2',
+                                                                                     'port5']  # monitored interfaces
+
+    # The request.POST sends all secondary devices (FGT-A_sec, etc...) for simplicity
+    # The request.POST is a read-only QueryDict. So, to avoid configuring unrequested secondary devices I'm removing them
+    # from the list of 'devices' (which was also initialized with all devices for simplicity)
+    for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
+        if request.POST.get('HA') == 'standalone':  # No HA = all secondary devices must be removed from the list
+            del devices[cluster[1]]
+        elif not request.POST.get(cluster[0]):  # this device is not in the list of to-be-configured devices
+            del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
+
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices)
+
+
+def sdwan_advpn_singlehub_fos70(request: WSGIRequest) -> tuple:
+    context = {
+        'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
+        'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+
+        # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
+        'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
+        'hub_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
+        'hub_lte': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
+        'hub_mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.3',  # 10.0.14.3
+    }
+
+    devices = {
+        'FGT-A': FortiGate(name='FGT-DC-3', template_group='FGT-DC', template_context={'i': 3, **context}),
+        'FGT-A_sec': FortiGate(name='FGT-DC-3_sec', template_group='Secondary', template_context={'i': 3}),
+        'FGT-B': FortiGate(name='FGT-SDW-1', template_group='FGT-SDW', template_context={'i': 1, **context}),
+        'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='Secondary', template_context={'i': 1}),
+        'FGT-C': FortiGate(name='FGT-SDW-2', template_group='FGT-SDW', template_context={'i': 2, **context}),
+        'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='Secondary', template_context={'i': 2}),
+    }
+
+    if not context['vrf_aware_overlay']:
+        devices['PC_A1'] = LXC(name='DC-server-4',
+                               template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'})
+        devices['PC_B1'] = LXC(name='Client-11',
+                               template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'})
+        devices['PC_C1'] = LXC(name='Client-22',
+                               template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'})
+    else:
+        devices['PC_A1'] = LXC(name='DC-server-4',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.3.4/24'},
+                                                            {'vlan': 1001, 'ipmask': '192.168.13.4/24'},
+                                                            {'vlan': 1002, 'ipmask': '192.168.23.4/24'},
+                                                            {'vlan': 1003, 'ipmask': '192.168.33.4/24'},
+                                                            ],
+                                                 'gateway': '192.168.3.3'})
+        devices['PC_B1'] = LXC(name='Client-11',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.1.11/24'},
+                                                            {'vlan': 1001, 'ipmask': '192.168.11.11/24'},
+                                                            {'vlan': 1002, 'ipmask': '192.168.21.11/24'},
+                                                            {'vlan': 1003, 'ipmask': '192.168.31.11/24'},
+                                                            ],
+                                                 'gateway': '192.168.1.1'})
+        devices['PC_C1'] = LXC(name='Client-22',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.2.22/24'},
+                                                            {'vlan': 1001, 'ipmask': '192.168.12.22/24'},
+                                                            {'vlan': 1002, 'ipmask': '192.168.22.22/24'},
+                                                            {'vlan': 1003, 'ipmask': '192.168.32.22/24'},
+                                                            ],
+                                                 'gateway': '192.168.2.2'})
+
+    return devices, context
+
+
+def sdwan_advpn_singlehub_fos62(request: WSGIRequest) -> tuple:
     context = {
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'
-        'duplicate_paths': request.POST.get('duplicate_paths'),
-        # 'keep_duplicates', 'onnet_pref_spokes', 'offnet_filter_hub'
+        'duplicate_paths': request.POST.get('duplicate_paths'), # 'keep_duplicates', 'onnet_pref_spokes', 'offnet_filter_hub'
         'override_with_hub_nexthop': bool(request.POST.get('override_with_hub_nexthop', False)),  # True or False
-        'feasible_routes': request.POST.get('feasible_routes'),
-        # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
-        'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+        'feasible_routes': request.POST.get('feasible_routes'), # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
 
         # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
@@ -344,67 +432,13 @@ def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='Secondary', template_context={'i': 1}),
         'FGT-C': FortiGate(name='FGT-SDW-2', template_group='FGT-SDW', template_context={'i': 2, **context}),
         'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='Secondary', template_context={'i': 2}),
+
+        'PC_A1': LXC(name='DC-server-4', template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'}),
+        'PC_B1': LXC(name='Client-11', template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'}),
+        'PC_C1': LXC(name='Client-22', template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'}),
     }
 
-    if not context['vrf_aware_overlay']:
-        devices['PC_A1'] = LXC(name='DC-server-4',
-                               template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'})
-        devices['PC_B1'] = LXC(name='Client-11',
-                               template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'})
-        devices['PC_C1'] = LXC(name='Client-22',
-                               template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'})
-    else:
-        devices['PC_A1'] = LXC(name='DC-server-4',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.3.4/24'},
-                                                            {'vlan': 1001, 'ipmask': '192.168.13.4/24'},
-                                                            {'vlan': 1002, 'ipmask': '192.168.23.4/24'},
-                                                            {'vlan': 1003, 'ipmask': '192.168.33.4/24'},
-                                                            ],
-                                                 'gateway': '192.168.3.3'})
-        devices['PC_B1'] = LXC(name='Client-11',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.1.11/24'},
-                                                            {'vlan': 1001, 'ipmask': '192.168.11.11/24'},
-                                                            {'vlan': 1002, 'ipmask': '192.168.21.11/24'},
-                                                            {'vlan': 1003, 'ipmask': '192.168.31.11/24'},
-                                                            ],
-                                                 'gateway': '192.168.1.1'})
-        devices['PC_C1'] = LXC(name='Client-22',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.2.22/24'},
-                                                            {'vlan': 1001, 'ipmask': '192.168.12.22/24'},
-                                                            {'vlan': 1002, 'ipmask': '192.168.22.22/24'},
-                                                            {'vlan': 1003, 'ipmask': '192.168.32.22/24'},
-                                                            ],
-                                                 'gateway': '192.168.2.2'})
-
-    # Settings used for HA
-    #
-    if request.POST.get('HA') == 'FGCP':
-        for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
-            devices[cluster[0]].ha.mode = devices[cluster[1]].ha.mode = FortiGate_HA.Modes.FGCP
-            devices[cluster[0]].ha.role = FortiGate_HA.Roles.PRIMARY
-            devices[cluster[1]].ha.role = FortiGate_HA.Roles.SECONDARY
-            devices[cluster[0]].ha.priority = 200
-            devices[cluster[1]].ha.priority = 100
-            devices[cluster[0]].ha.group_id = devices[cluster[1]].ha.group_id = 1
-            devices[cluster[0]].ha.group_name = devices[cluster[0]].name  # group_name defaults to the device name
-            devices[cluster[1]].ha.group_name = devices[cluster[1]].name
-            devices[cluster[0]].ha.hbdev = devices[cluster[1]].ha.hbdev = [('port6', 0)]  # heartbeat interfaces
-            devices[cluster[0]].ha.sessyncdev = devices[cluster[1]].ha.sessyncdev = [
-                'port6']  # session synch interfaces
-            devices[cluster[0]].ha.monitordev = devices[cluster[1]].ha.monitordev = ['port1', 'port2',
-                                                                                     'port5']  # monitored interfaces
-
-    # The request.POST sends all secondary devices (FGT-A_sec, etc...) for simplicity
-    # The request.POST is a read-only QueryDict. So, to avoid configuring unrequested secondary devices I'm removing them
-    # from the list of 'devices' (which was also initialized with all devices for simplicity)
-    for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
-        if request.POST.get('HA') == 'standalone':  # No HA = all secondary devices must be removed from the list
-            del devices[cluster[1]]
-        elif not request.POST.get(cluster[0]):  # this device is not in the list of to-be-configured devices
-            del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
-
-    # Check request, render and deploy configs
-    return start(request, poc_id, devices)
+    return devices, context
 
 
 def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
@@ -414,7 +448,6 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
-        'bidirectional_sdwan': bool(request.POST.get('bidirectional_sdwan', False)),  # True or False
 
         # Underlay IPs of the Hubs which are used as IPsec remote-gw by the Branches
         'datacenter': {

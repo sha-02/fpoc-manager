@@ -17,7 +17,10 @@ urlpatterns = [
     path('bootstrap/', pocs.bootstrap, {'poc_id': 0}, name='bootstrap'),
 
     path('sdwan_simple/', pocs.sdwan_simple, {'poc_id': 1}, name='sdwan_simple'),
-    path('sdwan_advpn_singlehub/', pocs.sdwan_advpn_singlehub, {'poc_id': 5}, name='sdwan_advpn_singlehub'),
+
+    # Single Hub ADVPN+SDWAN
+    path('sdwan_advpn_singlehub/fos62/', pocs.sdwan_advpn_singlehub, {'poc_id': 5}, name='sdwan_advpn_singlehub_fos62'),
+    path('sdwan_advpn_singlehub/fos70/', pocs.sdwan_advpn_singlehub, {'poc_id': 8}, name='sdwan_advpn_singlehub_fos70'),
 
     # Dual-DC, Dual-Region with different designs:
     # - "one BGP peering per overlay" design
