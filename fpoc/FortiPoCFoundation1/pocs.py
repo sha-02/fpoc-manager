@@ -321,48 +321,47 @@ def sdwan_advpn_singlehub_fos70(request: WSGIRequest) -> tuple:
         # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
         'hub_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
         'hub_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
-        'hub_lte': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
         'hub_mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.3',  # 10.0.14.3
     }
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-DC-3', template_group='FGT-DC', template_context={'i': 3, **context}),
-        'FGT-A_sec': FortiGate(name='FGT-DC-3_sec', template_group='Secondary', template_context={'i': 3}),
-        'FGT-B': FortiGate(name='FGT-SDW-1', template_group='FGT-SDW', template_context={'i': 1, **context}),
-        'FGT-B_sec': FortiGate(name='FGT-SDW-1_sec', template_group='Secondary', template_context={'i': 1}),
-        'FGT-C': FortiGate(name='FGT-SDW-2', template_group='FGT-SDW', template_context={'i': 2, **context}),
-        'FGT-C_sec': FortiGate(name='FGT-SDW-2_sec', template_group='Secondary', template_context={'i': 2}),
+        'FGT-A': FortiGate(name='FGT-DC', template_group='DATACENTER', template_context={'i': 3, **context}),
+        'FGT-A_sec': FortiGate(name='FGT-DC_sec', template_group='Secondary', template_context={'i': 3}),
+        'FGT-B': FortiGate(name='FGT-BR1', template_group='BRANCHES', template_context={'i': 1, **context}),
+        'FGT-B_sec': FortiGate(name='FGT-BR1_sec', template_group='Secondary', template_context={'i': 1}),
+        'FGT-C': FortiGate(name='FGT-BR2', template_group='BRANCHES', template_context={'i': 2, **context}),
+        'FGT-C_sec': FortiGate(name='FGT-BR2_sec', template_group='Secondary', template_context={'i': 2}),
     }
 
     if not context['vrf_aware_overlay']:
-        devices['PC_A1'] = LXC(name='DC-server-4',
-                               template_context={'ipmask': '192.168.3.4/24', 'gateway': '192.168.3.3'})
-        devices['PC_B1'] = LXC(name='Client-11',
-                               template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'})
-        devices['PC_C1'] = LXC(name='Client-22',
-                               template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.2'})
+        devices['PC_A1'] = LXC(name='DC-server',
+                               template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'})
+        devices['PC_B1'] = LXC(name='Client-BR1',
+                               template_context={'ipmask': '10.0.1.101/24', 'gateway': '10.0.1.1'})
+        devices['PC_C1'] = LXC(name='Client-BR2',
+                               template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'})
     else:
-        devices['PC_A1'] = LXC(name='DC-server-4',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.3.4/24'},
-                                                            {'vlan': 1001, 'ipmask': '192.168.13.4/24'},
-                                                            {'vlan': 1002, 'ipmask': '192.168.23.4/24'},
-                                                            {'vlan': 1003, 'ipmask': '192.168.33.4/24'},
+        devices['PC_A1'] = LXC(name='DC-server',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '10.1.0.7/24'},
+                                                            {'vlan': 1001, 'ipmask': '10.1.1.7/24'},
+                                                            {'vlan': 1002, 'ipmask': '10.1.2.7/24'},
+                                                            {'vlan': 1003, 'ipmask': '10.1.3.7/24'},
                                                             ],
-                                                 'gateway': '192.168.3.3'})
-        devices['PC_B1'] = LXC(name='Client-11',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.1.11/24'},
-                                                            {'vlan': 1001, 'ipmask': '192.168.11.11/24'},
-                                                            {'vlan': 1002, 'ipmask': '192.168.21.11/24'},
-                                                            {'vlan': 1003, 'ipmask': '192.168.31.11/24'},
+                                                 'gateway': '10.1.0.1'})
+        devices['PC_B1'] = LXC(name='Client-BR1',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '10.0.1.101/24'},
+                                                            {'vlan': 1001, 'ipmask': '10.0.11.101/24'},
+                                                            {'vlan': 1002, 'ipmask': '10.0.21.101/24'},
+                                                            {'vlan': 1003, 'ipmask': '10.0.31.101/24'},
                                                             ],
-                                                 'gateway': '192.168.1.1'})
-        devices['PC_C1'] = LXC(name='Client-22',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '192.168.2.22/24'},
-                                                            {'vlan': 1001, 'ipmask': '192.168.12.22/24'},
-                                                            {'vlan': 1002, 'ipmask': '192.168.22.22/24'},
-                                                            {'vlan': 1003, 'ipmask': '192.168.32.22/24'},
+                                                 'gateway': '10.0.1.1'})
+        devices['PC_C1'] = LXC(name='Client-BR2',
+                               template_context={'devlist': [{'vlan':0, 'ipmask': '10.0.2.101/24'},
+                                                            {'vlan': 1001, 'ipmask': '10.0.12.101/24'},
+                                                            {'vlan': 1002, 'ipmask': '10.0.22.101/24'},
+                                                            {'vlan': 1003, 'ipmask': '10.0.32.101/24'},
                                                             ],
-                                                 'gateway': '192.168.2.2'})
+                                                 'gateway': '10.0.2.1'})
 
     return devices, context
 
