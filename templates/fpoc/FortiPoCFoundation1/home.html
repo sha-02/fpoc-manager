@@ -301,7 +301,7 @@ $(document).ready(function(){
                 <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF-aware overlay (7.2+)
                 <br><input type="checkbox" name="bidirectional_sdwan" value=1> Bidirectional SDWAN (Hub-side steering) -- Not implemented yet
               </fieldset>
-              <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_singlehub_fos70' %}" formaction="{% url 'fpoc:sdwan_advpn_singlehub_fos70' %}">Start</button>
+              <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_singlehub_fos70' %}" formaction="{% url 'fpoc:sdwan_advpn_singlehub_fos70' %}">BGP per overlay</button>
             </div>
             <div class="col">
               <b>FortiOS 6.2+</b>
@@ -375,8 +375,9 @@ $(document).ready(function(){
             </select>
             <br><input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Region ADVPN shortcuts
           </fieldset>
-        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc' %}" >BGP per overlay (6.4+)</button>
+        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" >BGP per overlay (7.0+)</button>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_nobgprr' %}" formaction="{% url 'fpoc:sdwan_advpn_nobgprr' %}" >BGP per overlay without RR (7.2+)</button>
+        <button type="submit" class="btn btn-warning btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos64' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos64' %}" >BGP per overlay (6.4+)</button>
       </form>
       <hr>
       <h5>ADVPN Dual Hub - Single tunnel to each Hub</h5>

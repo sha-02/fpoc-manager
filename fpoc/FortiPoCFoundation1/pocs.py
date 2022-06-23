@@ -277,10 +277,13 @@ def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
 def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
-    if poc_id == 5:  # FOS 6.2+
+    if poc_id == 5:  # BGP per overlay, FOS 6.2+
         devices, context = sdwan_advpn_singlehub_fos62(request)
-    else:  # FOS 7.0+, poc_id == 8
+    elif poc_id == 8:  # BGP per overlay, FOS 7.0+
         devices, context = sdwan_advpn_singlehub_fos70(request)
+    else:
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': 'Unknown POC-ID'})
 
     # Settings used for HA
     #
