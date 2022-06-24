@@ -449,6 +449,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
     context = {
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
+        'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'route_priority'
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
 
         # Underlay IPs of the Hubs which are used as IPsec remote-gw by the Branches
