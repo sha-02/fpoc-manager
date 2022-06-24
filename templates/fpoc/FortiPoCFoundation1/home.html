@@ -15,6 +15,31 @@ function collectFortiPoCElements(formID)
   document.getElementById('previewOnly').setAttribute('form', formID);
   document.getElementById('targetedFOSversion').setAttribute('form', formID);
 }
+
+function selectDeselectFgt(selectDeselectCheckbox)
+{
+  {% for fgt in fortigates %}
+    var ele=document.getElementsByName('{{fgt}}');
+    if ( selectDeselectCheckbox.checked ) { ele[0].checked=true; }
+    else { ele[0].checked=false; }
+  {% endfor %}
+}
+function selectDeselectLxc(selectDeselectCheckbox)
+{
+  {% for lxc in lxces %}
+    var ele=document.getElementsByName('{{lxc}}');
+    if ( selectDeselectCheckbox.checked ) { ele[0].checked=true; }
+    else { ele[0].checked=false; }
+  {% endfor %}
+}
+function selectDeselectVyos(selectDeselectCheckbox)
+{
+  {% for vyos in vyoses %}
+    var ele=document.getElementsByName('{{vyos}}');
+    if ( selectDeselectCheckbox.checked ) { ele[0].checked=true; }
+    else { ele[0].checked=false; }
+  {% endfor %}
+}
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> <!-- for tooltips -->
@@ -85,7 +110,8 @@ $(document).ready(function(){
           <div class="container">
             <div class="row">
               <div class="col">
-                FortiGates
+                <input type="checkbox" name="fgtCheckbox" onclick="selectDeselectFgt(this)" checked>
+                <b>FortiGates</b>
                 {% for fgt in fortigates %}
                   <br><input type="checkbox" name="{{fgt}}" checked> {{fgt}}
                 {% endfor %}
@@ -98,13 +124,15 @@ $(document).ready(function(){
                 <br>central-management <input type="checkbox" name="FMG">
               </div>
               <div class="col">
-                LXC
+                <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)" checked>
+                <b>LXC</b>
                 {% for lxc in lxces %}
                   <br><input type="checkbox" name="{{lxc}}" checked> {{lxc}}
                 {% endfor %}
               </div>
               <div class="col">
-                VyOS
+                <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)" checked>
+                <b>VyOS</b>
                 {% for vyos in vyoses %}
                   <br><input type="checkbox" name="{{vyos}}" checked> {{vyos}}
                 {% endfor %}
