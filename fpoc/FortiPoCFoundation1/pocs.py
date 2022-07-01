@@ -452,7 +452,10 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'route_priority'
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
 
-        # Underlay IPs of the Hubs which are used as IPsec remote-gw by the Branches
+        # DataCenters info used:
+        # - as IPsec remote-gw IP@ by the Branches (inet1/inet2/mpls)
+        # - as underlay interfaces IP@ by DCs (inet1/inet2/mpls)
+        # - for networkid computation of Edge IPsec tunnels (id)
         'datacenter': {
             'west': {
                 'first': {
@@ -485,28 +488,49 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         }
     }
 
-    ctx_dc1 = {'dc_id': 1, 'region': 'West', **context}
-    ctx_dc2 = {'dc_id': 2, 'region': 'West', **context}
-    ctx_dc3 = {'dc_id': 3, 'region': 'East', **context}
-    ctx_br1 = {'branch_id': 1, 'region': 'West', **context}
-    ctx_br2 = {'branch_id': 2, 'region': 'West', **context}
-    ctx_br3 = {'branch_id': 3, 'region': 'East', **context}
+    if poc_id == 10:  # BGP on loopback design -- New IP schema (summarizable) is used for East region of this PoC
+        # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary
+        # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
+        # https://github.com/ansible-collections/ansible.netcommon
+        # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
+        # https://gist.github.com/ktbyers/bdba984447636d5ac4e3d93011a861ad
+        # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
+        # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
+        # https://stackoverflow.com/questions/68440946/ansible-filters-ipaddr-in-python
+        # https://blog.networktocode.com/post/adding-jinja2-filters-in-nautobot-golden-config/
+        west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS', template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'lan': {'ip': '10.1.0.1', 'subnet': '10.1.0.0', 'mask': '255.255.255.0'}, **context})
+        west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS', template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'lan': {'ip': '10.2.0.1', 'subnet': '10.2.0.0', 'mask': '255.255.255.0'}, **context})
+        west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES', template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'lan': {'ip': '10.0.1.1', 'subnet': '10.0.1.0', 'mask': '255.255.255.0'}, **context})
+        west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES', template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'lan': {'ip': '10.0.2.1', 'subnet': '10.0.2.0', 'mask': '255.255.255.0'}, **context})
+        east_dc = FortiGate(name='EAST-DC1', template_group='DATACENTERS', template_context={'region': 'East', 'region_id': 2, 'dc_id': 1, 'lan': {'ip': '10.4.0.1', 'subnet': '10.4.0.0', 'mask': '255.255.255.0'}, **context})
+        east_br = FortiGate(name='EAST-BR1', template_group='BRANCHES', template_context={'region': 'East', 'region_id': 2, 'branch_id': 1, 'lan': {'ip': '10.4.1.1', 'subnet': '10.4.1.0', 'mask': '255.255.255.0'}, **context})
+        lxc_east_dc = LXC(name='PC-E-DC1', template_context={'ipmask': '10.4.0.7/24', 'gateway': '10.4.0.1'})
+        lxc_east_br = LXC(name='PC-E-BR1', template_context={'ipmask': '10.4.1.101/24', 'gateway': '10.4.1.1'})
+    else:  # BGP per overlay design with non-summarizable IP schema for East region
+        west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS', template_context={'dc_id': 1, 'region': 'West', **context})
+        west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS', template_context={'dc_id': 2, 'region': 'West', **context})
+        west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES', template_context={'branch_id': 1, 'region': 'West', **context})
+        west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES', template_context={'branch_id': 2, 'region': 'West', **context})
+        east_dc = FortiGate(name='EAST-DC3', template_group='DATACENTERS', template_context={'dc_id': 3, 'region': 'East', **context})
+        east_br = FortiGate(name='EAST-BR3', template_group='BRANCHES', template_context={'branch_id': 3, 'region': 'East', **context})
+        lxc_east_dc = LXC(name='PC-E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'})
+        lxc_east_br = LXC(name='PC-E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'})
 
     devices = {
-        'FGT-A': FortiGate(name='FGT-W-DC1', template_group='DATACENTERS', template_context=ctx_dc1),
-        'FGT-B': FortiGate(name='FGT-W-DC2', template_group='DATACENTERS', template_context=ctx_dc2),
-        'FGT-B_sec': FortiGate(name='FGT-E-DC3', template_group='DATACENTERS', template_context=ctx_dc3),
-        'FGT-C': FortiGate(name='FGT-W-BR1', template_group='BRANCHES', template_context=ctx_br1),
-        'FGT-D': FortiGate(name='FGT-W-BR2', template_group='BRANCHES', template_context=ctx_br2),
-        'FGT-D_sec': FortiGate(name='FGT-E-BR3', template_group='BRANCHES', template_context=ctx_br3),
+        'FGT-A': west_dc1,
+        'FGT-B': west_dc2,
+        'FGT-B_sec': east_dc,
+        'FGT-C': west_br1,
+        'FGT-D': west_br2,
+        'FGT-D_sec': east_br,
         'FMG': FortiManager(name='FMG'),
 
         'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
         'PC_B1': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
-        'PC_B2': LXC(name='PC-E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'}),
+        'PC_B2': lxc_east_dc,
         'PC_C1': LXC(name='PC-W-BR1', template_context={'ipmask': '10.0.1.101/24', 'gateway': '10.0.1.1'}),
         'PC_D1': LXC(name='PC-W-BR2', template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'}),
-        'PC_D2': LXC(name='PC-E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'}),
+        'PC_D2': lxc_east_br,
     }
 
     # Check request, render and deploy configs

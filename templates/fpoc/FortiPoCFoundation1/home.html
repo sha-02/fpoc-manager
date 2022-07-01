@@ -303,10 +303,10 @@ $(document).ready(function(){
               <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">West Branch-1</span>
             <input type="checkbox" name="FGT-D" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">West Branch-2</span>
-            <input type="checkbox" name="FGT-B_sec">
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-B_sec)">East DC-3</span>
-            <input type="checkbox" name="FGT-D_sec">
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-D_sec)">East Branch-3</span>
+            <input type="checkbox" name="FGT-B_sec" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-B_sec)">East DC</span>
+            <input type="checkbox" name="FGT-D_sec" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-D_sec)">East Branch</span>
             <input type="checkbox" name="FMG">
               <span data-toggle="tooltip" data-placement="top" title="(FMG)">FortiManager</span>
           </fieldset>
@@ -320,10 +320,10 @@ $(document).ready(function(){
               <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">West Branch-1</span>
             <input type="checkbox" name="PC_D1" checked>
               <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">West Branch-2</span>
-            <input type="checkbox" name="PC_B2">
-              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">East DC-3</span>
-            <input type="checkbox" name="PC_D2">
-              <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">East Branch-3</span>
+            <input type="checkbox" name="PC_B2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">East DC</span>
+            <input type="checkbox" name="PC_D2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">East Branch</span>
           </fieldset>
           <fieldset>
             Remote Internet Access <select name="remote_internet">
@@ -336,10 +336,12 @@ $(document).ready(function(){
               <option value='route_tag'>based on route-tags</option>
               <option value='route_priority'>based on route priority (7.2+)</option>
             </select>
-            <br><input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Region ADVPN shortcuts
+            <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Region ADVPN shortcuts
           </fieldset>
+        <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" >BGP per overlay (7.0+)</button>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_nobgprr' %}" formaction="{% url 'fpoc:sdwan_advpn_nobgprr' %}" >BGP per overlay without RR (7.2+)</button>
+        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_loopback' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_loopback' %}" >BGP on loopback (7.0.4+)</button>
         <button type="submit" class="btn btn-warning btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos64' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos64' %}" >BGP per overlay (6.4+)</button>
       </form>
       <hr>
