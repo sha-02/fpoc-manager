@@ -1,12 +1,11 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
 from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
-from jsmin import jsmin
 import threading
 
 import fpoc.fortios as fortios
-from fpoc import FortiGate, FortiGate_HA, FortiManager, TypePoC
-from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
+from fpoc import FortiGate, FortiGate_HA, FortiManager, TypePoC, json_to_dict
+from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice
 
 
 def prepare_api(device: FortiGate):
@@ -104,16 +103,7 @@ def fortios_firmware() -> dict:
     Load the fortios firmware dictionary from JSON file
     :return: dict of fos firmware
     """
-    import json
-
-    try:
-        with open(f'{BASE_DIR}/fpoc/fortios/firmware.json', "r") as f:
-            minified = jsmin(f.read())  # jsmin is used to remove C++ style comments (//) from JSON code
-            return json.loads(minified)
-
-    except FileNotFoundError:
-        print(f'File not found: {BASE_DIR}/fpoc/fortios/firmware.json')
-        raise AbortDeployment
+    return json_to_dict(f'{BASE_DIR}/fpoc/fortios/firmware.json')
 
 
 def firmware_download(firmware: str):

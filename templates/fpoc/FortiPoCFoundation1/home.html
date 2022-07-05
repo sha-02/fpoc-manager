@@ -10,7 +10,7 @@
 function collectFortiPoCElements(formID)
 {
   // Assign all the global FortiPoC Elements to the form being submitted
-  document.getElementById('fpocSelection').setAttribute('form', formID);
+  document.getElementById('fpocVM').setAttribute('form', formID);
   document.getElementById('fpocIP').setAttribute('form', formID);
   document.getElementById('previewOnly').setAttribute('form', formID);
   document.getElementById('targetedFOSversion').setAttribute('form', formID);
@@ -50,16 +50,16 @@ $(document).ready(function(){
 });
 </script>
 
-<!-- FortiPoC access -->
+<!-- FortiPoC VMs, FortiOS versions-->
 
 <div class="d-flex justify-content-between ">
   <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
     <div class="p-2 bd-highlight">
-      Name<select id="fpocSelection" name="fpocSelection">
+      Name<select id="fpocVM" name="fpocVM">
         <option value="0.0.0.0" selected>internal</option>
-        <option value="10.5.58.151">radon01</option>
-        <option value="10.5.55.1">spin01</option>
-        <option value="10.5.55.10">spin10</option>
+        {% for fpoc_name, fpoc_ip in fortipoc_VMs.items %}
+          <option value="{{fpoc_ip}}">{{fpoc_name}}</option>
+        {% endfor %}
       </select>
     </div>
     <div class="p-2 bd-highlight">

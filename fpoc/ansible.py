@@ -1,5 +1,5 @@
 import yaml
-from fpoc import system_call
+import fpoc
 from config.settings import PATH_FPOC_CONFIG_SAVE
 
 
@@ -28,5 +28,5 @@ def poweron_devices(devices: list, host: str, admin: str, pwd: str) -> tuple:
     with open(playbook_file, 'w') as fd:
         yaml.dump(playbook, fd, indent=4)
 
-    return system_call.syscall_realtime(f'ansible-playbook -i {inventory_file} {playbook_file}')
+    return fpoc.syscall_realtime(f'ansible-playbook -i {inventory_file} {playbook_file}')
 
