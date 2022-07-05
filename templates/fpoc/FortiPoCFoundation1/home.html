@@ -55,7 +55,7 @@ $(document).ready(function(){
 <div class="d-flex justify-content-between ">
   <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
     <div class="p-2 bd-highlight">
-      Name<select id="fpocVM" name="fpocVM">
+      Name<select id="fpocSelection" name="fpocSelection">
         <option value="0.0.0.0" selected>internal</option>
         {% for fpoc_name, fpoc_ip in fortipoc_VMs.items %}
           <option value="{{fpoc_ip}}">{{fpoc_name}}</option>
