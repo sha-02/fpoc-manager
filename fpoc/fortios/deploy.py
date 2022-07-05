@@ -1,6 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
 from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
+from jsmin import jsmin
 import threading
 
 import fpoc.fortios as fortios
@@ -107,7 +108,9 @@ def fortios_firmware() -> dict:
 
     try:
         with open(f'{BASE_DIR}/fpoc/fortios/firmware.json', "r") as f:
-            return json.loads(f.read())
+            minified = jsmin(f.read())  # jsmin is used to remove C++ style comments (//) from JSON code
+            return json.loads(minified)
+
     except FileNotFoundError:
         print(f'File not found: {BASE_DIR}/fpoc/fortios/firmware.json')
         raise AbortDeployment
