@@ -456,7 +456,7 @@ $(document).ready(function(){
     <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordionPoC">
       <div class="card-body">
         <h5>Two redundant static tunnels</h5>
-        <form id="formStaticIPsec method="post" action="{% url 'fpoc:vpn_site2site' %}" onsubmit="collectFortiPoCElements(this.id)">
+        <form id="formStaticIPsec" method="post" action="{% url 'fpoc:vpn_site2site' %}" onsubmit="collectFortiPoCElements(this.id)">
           {% csrf_token %}
           <fieldset>
             Devices
