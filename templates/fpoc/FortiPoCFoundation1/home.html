@@ -150,134 +150,6 @@ $(document).ready(function(){
 </div>
 
   <!-- ========================================================================================================= -->
-  <!-- SD-WAN simple -->
-  <!-- ========================================================================================================= -->
-  <div class="card">
-    <div class="card-header" id="heading-1">
-      <h2 class="mb-0">
-        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-1" aria-expanded="true" aria-controls="collapse-1">
-          SD-WAN simple
-        </button>
-      </h2>
-    </div>
-    <div id="collapse-1" class="collapse" aria-labelledby="heading-1" data-parent="#accordionPoC">
-      <div class="card-body">
-        <h5>Two Branches, One Hub</h5>
-        <form id="formSDWANsimple" method="post" action="{% url 'fpoc:sdwan_simple' %}" onsubmit="collectFortiPoCElements(this.id)">
-          {% csrf_token %}
-          <fieldset>
-            FGT
-            <input type="checkbox" name="FGT-A" checked>FGT-A
-            <input type="checkbox" name="FGT-B" checked>FGT-B
-            <input type="checkbox" name="FGT-C" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">FGT-DC</span>
-            <br>
-            LXC
-            <input type="checkbox" name="PC_A1" checked>PC-A1
-            <input type="checkbox" name="PC_A2" checked>PC-A2
-            <input type="checkbox" name="PC_B1" checked>PC-B1
-            <input type="checkbox" name="PC_B2" checked>PC-B2
-            <input type="checkbox" name="PC_C1" checked>DC-Server
-          </fieldset>
-        <br><button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_simple' %}">Start</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================================================================= -->
-  <!-- Single Path IPsec Dialup Hub and Spoke -->
-  <!-- ========================================================================================================= -->
-  <div class="card">
-    <div class="card-header" id="heading-2">
-      <h2 class="mb-0">
-        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-2" aria-expanded="false" aria-controls="collapse-2">
-          IPsec Dialup Hub and Spoke -- Single Path
-        </button>
-      </h2>
-    </div>
-    <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
-      <div class="card-body">
-        <form id="formSinglePathIPsec" method="post" action="{% url 'fpoc:vpn_dialup' %}" onsubmit="collectFortiPoCElements(this.id)">
-          {% csrf_token %}
-          <fieldset>
-            FGT
-            <input type="checkbox" name="FGT-A" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">Hub</span>
-            <input type="checkbox" name="FGT-B" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Spoke01</span>
-            <input type="checkbox" name="FGT-C" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Spoke02</span>
-            <input type="checkbox" name="FGT-D" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">Spoke03</span>
-          </fieldset>
-          <fieldset>
-            LXC
-            <input type="checkbox" name="PC_A1" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">Hub</span>
-            <input type="checkbox" name="PC_B1" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">Spoke01</span>
-            <input type="checkbox" name="PC_C1" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">Spoke02</span>
-            <input type="checkbox" name="PC_D1" checked>
-              <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">Spoke03</span>
-          </fieldset>
-          <fieldset>
-            Hub
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="Hub_NAT" value="None" checked> No NAT
-              <input class="form-check-input" type="radio" name="Hub_NAT" value="DNAT"> DNAT
-            </div>
-            <br>
-            Spoke01
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="None" checked> No NAT
-              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="SNAT"> SNAT
-              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="DNAT"> DNAT
-            </div>
-            <br>
-            Spoke02
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="None" checked> No NAT
-              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="SNAT"> SNAT
-              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="DNAT"> DNAT
-            </div>
-            <br>
-            Spoke03
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="None" checked> No NAT
-              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="SNAT"> SNAT
-              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="DNAT"> DNAT
-            </div>
-          </fieldset>
-          <fieldset>
-            IKE <select name="ike">
-              <option value=1>v1</option>
-              <option value=2 selected>v2</option>
-            </select>
-            Routing <select name="routing">
-              <option value='ike-routing'>IKE routing (RRI)</option>
-              <option value='modecfg-routing'>Mode-Config routing</option>
-              <option value='ospf'>OSPF</option>
-              <option value='ibgp' selected>iBGP Route Reflector</option>
-              <option value='ibgp-confederation'>iBGP Confederation</option>
-              <option value='ebgp'>eBGP</option>
-            </select>
-            Overlay <select name="overlay">
-            <option value='unnumbered'>No overlay IP (unnumbered)</option>
-            <option value='modecfg' selected>Dynamic (Mode-Config)</option>
-            <option value='static'>static (exchange-interface-ip)</option>
-            </select>
-            <input type="checkbox" name="advpn" value=1 checked>ADVPN
-
-          <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_dialup' %}">Start</button>
-        </fieldset>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================================================================= -->
   <!-- Multiple Path IPsec Dialup Hub and Spoke -->
   <!-- ========================================================================================================= -->
   <div class="card">
@@ -443,6 +315,98 @@ $(document).ready(function(){
 </div>
 
   <!-- ========================================================================================================= -->
+  <!-- Single Path IPsec Dialup Hub and Spoke -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+    <div class="card-header" id="heading-2">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-2" aria-expanded="false" aria-controls="collapse-2">
+          IPsec Dialup Hub and Spoke -- Single Path
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
+      <div class="card-body">
+        <form id="formSinglePathIPsec" method="post" action="{% url 'fpoc:vpn_dialup' %}" onsubmit="collectFortiPoCElements(this.id)">
+          {% csrf_token %}
+          <fieldset>
+            FGT
+            <input type="checkbox" name="FGT-A" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">Hub</span>
+            <input type="checkbox" name="FGT-B" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Spoke01</span>
+            <input type="checkbox" name="FGT-C" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Spoke02</span>
+            <input type="checkbox" name="FGT-D" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">Spoke03</span>
+          </fieldset>
+          <fieldset>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">Hub</span>
+            <input type="checkbox" name="PC_B1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">Spoke01</span>
+            <input type="checkbox" name="PC_C1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">Spoke02</span>
+            <input type="checkbox" name="PC_D1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">Spoke03</span>
+          </fieldset>
+          <fieldset>
+            Hub
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Hub_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Hub_NAT" value="DNAT"> DNAT
+            </div>
+            <br>
+            Spoke01
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="SNAT"> SNAT
+              <input class="form-check-input" type="radio" name="Spoke01_NAT" value="DNAT"> DNAT
+            </div>
+            <br>
+            Spoke02
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="SNAT"> SNAT
+              <input class="form-check-input" type="radio" name="Spoke02_NAT" value="DNAT"> DNAT
+            </div>
+            <br>
+            Spoke03
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="None" checked> No NAT
+              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="SNAT"> SNAT
+              <input class="form-check-input" type="radio" name="Spoke03_NAT" value="DNAT"> DNAT
+            </div>
+          </fieldset>
+          <fieldset>
+            IKE <select name="ike">
+              <option value=1>v1</option>
+              <option value=2 selected>v2</option>
+            </select>
+            Routing <select name="routing">
+              <option value='ike-routing'>IKE routing (RRI)</option>
+              <option value='modecfg-routing'>Mode-Config routing</option>
+              <option value='ospf'>OSPF</option>
+              <option value='ibgp' selected>iBGP Route Reflector</option>
+              <option value='ibgp-confederation'>iBGP Confederation</option>
+              <option value='ebgp'>eBGP</option>
+            </select>
+            Overlay <select name="overlay">
+            <option value='unnumbered'>No overlay IP (unnumbered)</option>
+            <option value='modecfg' selected>Dynamic (Mode-Config)</option>
+            <option value='static'>static (exchange-interface-ip)</option>
+            </select>
+            <input type="checkbox" name="advpn" value=1 checked>ADVPN
+
+          <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_dialup' %}">Start</button>
+        </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================================================= -->
   <!-- static VPN site to site -->
   <!-- ========================================================================================================= -->
   <div class="card">
@@ -501,6 +465,42 @@ $(document).ready(function(){
             </select>
           <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_site2site' %}">Start</button>
         </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================================================= -->
+  <!-- SD-WAN simple -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+    <div class="card-header" id="heading-1">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-1" aria-expanded="true" aria-controls="collapse-1">
+          SD-WAN simple
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-1" class="collapse" aria-labelledby="heading-1" data-parent="#accordionPoC">
+      <div class="card-body">
+        <h5>Two Branches, One Hub</h5>
+        <form id="formSDWANsimple" method="post" action="{% url 'fpoc:sdwan_simple' %}" onsubmit="collectFortiPoCElements(this.id)">
+          {% csrf_token %}
+          <fieldset>
+            FGT
+            <input type="checkbox" name="FGT-A" checked>FGT-A
+            <input type="checkbox" name="FGT-B" checked>FGT-B
+            <input type="checkbox" name="FGT-C" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">FGT-DC</span>
+            <br>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>PC-A1
+            <input type="checkbox" name="PC_A2" checked>PC-A2
+            <input type="checkbox" name="PC_B1" checked>PC-B1
+            <input type="checkbox" name="PC_B2" checked>PC-B2
+            <input type="checkbox" name="PC_C1" checked>DC-Server
+          </fieldset>
+        <br><button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:sdwan_simple' %}">Start</button>
         </form>
       </div>
     </div>
