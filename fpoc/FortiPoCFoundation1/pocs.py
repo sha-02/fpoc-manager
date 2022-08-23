@@ -453,9 +453,9 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
 
         # DataCenters info used:
+        # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
         # - as IPsec remote-gw IP@ by the Branches (inet1/inet2/mpls)
-        # - as underlay interfaces IP@ by DCs (inet1/inet2/mpls)
-        # - for networkid computation of Edge IPsec tunnels (id)
+        # - as part of the computation of the networkid for Edge IPsec tunnels (id)
         'datacenter': {
             'west': {
                 'first': {
@@ -474,15 +474,15 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
             'east': {
                 'first': {
                     'id': 3,
-                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.3',  # 100.64.21.3
-                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.3',  # 100.64.22.3
-                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.3',  # 10.0.24.3
+                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.3',  # 100.64.221.3
+                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.3',  # 100.64.222.3
+                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.3',  # 10.0.224.3
                 },
                 'second': {  # Fictitious second DC for East region
                     'id': 4,
-                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.4',  # 100.64.21.4
-                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.4',  # 100.64.22.4
-                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.4',  # 10.0.24.4
+                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.4',  # 100.64.221.4
+                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.4',  # 100.64.222.4
+                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.4',  # 10.0.224.4
                 }
             }
         }
