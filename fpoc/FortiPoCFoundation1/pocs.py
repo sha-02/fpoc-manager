@@ -584,6 +584,17 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
         status_fortigates = [device for device in status_devices if device['context'].get('fos_version') is not None]
 
         # Create a dictionary of the form:  { 'fgt1_name': 'fgt1_context_dict', 'fgt2_name': 'fgt2_context_dict', ...}
+        fortigates = dict()
+        for device in status_fortigates:
+            device['context']['wan'] = device['context']['wan'].dictify()
+            fortigates[device['name']] = device['context']
+            for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
+                del fortigates[device['name']][k]
+
+        # ++ Previous approach ++
+        # rendered obsolete by using a dictify method for 'Interface' and 'WAN' objects
+        # and by not exposing the HA object to FMG
+        #
         # Then serialize the contexts in JSON so that they can be used as a Jinja variable
         # Problem with context objects like 'HA' and 'Interface' is that they cannot be used as Jinja variable
         # context is first serialize as a JSON string with jsonpickle (which nicely handles complex objects serialization)
@@ -594,12 +605,12 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
         # We need to pass a context dict to Jinja (in order to loop through the items), that's why the serialized context
         # must be deserialized
 
-        import jsonpickle, json
-        fortigates = dict()
-        for device in status_fortigates:
-            fortigates[device['name']] = json.loads(jsonpickle.encode(device['context']))
-            for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
-                del fortigates[device['name']][k]
+        # import jsonpickle, json
+        # fortigates = dict()
+        # for device in status_fortigates:
+        #     fortigates[device['name']] = json.loads(jsonpickle.encode(device['context']))
+        #     for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
+        #         del fortigates[device['name']][k]
 
         # Render the Jinja dict to be imported in FortiManager
         fortimanager = loader.render_to_string(f'{APPNAME}/fortimanager_provisioning.html',

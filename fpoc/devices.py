@@ -6,42 +6,55 @@ from enum import Enum
 class Interface:
     # port: str  # e.g. 'port1'
     # vlanid: int  # e.g, 11
-    # _ipaddress: ipaddress
+    # _address: ipaddress
 
     def __init__(self, port:str, vlanid: int, address: str):
         self.port = port
         self.vlanid = vlanid
 
-        if len(address.split('.')) == 3:  # address is a subnet of the form '198.51.100'
+        if len(address.split('.')) == 3:  # address is a network of the form '198.51.100'
             # kept for backward compatibility with previous code
-            self._ipaddress = ipaddress.ip_network(address+'.0/24')
-        elif '/' in address:  # address is an IP@ or a subnet of the form '198.51.100.1/24'
-            self._ipaddress = ipaddress.ip_interface(address)
-        else:  # address is an IP@ of the form '198.51.100.1'
-            self._ipaddress = ipaddress.ip_address(address)
+            self._address = ipaddress.ip_interface(address + '.0/24')
+        elif '/' in address:  # address is an IP@ or a subnet of the form '198.51.100.0/24' or '198.51.100.1/24'
+            self._address = ipaddress.ip_interface(address)
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={self.ipmask})'
+        return f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={str(self._address)})'
 
     @property
     def interface(self) -> str:  # alias for 'port'
         return self.port
 
     @property
-    def subnet(self) -> str:  # e.g., '198.51.100' for subnet '198.51.100.0/24' (for compatibility with previous code)
-        return '.'.join(self._ipaddress.network_address.compressed.split('.')[0:3])
+    def network(self) -> str:
+        return str(self._address.network)  # e.g. '172.16.31.0/24'
 
     @property
-    def subnetmask(self) -> str:
-        return self._ipaddress.network.compressed  # e.g. '172.16.31.0/24'
+    def subnet(self) -> str:  # e.g., '198.51.100' for subnet '198.51.100.0/24' (for compatibility with previous code)
+        return '.'.join(self.network.split('.')[0:3])
 
     @property
     def ip(self) -> str:
-        return self._ipaddress.ip.compressed  # e.g. '172.16.31.1'
+        return str(self._address.ip)  # e.g. '172.16.31.1'
 
     @property
     def ipmask(self) -> str:
-        return self._ipaddress.with_prefixlen  # e.g. '172.16.31.1/24'
+        return self._address.with_prefixlen  # e.g. '172.16.31.1/24'
+
+    def dictify(self):
+        """
+        Make a dictionary out of this Object
+        This is needed for FMG CLI script template
+        """
+        return {
+            'port': self.port,
+            'interface': self.port,
+            'vlanid': self.vlanid,
+            'subnet': self.subnet,
+            'subnetmask': self.network,
+            'ip': self.ip,
+            'ipmask': self.ipmask
+        }
 
 
 @dataclass
@@ -67,6 +80,13 @@ class WAN:
         Leverage the iterator from the class '__dict__' iterable
         """
         return iter(self.__dict__.items())
+
+    def dictify(self):
+        """
+        Make a dictionary out of this Object
+        This is needed for FMG CLI script template
+        """
+        return { wan_name: interface.dictify() for wan_name, interface in self }
 
 
 @dataclass
