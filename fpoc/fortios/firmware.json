@@ -35,6 +35,10 @@
 //    "build": "0066",
 //    "filename": "FGT_VM64_KVM-v7.0.0-build0066-FORTINET.out"
 //  },
+  "6.4.10": {
+    "build": "200",
+    "filename": "FGT_VM64_KVM-v6.M-build2000-FORTINET.out"
+  },
   "6.4.9": {
     "build": "1966",
     "filename": "FGT_VM64_KVM-v6-build1966-FORTINET.out"
