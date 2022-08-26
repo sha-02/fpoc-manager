@@ -589,7 +589,7 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
         for device in status_fortigates:
             device['context']['wan'] = device['context']['wan'].dictify()
             fortigates[device['name']] = copy.copy(device['context'])  # Shallow copy is ok
-            for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
+            for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc', 'mgmt']:  # list of context keys which are not needed for FMG
                 del fortigates[device['name']][k]
 
         # ++ Previous approach ++
