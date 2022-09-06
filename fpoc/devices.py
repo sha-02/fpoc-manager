@@ -57,6 +57,14 @@ class Interface:
         }
 
 
+class Network:
+    def __init__(self, network: str):
+        self.network = network
+
+    def dictify(self):
+        return self.__dict__
+
+
 @dataclass
 class WAN:
     inet: Interface
@@ -73,6 +81,7 @@ class WAN:
     inet3_dnat: Interface
     mpls1: Interface
     mpls2: Interface
+    mpls_summary: Network = None    # Summary for MPLS underlay (e.g. '10.71.0.0/16')
 
     def __iter__(self):
         """"
@@ -104,8 +113,6 @@ class Device:
     name_fpoc: str = None  # Name of the device in the FortiPoC
     username: str = None  # username for SSH session
     password: str = None  # password for SSH session
-
-    wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
 
     output: str = None  # output for the SSH commands executed on the device
     template_context: dict = None  # Dictionary needed for the Django template to render the template configuration
@@ -157,6 +164,7 @@ class FortiGate(Device):
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
     ha: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
+    wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
 
     def __post_init__(self):  # Apply default values
         super(FortiGate, self).__post_init__()  # Call parent __post_init__

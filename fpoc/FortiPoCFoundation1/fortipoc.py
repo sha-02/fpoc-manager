@@ -2,12 +2,13 @@ from django.core.handlers.wsgi import WSGIRequest
 import copy
 import threading
 
-from fpoc import FortiPoC, FortiGate, LXC, Vyos, FortiManager, WAN, Interface
+from fpoc import FortiPoC, FortiGate, LXC, Vyos, FortiManager, WAN, Interface, Network
 
 
 class FortiPoCFoundation1(FortiPoC):
     """
     """
+    mpls_summary = '10.71.0.0/16'
     devices = {
         'FGT-A': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
                            wan=WAN(
@@ -23,7 +24,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet2_dnat=Interface('port1', 221, '192.168.221'),
                                inet3_snat=Interface('port1', 230, '192.168.230'),
                                inet3_dnat=Interface('port1', 231, '192.168.231'),
-                               mpls1=Interface('port2', 14, '10.0.14'), mpls2=Interface('port2', 15, '10.0.15'))),
+                               mpls1=Interface('port2', 14, '10.71.14'), mpls2=Interface('port2', 15, '10.71.15'))),
 
         'FGT-A_sec': FortiGate(offset=1, mgmt=Interface('port10', 0, '172.16.31.12/24'),
                                wan=WAN(
@@ -39,8 +40,8 @@ class FortiPoCFoundation1(FortiPoC):
                                    inet2_dnat=Interface('port1', 221, '192.168.221'),
                                    inet3_snat=Interface('port1', 230, '192.168.230'),
                                    inet3_dnat=Interface('port1', 231, '192.168.231'),
-                                   mpls1=Interface('port2', 214, '10.0.214'),
-                                   mpls2=Interface('port2', 215, '10.0.215'))),
+                                   mpls1=Interface('port2', 214, '10.71.214'),
+                                   mpls2=Interface('port2', 215, '10.71.215'))),
 
         'FGT-B': FortiGate(offset=2, mgmt=Interface('port10', 0, '172.16.31.21/24'),
                            wan=WAN(
@@ -56,7 +57,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet2_dnat=Interface('port1', 221, '192.168.221'),
                                inet3_snat=Interface('port1', 230, '192.168.230'),
                                inet3_dnat=Interface('port1', 231, '192.168.231'),
-                               mpls1=Interface('port2', 24, '10.0.24'), mpls2=Interface('port2', 25, '10.0.25'))),
+                               mpls1=Interface('port2', 24, '10.71.24'), mpls2=Interface('port2', 25, '10.71.25'))),
 
         'FGT-B_sec': FortiGate(offset=3, mgmt=Interface('port10', 0, '172.16.31.22/24'),
                                wan=WAN(
@@ -72,8 +73,8 @@ class FortiPoCFoundation1(FortiPoC):
                                    inet2_dnat=Interface('port1', 221, '192.168.221'),
                                    inet3_snat=Interface('port1', 230, '192.168.230'),
                                    inet3_dnat=Interface('port1', 231, '192.168.231'),
-                                   mpls1=Interface('port2', 224, '10.0.224'),
-                                   mpls2=Interface('port2', 225, '10.0.225'))),
+                                   mpls1=Interface('port2', 224, '10.71.224'),
+                                   mpls2=Interface('port2', 225, '10.71.225'))),
 
         'FGT-C': FortiGate(offset=4, mgmt=Interface('port10', 0, '172.16.31.31/24'),
                            wan=WAN(
@@ -89,7 +90,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet2_dnat=Interface('port1', 221, '192.168.221'),
                                inet3_snat=Interface('port1', 230, '192.168.230'),
                                inet3_dnat=Interface('port1', 231, '192.168.231'),
-                               mpls1=Interface('port2', 34, '10.0.34'), mpls2=Interface('port2', 35, '10.0.35'))),
+                               mpls1=Interface('port2', 34, '10.71.34'), mpls2=Interface('port2', 35, '10.71.35'))),
 
         'FGT-C_sec': FortiGate(offset=5, mgmt=Interface('port10', 0, '172.16.31.32/24'),
                                wan=WAN(
@@ -105,8 +106,8 @@ class FortiPoCFoundation1(FortiPoC):
                                    inet2_dnat=Interface('port1', 221, '192.168.221'),
                                    inet3_snat=Interface('port1', 230, '192.168.230'),
                                    inet3_dnat=Interface('port1', 231, '192.168.231'),
-                                   mpls1=Interface('port2', 234, '10.0.234'),
-                                   mpls2=Interface('port2', 235, '10.0.235'))),
+                                   mpls1=Interface('port2', 234, '10.71.234'),
+                                   mpls2=Interface('port2', 235, '10.71.235'))),
 
         'FGT-D': FortiGate(offset=6, mgmt=Interface('port10', 0, '172.16.31.41/24'),
                            wan=WAN(
@@ -122,7 +123,7 @@ class FortiPoCFoundation1(FortiPoC):
                                inet2_dnat=Interface('port1', 221, '192.168.221'),
                                inet3_snat=Interface('port1', 230, '192.168.230'),
                                inet3_dnat=Interface('port1', 231, '192.168.231'),
-                               mpls1=Interface('port2', 44, '10.0.44'), mpls2=Interface('port2', 45, '10.0.45'))),
+                               mpls1=Interface('port2', 44, '10.71.44'), mpls2=Interface('port2', 45, '10.71.45'))),
 
         'FGT-D_sec': FortiGate(offset=7, mgmt=Interface('port10', 0, '172.16.31.42/24'),
                                wan=WAN(
@@ -138,8 +139,8 @@ class FortiPoCFoundation1(FortiPoC):
                                    inet2_dnat=Interface('port1', 221, '192.168.221'),
                                    inet3_snat=Interface('port1', 230, '192.168.230'),
                                    inet3_dnat=Interface('port1', 231, '192.168.231'),
-                                   mpls1=Interface('port2', 244, '10.0.244'),
-                                   mpls2=Interface('port2', 245, '10.0.245'))),
+                                   mpls1=Interface('port2', 244, '10.71.244'),
+                                   mpls2=Interface('port2', 245, '10.71.245'))),
 
         'ISFW-A': FortiGate(offset=8, mgmt=Interface('port10', 0, '172.16.31.13/24')),
         'Internet': Vyos(offset=9, mgmt=Interface('eth9', 0, '172.16.31.251/24')),
@@ -220,6 +221,8 @@ class FortiPoCFoundation1(FortiPoC):
             device.name_fpoc = fpoc_devname
             device.name = device.name or device.name_fpoc  # init to 'name_fpoc' if 'name' is None
             device.mgmt_fpoc_ipmask = FortiPoCFoundation1.mgmt_fpoc_ipmask
+            if isinstance(device, FortiGate):
+                device.wan.mpls_summary = Network(FortiPoCFoundation1.mpls_summary)
             if self.manager_inside_fpoc:  # fpoc-manager is running inside the FortiPoC
                 # device is accessed via its mgmt-ip inside the FortiPoC OOB
                 device.ip = device.mgmt.ip  # e.g. 172.16.31.1
