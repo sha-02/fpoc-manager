@@ -221,7 +221,7 @@ class FortiPoCFoundation1(FortiPoC):
             device.name_fpoc = fpoc_devname
             device.name = device.name or device.name_fpoc  # init to 'name_fpoc' if 'name' is None
             device.mgmt_fpoc_ipmask = FortiPoCFoundation1.mgmt_fpoc_ipmask
-            if isinstance(device, FortiGate):
+            if isinstance(device, FortiGate) and device.wan is not None:
                 device.wan.mpls_summary = Network(FortiPoCFoundation1.mpls_summary)
             if self.manager_inside_fpoc:  # fpoc-manager is running inside the FortiPoC
                 # device is accessed via its mgmt-ip inside the FortiPoC OOB
