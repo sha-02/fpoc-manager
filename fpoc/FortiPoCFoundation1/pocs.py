@@ -452,6 +452,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
         'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'route_priority'
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
+        'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
 
         # DataCenters info used:
         # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
@@ -508,6 +509,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         lxc_east_dc = LXC(name='PC-E-DC1', template_context={'ipmask': '10.4.0.7/24', 'gateway': '10.4.0.1'})
         lxc_east_br = LXC(name='PC-E-BR1', template_context={'ipmask': '10.4.1.101/24', 'gateway': '10.4.1.1'})
     else:  # BGP per overlay design with non-summarizable IP schema for East region
+        if poc_id == 7:  # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
+            context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
+            if context['bidir_sdwan'] == 'none':  # Hub-side steering must be used because shortcuts do not hide the
+                context['bidir_sdwan'] = 'route_tag'  # the route of the parent interface
+
         west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS', template_context={'dc_id': 1, 'region': 'West', **context})
         west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS', template_context={'dc_id': 2, 'region': 'West', **context})
         west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES', template_context={'branch_id': 1, 'region': 'West', **context})

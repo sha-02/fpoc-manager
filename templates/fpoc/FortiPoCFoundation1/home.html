@@ -209,6 +209,7 @@ $(document).ready(function(){
               <option value='route_priority'>based on route priority (7.2+)</option>
             </select>
             <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Region ADVPN shortcuts
+            <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF-aware overlay (7.2+)
           </fieldset>
         <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" >BGP per overlay (7.0+)</button>
