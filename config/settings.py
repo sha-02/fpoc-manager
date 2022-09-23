@@ -75,6 +75,7 @@ TEMPLATES = [
             'extensions': [
                 'jinja2.ext.do',
                 'jinja2.ext.debug',
+                'jinja2.ext.loopcontrols',
             ],
         },
     },
