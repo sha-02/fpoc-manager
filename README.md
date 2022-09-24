@@ -1,22 +1,33 @@
 # Installation
 
 In LXC:
+
 ```
 $ cd /fortipoc
 $ git clone https://github.com/sha-02/fpoc-manager.git
-
 $ cd fpoc-manager
-$ python3 -m venv venv
+```
+
+With Pip:
+```
+$ python3.8 -m venv venv
 $ source venv/bin/activate
 (venv) $ pip install -r requirements.txt
 ```
 
-# Resynch
+With Pipenv:
+
 ```
-git pull
+$ pipenv install
+$ pipenv shell
 ```
 
 # Start
 ```
 (venv) $ python manage.py runserver 0.0.0.0:8000
+```
+
+# Resynch
+```
+git pull
 ```
