@@ -33,12 +33,18 @@ def ssh_logon(device: FortiGate):
     # print(netmiko_dict)
 
     # SSH connection to the FGT
-    try:
-        ssh = netmiko.ConnectHandler(**ssh_params)
-    except NetmikoAuthenticationException:
-        print(f'{device.name} : SSH authentication failed. Retrying with empty password.')
-        ssh_params['password'] = ''
-        ssh = netmiko.ConnectHandler(**ssh_params)
+    password_list = [ssh_params['password'], 'nsefortinet', '']
+    for pwd in password_list:
+        ssh_params['password'] = pwd
+        try:
+            ssh = netmiko.ConnectHandler(**ssh_params)
+        except NetmikoAuthenticationException:
+            print(f'{device.name} : SSH authentication failed with password "{pwd}". Trying with next password...')
+            continue
+            # ssh = netmiko.ConnectHandler(**ssh_params)
+        else:
+            print(f'{device.name} : Successful SSH authentication with password "{pwd}"')
+            break
 
     return ssh
 
