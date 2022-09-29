@@ -1,7 +1,9 @@
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
+import os.path
 
 import fpoc.ssh
+from config.settings import PATH_FPOC_TEMPLATES
 from fpoc import TypePoC, LXC
 
 
@@ -15,10 +17,16 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
     :return:
     """
 
-    # Render the config
-    #
+    # Render the LXC config
+    # - use the per-POC LXC template if one exists
+    # - otherwise use the generic LXC template
 
-    template_name = f'fpoc/lxc.conf'
+    template_name = f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/lxc.conf'
+    if not os.path.isfile(os.path.dirname(PATH_FPOC_TEMPLATES)+'/'+template_name):
+        template_name = f'fpoc/lxc.conf'
+
+    print(f'{device.name} : Rendering LXC template {template_name}')
+
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for Linux CLI settings
     device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
     # print(cli_settings)
