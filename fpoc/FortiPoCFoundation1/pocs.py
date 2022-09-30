@@ -346,21 +346,21 @@ def sdwan_advpn_singlehub_fos70(request: WSGIRequest) -> tuple:
                                template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'})
     else:
         devices['PC_A1'] = LXC(name='DC-server',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '10.1.0.7/24'},
+                               template_context={'vlan_list': [{'vlan':0, 'ipmask': '10.1.0.7/24'},
                                                             {'vlan': 1001, 'ipmask': '10.1.1.7/24'},
                                                             {'vlan': 1002, 'ipmask': '10.1.2.7/24'},
                                                             {'vlan': 1003, 'ipmask': '10.1.3.7/24'},
                                                             ],
                                                  'gateway': '10.1.0.1'})
         devices['PC_B1'] = LXC(name='Client-BR1',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '10.0.1.101/24'},
+                               template_context={'vlan_list': [{'vlan':0, 'ipmask': '10.0.1.101/24'},
                                                             {'vlan': 1001, 'ipmask': '10.0.11.101/24'},
                                                             {'vlan': 1002, 'ipmask': '10.0.21.101/24'},
                                                             {'vlan': 1003, 'ipmask': '10.0.31.101/24'},
                                                             ],
                                                  'gateway': '10.0.1.1'})
         devices['PC_C1'] = LXC(name='Client-BR2',
-                               template_context={'devlist': [{'vlan':0, 'ipmask': '10.0.2.101/24'},
+                               template_context={'vlan_list': [{'vlan':0, 'ipmask': '10.0.2.101/24'},
                                                             {'vlan': 1001, 'ipmask': '10.0.12.101/24'},
                                                             {'vlan': 1002, 'ipmask': '10.0.22.101/24'},
                                                             {'vlan': 1003, 'ipmask': '10.0.32.101/24'},
@@ -447,6 +447,24 @@ def sdwan_advpn_singlehub_fos62(request: WSGIRequest) -> tuple:
 def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
+
+    def lan_segment(segments: dict):
+        return segments['SEGMENT_0']
+
+    def other_segments(segments: dict, context: dict):
+        if not context['vrf_aware_overlay']:
+            return {}
+        other_segs = copy.copy(segments)
+        other_segs.pop('SEGMENT_0')
+        return other_segs
+
+    def lxc_context(segments: dict, context: dict):
+        base_segment = {'ipmask': segments['SEGMENT_0']['ip_lxc'] + '/' + segments['SEGMENT_0']['mask'],
+                        'gateway': segments['SEGMENT_0']['ip']}
+        if not context['vrf_aware_overlay']:
+            return base_segment
+        return {**base_segment, 'namespaces': other_segments(segments, context)}
+
     context = {
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
@@ -490,38 +508,106 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         }
     }
 
-    if poc_id == 10:  # BGP on loopback design -- New IP schema (summarizable) is used for East region of this PoC
-        # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary
-        # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
-        # https://github.com/ansible-collections/ansible.netcommon
-        # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
-        # https://gist.github.com/ktbyers/bdba984447636d5ac4e3d93011a861ad
-        # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
-        # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
-        # https://stackoverflow.com/questions/68440946/ansible-filters-ipaddr-in-python
-        # https://blog.networktocode.com/post/adding-jinja2-filters-in-nautobot-golden-config/
-        west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS', template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'lan': {'ip': '10.1.0.1', 'subnet': '10.1.0.0', 'mask': '255.255.255.0'}, **context})
-        west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS', template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'lan': {'ip': '10.2.0.1', 'subnet': '10.2.0.0', 'mask': '255.255.255.0'}, **context})
-        west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES', template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'lan': {'ip': '10.0.1.1', 'subnet': '10.0.1.0', 'mask': '255.255.255.0'}, **context})
-        west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES', template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'lan': {'ip': '10.0.2.1', 'subnet': '10.0.2.0', 'mask': '255.255.255.0'}, **context})
-        east_dc = FortiGate(name='EAST-DC1', template_group='DATACENTERS', template_context={'region': 'East', 'region_id': 2, 'dc_id': 1, 'lan': {'ip': '10.4.0.1', 'subnet': '10.4.0.0', 'mask': '255.255.255.0'}, **context})
-        east_br = FortiGate(name='EAST-BR1', template_group='BRANCHES', template_context={'region': 'East', 'region_id': 2, 'branch_id': 1, 'lan': {'ip': '10.4.1.1', 'subnet': '10.4.1.0', 'mask': '255.255.255.0'}, **context})
-        lxc_east_dc = LXC(name='PC-E-DC1', template_context={'ipmask': '10.4.0.7/24', 'gateway': '10.4.0.1'})
-        lxc_east_br = LXC(name='PC-E-BR1', template_context={'ipmask': '10.4.1.101/24', 'gateway': '10.4.1.1'})
-    else:  # BGP per overlay design with non-summarizable IP schema for East region
-        if poc_id == 7:  # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
-            context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
-            if context['bidir_sdwan'] == 'none':  # Hub-side steering must be used because shortcuts do not hide the
-                context['bidir_sdwan'] = 'route_tag'  # the route of the parent interface
+    if poc_id == 7:  # PoC = ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
+        context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
+        if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the
+            context['bidir_sdwan'] = 'route_tag'  # the route of the parent interface
 
-        west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS', template_context={'dc_id': 1, 'region': 'West', **context})
-        west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS', template_context={'dc_id': 2, 'region': 'West', **context})
-        west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES', template_context={'branch_id': 1, 'region': 'West', **context})
-        west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES', template_context={'branch_id': 2, 'region': 'West', **context})
-        east_dc = FortiGate(name='EAST-DC3', template_group='DATACENTERS', template_context={'dc_id': 3, 'region': 'East', **context})
-        east_br = FortiGate(name='EAST-BR3', template_group='BRANCHES', template_context={'branch_id': 3, 'region': 'East', **context})
-        lxc_east_dc = LXC(name='PC-E-DC3', template_context={'ipmask': '10.3.0.7/24', 'gateway': '10.3.0.1'})
-        lxc_east_br = LXC(name='PC-E-BR3', template_context={'ipmask': '10.0.3.101/24', 'gateway': '10.0.3.1'})
+    if poc_id == 10:  # PoC = BGP on loopback
+        if context['bidir_sdwan'] == 'route_tag' or context['bidir_sdwan'] == 'route_priority':
+            context['bidir_sdwan'] = 'none'  # route_tag and route_priority only works with BGP per overlay
+
+    # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary with (ip, subnet, mask)
+    # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
+    # https://github.com/ansible-collections/ansible.netcommon
+    # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
+    # https://gist.github.com/ktbyers/bdba984447636d5ac4e3d93011a861ad
+    # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
+    # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
+    # https://stackoverflow.com/questions/68440946/ansible-filters-ipaddr-in-python
+    # https://blog.networktocode.com/post/adding-jinja2-filters-in-nautobot-golden-config/
+
+    seginfo = {
+        'SEGMENT_0': { 'vrfid': 0, 'vlanid': 0 },
+        'SEGMENT_1': { 'vrfid': 1, 'vlanid': 1001 },
+        'SEGMENT_2': { 'vrfid': 2, 'vlanid': 1002 },
+    }
+
+    segments = {
+        'WEST-DC1': {
+            'SEGMENT_0': {'ip': '10.1.0.1', 'subnet': '10.1.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.1.0.7', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.1.1.1', 'subnet': '10.1.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.1.1.7', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.1.2.1', 'subnet': '10.1.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.1.2.7', **seginfo['SEGMENT_2']},
+        },
+        'WEST-DC2': {
+            'SEGMENT_0': {'ip': '10.2.0.1', 'subnet': '10.2.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.2.0.7', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.2.1.1', 'subnet': '10.2.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.2.1.7', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.2.2.1', 'subnet': '10.2.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.2.2.7', **seginfo['SEGMENT_2']},
+        },
+        'WEST-BR1': {
+            'SEGMENT_0': {'ip': '10.0.1.1', 'subnet': '10.0.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.1.101', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.0.11.1', 'subnet': '10.0.11.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.11.101', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.0.21.1', 'subnet': '10.0.21.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.21.101', **seginfo['SEGMENT_2']},
+        },
+        'WEST-BR2': {
+            'SEGMENT_0': {'ip': '10.0.2.1', 'subnet': '10.0.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.2.101', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.0.12.1', 'subnet': '10.0.12.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.12.101', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.0.22.1', 'subnet': '10.0.22.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.22.101', **seginfo['SEGMENT_2']},
+        },
+        'EAST-DC1': {
+            'SEGMENT_0': {'ip': '10.4.0.1', 'subnet': '10.4.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.0.7', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.4.10.1', 'subnet': '10.4.10.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.10.7', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.4.20.1', 'subnet': '10.4.20.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.20.7', **seginfo['SEGMENT_2']},
+        },
+        'EAST-BR1': {
+            'SEGMENT_0': {'ip': '10.4.1.1', 'subnet': '10.4.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.1.101', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.4.11.1', 'subnet': '10.4.11.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.11.101', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.4.21.1', 'subnet': '10.4.21.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.21.101', **seginfo['SEGMENT_2']},
+        },
+        'EAST-DC3': {
+            'SEGMENT_0': {'ip': '10.3.0.1', 'subnet': '10.3.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.3.0.7', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.3.1.1', 'subnet': '10.3.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.3.1.7', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.3.2.1', 'subnet': '10.3.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.3.2.7', **seginfo['SEGMENT_2']},
+        },
+        'EAST-BR3': {
+            'SEGMENT_0': {'ip': '10.0.3.1', 'subnet': '10.0.3.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.3.101', **seginfo['SEGMENT_0']},
+            'SEGMENT_1': {'ip': '10.0.13.1', 'subnet': '10.0.13.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.13.101', **seginfo['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.0.23.1', 'subnet': '10.0.23.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.23.101', **seginfo['SEGMENT_2']},
+        }
+    }
+
+    west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
+                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 1,
+                                           'lan': lan_segment(segments['WEST-DC1']),
+                                           'segments': other_segments(segments['WEST-DC1'],context), **context})
+    west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
+                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 2,
+                                           'lan': lan_segment(segments['WEST-DC2']),
+                                           'segments': other_segments(segments['WEST-DC2'],context), **context})
+    west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
+                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 1,
+                                           'lan': lan_segment(segments['WEST-BR1']),
+                                           'segments': other_segments(segments['WEST-BR1'],context), **context})
+    west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
+                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 2,
+                                           'lan': lan_segment(segments['WEST-BR2']),
+                                           'segments': other_segments(segments['WEST-BR2'],context), **context})
+
+    if poc_id == 10:  # PoC with BGP on loopback design: Regional LAN summaries are possible
+        east_dc_ = {'name': 'EAST-DC1', 'dc_id': 1, 'lxc': 'PC-E-DC1'}
+        east_br_ = {'name': 'EAST-BR1', 'branch_id': 1, 'lxc': 'PC-E-BR1'}
+    else:  # Other PoCs with BGP per overlay design: No Regional LAN summaries (IP plan would overlap between Region)
+        east_dc_ = {'name': 'EAST-DC3', 'dc_id': 3, 'lxc': 'PC-E-DC3'}
+        east_br_ = {'name': 'EAST-BR3', 'branch_id': 3, 'lxc': 'PC-E-BR3'}
+
+    east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
+                        template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'],
+                                          'lan': lan_segment(segments[east_dc_['name']]),
+                                          'segments': other_segments(segments[east_dc_['name']], context), **context})
+    east_br = FortiGate(name=east_br_['name'], template_group='BRANCHES',
+                        template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'],
+                                          'lan': lan_segment(segments[east_br_['name']]),
+                                          'segments': other_segments(segments[east_br_['name']], context), **context})
 
     devices = {
         'FGT-A': west_dc1,
@@ -532,12 +618,12 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'FGT-D_sec': east_br,
         'FMG': FortiManager(name='FMG'),
 
-        'PC_A1': LXC(name='PC-W-DC1', template_context={'ipmask': '10.1.0.7/24', 'gateway': '10.1.0.1'}),
-        'PC_B1': LXC(name='PC-W-DC2', template_context={'ipmask': '10.2.0.7/24', 'gateway': '10.2.0.1'}),
-        'PC_B2': lxc_east_dc,
-        'PC_C1': LXC(name='PC-W-BR1', template_context={'ipmask': '10.0.1.101/24', 'gateway': '10.0.1.1'}),
-        'PC_D1': LXC(name='PC-W-BR2', template_context={'ipmask': '10.0.2.101/24', 'gateway': '10.0.2.1'}),
-        'PC_D2': lxc_east_br,
+        'PC_A1': LXC(name='PC-W-DC1', template_context=lxc_context(segments['WEST-DC1'], context)),
+        'PC_B1': LXC(name='PC-W-DC2', template_context=lxc_context(segments['WEST-DC2'], context)),
+        'PC_B2': LXC(name=east_dc_['lxc'], template_context=lxc_context(segments[east_dc_['name']], context)),
+        'PC_C1': LXC(name='PC-W-BR1', template_context=lxc_context(segments['WEST-BR1'], context)),
+        'PC_D1': LXC(name='PC-W-BR2', template_context=lxc_context(segments['WEST-BR2'], context)),
+        'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(segments[east_br_['name']], context)),
     }
 
     # Check request, render and deploy configs
