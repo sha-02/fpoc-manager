@@ -1,3 +1,4 @@
+from netmiko import NetmikoAuthenticationException
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
 import os.path
@@ -60,5 +61,15 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
         # 'auto_connect': True,
     }
 
-    device.output = fpoc.ssh.send_config_set(ssh_params, device.config.splitlines())
-    print(device.output)
+    password_list = [device.password, 'nsefortinet', '']
+    for pwd in password_list:
+        ssh_params['password'] = pwd
+        try:
+            device.output = fpoc.ssh.send_config_set(ssh_params, device.config.splitlines())
+        except NetmikoAuthenticationException:
+            print(f'{device.name} : SSH authentication failed with password "{pwd}". Trying with next password...')
+            continue
+        else:
+            print(f'{device.name} : Successful SSH authentication with password "{pwd}"')
+            print(device.output)
+            break
