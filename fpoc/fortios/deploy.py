@@ -84,10 +84,12 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
             pass
     else:
         print(f'{device.name} : Firmware not found in folder {PATH_FPOC_FIRMWARE}')
-        print(f'{device.name} : Downloading firmware image from store... ')
-        firmware = firmwares[fos_version_target]["filename"]
-        firmware_download(firmware)
-        print(f'{device.name} : Download completed.')
+        lock.release()
+        raise StopProcessingDevice
+        # print(f'{device.name} : Downloading firmware image from store... ')
+        # firmware = firmwares[fos_version_target]["filename"]
+        # firmware_download(firmware)
+        # print(f'{device.name} : Download completed.')
 
     # release the lock so that other treads can now check the existence of the firmware file
     lock.release()
