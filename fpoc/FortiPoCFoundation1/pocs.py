@@ -528,7 +528,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
         poc_id = None   # TODO
 
-    if context['shortcut_routing'] == 'ipsec_selectors': # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
+    if context['shortcut_routing'] == 'ipsec_selectors' and context['bgp_design'] == 'per_overlay':
+        # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
         poc_id = 7
         context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
         if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
@@ -536,6 +537,13 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                 context['bidir_sdwan'] = 'route_tag'
             if context['bgp_design'] in ('on_loopback', 'no_bgp'):
                 context['bidir_sdwan'] = 'remote-sla'
+
+    if context['shortcut_routing'] == 'ipsec_selectors' and context['bgp_design'] == 'on_loopback':
+        poc_id = None   # TODO
+
+    if poc_id is None:
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': 'Incompatible settings or PoC not yet done'})
 
     # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary with (ip, subnet, mask)
     # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
