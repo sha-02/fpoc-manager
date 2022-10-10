@@ -739,4 +739,4 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
 
     # Render the deployment status using Django template engine
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'devices': status_devices, 'fortimanager': fortimanager})
+                  {'poc_id': poc_id, 'devices': status_devices, 'fortimanager': fortimanager})
