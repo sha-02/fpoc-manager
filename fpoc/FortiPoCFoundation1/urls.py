@@ -44,10 +44,11 @@ urlpatterns = [
     path('sdwan_advpn/singlehub/bgp_per_overlay/fos70/', pocs.sdwan_advpn_singlehub, {'poc_id': 8}, name='sdwan_advpn_singlehub_fos70'),
 
     # Dual-DC, Dual-Region with different designs
-    path('sdwan_advpn/dualdc/bgp_per_overlay/fos64/', pocs.sdwan_advpn_dualdc, {'poc_id': 6}, name='sdwan_advpn_dualdc_fos64'),
-    path('sdwan_advpn/dualdc/bgp_per_overlay/fos70/', pocs.sdwan_advpn_dualdc, {'poc_id': 9}, name='sdwan_advpn_dualdc_fos70'),
-    path('sdwan_advpn/dualdc/bgp_per_overlay/bgp_no_rr/', pocs.sdwan_advpn_dualdc, {'poc_id': 7}, name='sdwan_advpn_nobgprr'),
-    path('sdwan_advpn/dualdc/bgp_on_loopback/', pocs.sdwan_advpn_dualdc, {'poc_id': 10}, name='sdwan_advpn_dualdc_loopback'),
+    # path('sdwan_advpn/dualdc/bgp_per_overlay/fos64/', pocs.sdwan_advpn_dualdc, {'poc_id': 6}, name='sdwan_advpn_dualdc_fos64'),
+    # path('sdwan_advpn/dualdc/bgp_per_overlay/fos70/', pocs.sdwan_advpn_dualdc, {'poc_id': 9}, name='sdwan_advpn_dualdc_fos70'),
+    # path('sdwan_advpn/dualdc/bgp_per_overlay/bgp_no_rr/', pocs.sdwan_advpn_dualdc, {'poc_id': 7}, name='sdwan_advpn_nobgprr'),
+    # path('sdwan_advpn/dualdc/bgp_on_loopback/', pocs.sdwan_advpn_dualdc, {'poc_id': 10}, name='sdwan_advpn_dualdc_loopback'),
+    path('sdwan_advpn/dualdc_dualregion/', pocs.sdwan_advpn_dualdc, name='sdwan_advpn_dualdc_dualregion'),
 
     path('vpn/dialup/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('vpn/site2site/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),

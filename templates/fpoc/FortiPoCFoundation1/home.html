@@ -197,25 +197,36 @@ $(document).ready(function(){
             <input type="checkbox" name="PC_D2" checked>
               <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">East Branch</span>
           </fieldset>
+          <br>
           <fieldset>
+            BGP design <select name="bgp_design">
+              <option value='per_overlay' selected>BGP per overlay (7.0+)</option>
+              <option value='per_overlay_legacy'>BGP per overlay legacy (6.4+)</option>
+              <option value='on_loopback'>BGP on loopback (7.0.4+)</option>
+              <option value='no_bgp'>No BGP (7.2+)</option>
+            </select>
+            Hub-side Steering <select name="bidir_sdwan">
+              <option value='none'>No Hub-side steering</option>
+              <option value='route_tag' selected>SD-WAN with route-tags</option>
+              <option value='remote_sla'>SD-WAN with remote-sla (7.2+)</option>
+              <option value='route_priority'>BGP with route priority (7.2+)</option>
+            </select>
             Remote Internet Access <select name="remote_internet">
               <option value='none'>DIA only</option>
               <option value='mpls' selected>RIA over MPLS</option>
               <option value='all'>RIA over all overlays</option>
             </select>
-            Bidirectional SD-WAN <select name="bidir_sdwan">
-              <option value='none'>No Hub-side steering</option>
-              <option value='route_tag' selected>based on route-tags</option>
-              <option value='route_priority'>based on route priority (7.2+)</option>
+            <br>
+            ADVPN shortcut routing <select name="shortcut_routing">
+              <option value='exchange_ip' selected>BGP NH convergence with exchange-interface-ip</option>
+              <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>
+              <option value='dynamic_bgp'>Dynamic BGP peering (7.???)</option>
             </select>
             <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Region ADVPN shortcuts
-            <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF-aware overlay (7.2+)
+            <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF segmentation over shared IPsec overlay (7.2+)
           </fieldset>
         <br>
-        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos70' %}" >BGP per overlay (7.0+)</button>
-        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_nobgprr' %}" formaction="{% url 'fpoc:sdwan_advpn_nobgprr' %}" >BGP per overlay without RR (7.2+)</button>
-        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_loopback' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_loopback' %}" >BGP on loopback (7.0.4+)</button>
-        <button type="submit" class="btn btn-warning btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_fos64' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_fos64' %}" >BGP per overlay (6.4+)</button>
+        <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_dualregion' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_dualregion' %}" >Start</button>
       </form>
       <hr>
       <h5>SDWAN+ADVPN - Single Hub</h5>

@@ -444,7 +444,7 @@ def sdwan_advpn_singlehub_fos62(request: WSGIRequest) -> tuple:
     return devices, context
 
 
-def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     """
     """
 
@@ -468,9 +468,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
     context = {
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
-        'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'route_priority'
+        'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'remote_sla', 'route_priority',
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+        'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
+        'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
 
         # DataCenters info used:
         # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
@@ -508,14 +510,32 @@ def sdwan_advpn_dualdc(request: WSGIRequest, poc_id: int) -> HttpResponse:
         }
     }
 
-    if poc_id == 7:  # PoC = ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
-        context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
-        if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the
-            context['bidir_sdwan'] = 'route_tag'  # the route of the parent interface
+    # Define the poc_id based on the options which were selected
 
-    if poc_id == 10:  # PoC = BGP on loopback
+    poc_id = None
+
+    if context['bgp_design'] == 'per_overlay':  # BGP per overlay, 7.0+ style
+        poc_id = 9
+
+    if context['bgp_design'] == 'per_overlay_legacy':  # BGP per overlay, legacy 6.4+ style
+        poc_id = 6
+
+    if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
+        poc_id = 10
         if context['bidir_sdwan'] == 'route_tag' or context['bidir_sdwan'] == 'route_priority':
             context['bidir_sdwan'] = 'none'  # route_tag and route_priority only works with BGP per overlay
+
+    if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
+        poc_id = None   # TODO
+
+    if context['shortcut_routing'] == 'ipsec_selectors': # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
+        poc_id = 7
+        context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
+        if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
+            if context['bgp_design'] in ('per_overlay', 'per_overlay_legacy'):
+                context['bidir_sdwan'] = 'route_tag'
+            if context['bgp_design'] in ('on_loopback', 'no_bgp'):
+                context['bidir_sdwan'] = 'remote-sla'
 
     # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary with (ip, subnet, mask)
     # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
