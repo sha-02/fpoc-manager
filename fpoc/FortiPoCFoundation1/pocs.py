@@ -473,41 +473,6 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
-
-        # DataCenters info used:
-        # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
-        # - as IPsec remote-gw IP@ by the Branches (inet1/inet2/mpls)
-        # - as part of the computation of the networkid for Edge IPsec tunnels (id)
-        'datacenter': {
-            'west': {
-                'first': {
-                    'id': 1,
-                    'inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
-                    'inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
-                    'mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
-                },
-                'second': {
-                    'id': 2,
-                    'inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
-                    'inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
-                    'mpls': FortiPoCFoundation1.devices['FGT-B'].wan.mpls1.subnet + '.2',  # 10.0.24.2
-                },
-            },
-            'east': {
-                'first': {
-                    'id': 3,
-                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.3',  # 100.64.121.3
-                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.3',  # 100.64.122.3
-                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.3',  # 10.0.124.3
-                },
-                'second': {  # Fictitious second DC for East region
-                    'id': 4,
-                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.4',  # 100.64.121.4
-                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.4',  # 100.64.122.4
-                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.4',  # 10.0.124.4
-                }
-            }
-        }
     }
 
     # Define the poc_id based on the options which were selected
@@ -523,7 +488,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
         poc_id = 10
         if context['bidir_sdwan'] == 'route_tag' or context['bidir_sdwan'] == 'route_priority':
-            context['bidir_sdwan'] = 'none'  # route_tag and route_priority only works with BGP per overlay
+            context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
 
     if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
         poc_id = None   # TODO
@@ -544,6 +509,50 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     if poc_id is None:
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': 'Incompatible settings or PoC not yet done'})
+
+    # DataCenters info used:
+    # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
+    # - as IPsec remote-gw IP@ by the Branches (inet1/inet2/mpls)
+    # - as part of the computation of the networkid for Edge IPsec tunnels (id)
+    # - as multicast RP (LAN IP@)
+
+    context = {
+        **context,
+        'datacenter': {
+            'west': {
+                'first': {
+                    'id': 1,
+                    'inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
+                    'inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
+                    'mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
+                    'lan': None  # Filled later on
+                },
+                'second': {
+                    'id': 2,
+                    'inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
+                    'inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
+                    'mpls': FortiPoCFoundation1.devices['FGT-B'].wan.mpls1.subnet + '.2',  # 10.0.24.2
+                    'lan': None  # Filled later on
+                },
+            },
+            'east': {
+                'first': {
+                    'id': 3,
+                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.3',  # 100.64.121.3
+                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.3',  # 100.64.122.3
+                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.3',  # 10.0.124.3
+                    'lan': None  # Filled later on
+                },
+                'second': {  # Fictitious second DC for East region
+                    'id': 4,
+                    'inet1': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet1.subnet + '.4',  # 100.64.121.4
+                    'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.4',  # 100.64.122.4
+                    'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.4',  # 10.0.124.4
+                    'lan': '0.0.0.0'  # Fictitious IP
+                }
+            }
+        }
+    }
 
     # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary with (ip, subnet, mask)
     # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
@@ -611,6 +620,9 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             'SEG2_INET_': [ {'vrfid': 0, 'ip': '169.254.254.6', 'mask':'255.255.255.252'}, {'vrfid': 2, 'ip': '169.254.254.5', 'mask':'255.255.255.252'} ]
         }
 
+    context['datacenter']['west']['first']['lan'] = lan_segment(segments['WEST-DC1'])['ip']
+    context['datacenter']['west']['second']['lan'] = lan_segment(segments['WEST-DC2'])['ip']
+
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1,
                                            'lan': lan_segment(segments['WEST-DC1']),
@@ -636,6 +648,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     else:  # Other PoCs with BGP per overlay design: No Regional LAN summaries (IP plan would overlap between Region)
         east_dc_ = {'name': 'EAST-DC3', 'dc_id': 3, 'lxc': 'PC-E-DC3'}
         east_br_ = {'name': 'EAST-BR3', 'branch_id': 3, 'lxc': 'PC-E-BR3'}
+
+    context['datacenter']['east']['first']['lan'] = lan_segment(segments[east_dc_['name']])['ip']
 
     east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'],
