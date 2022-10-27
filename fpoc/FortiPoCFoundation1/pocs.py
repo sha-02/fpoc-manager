@@ -471,6 +471,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'remote_sla', 'route_priority',
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+        'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
     }

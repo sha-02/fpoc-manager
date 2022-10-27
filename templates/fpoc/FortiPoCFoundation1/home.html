@@ -222,8 +222,9 @@ $(document).ready(function(){
               <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>
               <option value='dynamic_bgp'>Dynamic BGP peering (7.???)</option>
             </select>
-            <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Region ADVPN shortcuts
+            <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Regional shortcuts
             <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF segmentation over shared IPsec overlay (7.2+)
+            <br><input type="checkbox" name="multicast" value=0> Multicast routing
           </fieldset>
         <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_dualregion' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_dualregion' %}" >Start</button>
