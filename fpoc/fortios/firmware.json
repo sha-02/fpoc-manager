@@ -3,26 +3,26 @@
     "build": "1255",
     "filename": "FGT_VM64_KVM-v7.2.2.F-build1255-FORTINET.out"
   },
-  "7.2.1": {
-    "build": "1254",
-    "filename": "FGT_VM64_KVM-v7.2.1.F-build1254-FORTINET.out"
-  },
-  "7.2.0": {
-    "build": "1157",
-    "filename": "FGT_VM64_KVM-v7.2.0.F-build1157-FORTINET.out"
-  },
+//  "7.2.1": {
+//    "build": "1254",
+//    "filename": "FGT_VM64_KVM-v7.2.1.F-build1254-FORTINET.out"
+//  },
+//  "7.2.0": {
+//    "build": "1157",
+//    "filename": "FGT_VM64_KVM-v7.2.0.F-build1157-FORTINET.out"
+//  },
   "7.0.8": {
     "build": "0418",
     "filename": "FGT_VM64_KVM-v7.0.8.F-build0418-FORTINET.out"
   },
-  "7.0.7": {
-    "build": "0367",
-    "filename": "FGT_VM64_KVM-v7.0.7.F-build0367-FORTINET.out"
-  },
-  "7.0.6": {
-    "build": "0366",
-    "filename": "FGT_VM64_KVM-v7.0.6.F-build0366-FORTINET.out"
-  },
+//  "7.0.7": {
+//    "build": "0367",
+//    "filename": "FGT_VM64_KVM-v7.0.7.F-build0367-FORTINET.out"
+//  },
+//  "7.0.6": {
+//    "build": "0366",
+//    "filename": "FGT_VM64_KVM-v7.0.6.F-build0366-FORTINET.out"
+//  },
 //  "7.0.5": {
 //    "build": "0304",
 //    "filename": "FGT_VM64_KVM-v7.0.5-build0304-FORTINET.out"
@@ -51,108 +51,12 @@
     "build": "2030",
     "filename": "FGT_VM64_KVM-v6.M-build2030-FORTINET.out"
   },
-  "6.4.10": {
-    "build": "2000",
-    "filename": "FGT_VM64_KVM-v6.M-build2000-FORTINET.out"
+  "6.2.12": {
+    "build": "1319",
+    "filename": "FGT_VM64_KVM-v6-build1319-FORTINET.out"
   },
-//  "6.4.9": {
-//    "build": "1966",
-//    "filename": "FGT_VM64_KVM-v6-build1966-FORTINET.out"
-//  },
-//  "6.4.8": {
-//    "build": "1914",
-//    "filename": "FGT_VM64_KVM-v6-build1914-FORTINET.out"
-//  },
-//  "6.4.7": {
-//    "build": "1911",
-//    "filename": "FGT_VM64_KVM-v6-build1911-FORTINET.out"
-//  },
-//  "6.4.6": {
-//    "build": "1879",
-//    "filename": "FGT_VM64_KVM-v6-build1879-FORTINET.out"
-//  },
-//  "6.4.5": {
-//    "build": "1828",
-//    "filename": "FGT_VM64_KVM-v6-build1828-FORTINET.out"
-//  },
-//  "6.4.4": {
-//    "build": "1803",
-//    "filename": "FGT_VM64_KVM-v6-build1803-FORTINET.out"
-//  },
-//  "6.4.3": {
-//    "build": "1778",
-//    "filename": "FGT_VM64_KVM-v6-build1778-FORTINET.out"
-//  },
-//  "6.4.2": {
-//    "build": "1723",
-//    "filename": "FGT_VM64_KVM-v6-build1723-FORTINET.out"
-//  },
-//  "6.4.1": {
-//    "build": "1637",
-//    "filename": "FGT_VM64_KVM-v6-build1637-FORTINET.out"
-//  },
-//  "6.4.0": {
-//    "build": "1579",
-//    "filename": "FGT_VM64_KVM-v6-build1579-FORTINET.out"
-//  },
-  "6.2.11": {
-    "build": "1303",
-    "filename": "FGT_VM64_KVM-v6-build1303-FORTINET.out"
-  },
-//  "6.2.10": {
-//    "build": "1263",
-//    "filename": "FGT_VM64_KVM-v6-build1263-FORTINET.out"
-//  },
-//  "6.2.9": {
-//    "build": "1234",
-//    "filename": "FGT_VM64_KVM-v6-build1234-FORTINET.out"
-//  },
-//  "6.2.8": {
-//    "build": "1232",
-//    "filename": "FGT_VM64_KVM-v6-build1232-FORTINET.out"
-//  },
-//  "6.2.7": {
-//    "build": "1190",
-//    "filename": "FGT_VM64_KVM-v6-build1190-FORTINET.out"
-//  },
-//  "6.2.6": {
-//    "build": "1175",
-//    "filename": "FGT_VM64_KVM-v6-build1175-FORTINET.out"
-//  },
-//  "6.2.5": {
-//    "build": "1142",
-//    "filename": "FGT_VM64_KVM-v6-build1142-FORTINET.out"
-//  },
-//  "6.2.4": {
-//    "build": "1112",
-//    "filename": "FGT_VM64_KVM-v6-build1112-FORTINET.out"
-//  },
-//  "6.2.3": {
-//    "build": "1066",
-//    "filename": "FGT_VM64_KVM-v6-build1066-FORTINET.out"
-//  },
-//  "6.2.2": {
-//    "build": "1010",
-//    "filename": "FGT_VM64_KVM-v6-build1010-FORTINET.out"
-//  },
-//  "6.2.1": {
-//    "build": "0932",
-//    "filename": "FGT_VM64_KVM-v6-build0932-FORTINET.out"
-//  },
-//  "6.2.0": {
-//    "build": "0866",
-//    "filename": "FGT_VM64_KVM-v6-build0866-FORTINET.out"
-//  },
   "6.0.15": {
     "build": "0484",
     "filename": "FGT_VM64_KVM-v6-build0484-FORTINET.out"
   }
-//  "6.0.14": {
-//    "build": "0457",
-//    "filename": "FGT_VM64_KVM-v6-build0457-FORTINET.out"
-//  },
-//  "6.0.13": {
-//    "build": "0443",
-//    "filename": "FGT_VM64_KVM-v6-build0443-FORTINET.out"
-//  }
 }
