@@ -1,4 +1,8 @@
 {
+  "7.2.3": {
+    "build": "1262",
+    "filename": "FGT_VM64_KVM-v7.2.3.F-build1262-FORTINET.out"
+  },
   "7.2.2": {
     "build": "1255",
     "filename": "FGT_VM64_KVM-v7.2.2.F-build1255-FORTINET.out"
