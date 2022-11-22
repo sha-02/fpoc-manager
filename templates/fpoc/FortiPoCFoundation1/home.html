@@ -179,7 +179,7 @@ $(document).ready(function(){
               <span data-toggle="tooltip" data-placement="top" title="(FGT-B_sec)">East DC</span>
             <input type="checkbox" name="FGT-D_sec" checked>
               <span data-toggle="tooltip" data-placement="top" title="(FGT-D_sec)">East Branch</span>
-            <input type="checkbox" name="FMG" checked>
+            <input type="checkbox" name="FMG">
               <span data-toggle="tooltip" data-placement="top" title="(FMG)">FortiManager</span>
           </fieldset>
           <fieldset>
@@ -201,15 +201,21 @@ $(document).ready(function(){
           <fieldset>
             BGP design <select name="bgp_design">
               <option value='per_overlay' selected>BGP per overlay (7.0+)</option>
-              <option value='per_overlay_legacy'>BGP per overlay legacy (6.4+)</option>
               <option value='on_loopback'>BGP on loopback (7.0.4+)</option>
               <option value='no_bgp'>No BGP (7.2+)</option>
+              <option disabled>----------------------</option>
+              <option value='per_overlay_legacy'>BGP per overlay legacy (6.4+)</option>
             </select>
+            <br>
             Hub-side Steering <select name="bidir_sdwan">
               <option value='none'>No Hub-side steering</option>
               <option value='route_tag' selected>SD-WAN with route-tags</option>
               <option value='route_priority'>BGP priority from route-map-preferable (7.2+)</option>
               <option value='remote_sla'>BGP priority from SD-WAN remote-sla (7.2.1+)</option>
+          </select>
+            BGP route priority to Branch <select name="bgp_priority">
+            <option value='ecmp_links' selected>Multiple ECMP links</option>
+            <option value='preferred_link'>Single preferred link</option>
           </select>
             <br>
             Remote Internet Access <select name="remote_internet">
