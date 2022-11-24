@@ -241,40 +241,6 @@ def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
     return start(request, poc_id, devices)
 
 
-def vpn_dualhub_singletunnel(request: WSGIRequest, poc_id: int) -> HttpResponse:
-    """
-    """
-    context = {
-        'mode': request.POST.get('mode'),  # 'active_passive' or 'active_active'
-        # TODO: active_active configuration is not done in config templates
-        'hub1': FortiPoCFoundation1.devices['FGT-A'].wan.inet.subnet + '.1',  # 198.51.100.1
-        'hub2': FortiPoCFoundation1.devices['FGT-A_sec'].wan.inet.subnet + '.2',  # 198.51.100.2
-    }
-
-    devices = {
-        'FGT-A': FortiGate(name='Hub-1', template_group='Hubs', template_context={**context}),
-        'FGT-A_sec': FortiGate(name='Hub-2', template_group='Hubs', template_context={**context}),
-        'ISFW-A': FortiGate(name='ISFW', template_context={**context}),
-        'FGT-B': FortiGate(name='Spoke1', template_group='Spokes', template_context={'i': 3, **context}),
-        'FGT-C': FortiGate(name='Spoke2', template_group='Spokes', template_context={'i': 4, **context}),
-
-        'PC_A1': LXC(name='PC-Hub1', template_context={'ipmask': '192.168.1.11/24', 'gateway': '192.168.1.1'}),
-        'PC_A2': LXC(name='PC-Hub2', template_context={'ipmask': '192.168.2.22/24', 'gateway': '192.168.2.1'}),
-        'PC_B1': LXC(name='PC-1', template_context={'ipmask': '192.168.3.33/24', 'gateway': '192.168.3.1'}),
-        'PC_C1': LXC(name='PC-2', template_context={'ipmask': '192.168.4.44/24', 'gateway': '192.168.4.1'}),
-    }
-
-    # device_dependencies = {
-    #     'FGT-A': ('PC_A1', 'PC_A2'),
-    #     'FGT-A_sec': ('PC_A1', 'PC_A2'),
-    #     'FGT-B': ('PC_B1',),
-    #     'FGT-C': ('PC_C1',)
-    # }
-
-    # Check request, render and deploy configs
-    return start(request, poc_id, devices)
-
-
 def sdwan_advpn_singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
