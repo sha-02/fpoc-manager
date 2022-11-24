@@ -415,7 +415,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
-        'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'
+        'overlay': request.POST.get('overlay'),  # 'static' or 'mode_cfg'
     }
 
     # Define the poc_id based on the options which were selected
@@ -430,10 +430,19 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
 
+        if context['bidir_sdwan'] == 'none' or context['bidir_sdwan'] == 'route_tag':
+            context['bgp_priority'] = None
+
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
         poc_id = 10
+        if not context['multicast']:
+            context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
+
         if context['bidir_sdwan'] == 'route_tag' or context['bidir_sdwan'] == 'route_priority':
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
+
+        if context['bidir_sdwan'] == 'none':
+            context['bgp_priority'] = None
 
     if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
         poc_id = None   # TODO
