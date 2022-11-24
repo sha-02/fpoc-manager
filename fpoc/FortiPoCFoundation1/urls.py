@@ -37,7 +37,7 @@ urlpatterns = [
     path('upgrade/', pocs.upgrade, name='upgrade'),
     path('bootstrap/', pocs.bootstrap, {'poc_id': 0}, name='bootstrap'),
 
-    path('sdwan/simple/', pocs.sdwan_simple, {'poc_id': 1}, name='sdwan_simple'),
+    # path('sdwan/simple/', pocs.sdwan_simple, {'poc_id': 1}, name='sdwan_simple'),
 
     # Single Hub ADVPN+SDWAN
     path('sdwan_advpn/singlehub/bgp_per_overlay/fos62/', pocs.sdwan_advpn_singlehub, {'poc_id': 5}, name='sdwan_advpn_singlehub_fos62'),
@@ -52,5 +52,5 @@ urlpatterns = [
 
     path('vpn/dialup/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('vpn/site2site/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),
-    path('vpn/dualhub/singletunnel/', pocs.vpn_dualhub_singletunnel, {'poc_id': 4}, name='vpn_dualhub_singletunnel'),
+    # path('vpn/dualhub/singletunnel/', pocs.vpn_dualhub_singletunnel, {'poc_id': 4}, name='vpn_dualhub_singletunnel'),
 ]
