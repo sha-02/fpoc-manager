@@ -206,6 +206,10 @@ $(document).ready(function(){
               <option disabled>----------------------</option>
               <option value='per_overlay_legacy'>BGP per overlay legacy (6.4+)</option>
             </select>
+            Overlay <select name="overlay">
+              <option value='static'>static (exchange-interface-ip)</option>
+              <option value='modecfg' selected>Dynamic (Mode-Config)</option>
+            </select>
             <br>
             Hub-side Steering <select name="bidir_sdwan">
               <option value='none'>No Hub-side steering</option>

@@ -475,17 +475,20 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
+        'overlay': request.POST.get('overlay'),  # 'static' or 'mode-cfg'
     }
 
     # Define the poc_id based on the options which were selected
 
     poc_id = None
 
-    if context['bgp_design'] == 'per_overlay':  # BGP per overlay, 7.0+ style
-        poc_id = 9
-
     if context['bgp_design'] == 'per_overlay_legacy':  # BGP per overlay, legacy 6.4+ style
         poc_id = 6
+
+    if context['bgp_design'] == 'per_overlay':  # BGP per overlay, 7.0+ style
+        poc_id = 9
+        if context['bidir_sdwan'] == 'remote_sla':
+            context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
 
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
         poc_id = 10
