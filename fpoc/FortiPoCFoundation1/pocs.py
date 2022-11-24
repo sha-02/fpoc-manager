@@ -118,32 +118,6 @@ def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
     return start(request, poc_id, devices)
 
 
-def sdwan_simple(request: WSGIRequest, poc_id: int) -> HttpResponse:
-    """
-    """
-    context = {
-        # Underlay IP@ of the Hub for IPsec VPN on Branches ('set remote-gw x.x.x.x')
-        'hub': FortiPoCFoundation1.devices['FGT-C'].wan.inet1.subnet + '.1',  # 100.64.31.1
-    }
-
-    devices = {
-        'FGT-A': FortiGate(name='FGT-A', template_group='BRANCHES',
-                           template_context={'i': 1, 'overlay': '10.255', **context}),
-        'FGT-B': FortiGate(name='FGT-B', template_group='BRANCHES',
-                           template_context={'i': 2, 'overlay': '10.254', **context}),
-        'FGT-C': FortiGate(name='FGT-DC', template_group='DATACENTER'),
-
-        'PC_A1': LXC(name='PC-A1', template_context={'ipmask': '192.168.1.1/24', 'gateway': '192.168.1.254'}),
-        'PC_A2': LXC(name='PC-A2', template_context={'ipmask': '192.168.1.2/24', 'gateway': '192.168.1.254'}),
-        'PC_B1': LXC(name='PC-B1', template_context={'ipmask': '192.168.2.1/24', 'gateway': '192.168.2.254'}),
-        'PC_B2': LXC(name='PC-B2', template_context={'ipmask': '192.168.2.2/24', 'gateway': '192.168.2.254'}),
-        'PC_C1': LXC(name='DC-Server', template_context={'ipmask': '192.168.0.100/24', 'gateway': '192.168.0.254'}),
-    }
-
-    # Check request, render and deploy configs
-    return start(request, poc_id, devices)
-
-
 def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
