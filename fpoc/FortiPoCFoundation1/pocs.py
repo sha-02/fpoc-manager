@@ -427,6 +427,9 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     if context['bgp_design'] == 'per_overlay':  # BGP per overlay, 7.0+ style
         poc_id = 9
+
+        context['vrf_aware_overlay'] = False    # TODO: Add support for VRF-aware overlay with "BGP per overlay"
+
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
 
