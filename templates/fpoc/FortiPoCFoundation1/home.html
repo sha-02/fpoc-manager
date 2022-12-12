@@ -213,8 +213,8 @@ $(document).ready(function(){
             <br>
             Hub-side Steering <select name="bidir_sdwan">
               <option value='none'>No Hub-side steering</option>
-              <option value='route_tag' selected>SD-WAN with route-tags</option>
-              <option value='route_priority'>BGP priority from route-map-preferable (7.2+)</option>
+              <option value='route_tag' selected>SD-WAN route-tags from BGP community</option>
+              <option value='route_priority'>BGP priority from BGP community (7.2+)</option>
               <option value='remote_sla'>BGP priority from SD-WAN remote-sla (7.2.1+)</option>
           </select>
             BGP route priority to Branch <select name="bgp_priority">
