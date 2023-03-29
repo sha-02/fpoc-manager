@@ -608,11 +608,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                            'inter_segments': inter_segments, **context})
 
     if poc_id == 10:  # PoC with BGP on loopback design: Regional LAN summaries are possible
-        east_dc_ = {'name': 'EAST-DC1', 'dc_id': 1, 'lxc': 'PC-E-DC1'}
-        east_br_ = {'name': 'EAST-BR1', 'branch_id': 1, 'lxc': 'PC-E-BR1'}
+        east_dc_ = {'name': 'EAST-DC1', 'dc_id': 1, 'lxc': 'PC-EAST-DC1'}
+        east_br_ = {'name': 'EAST-BR1', 'branch_id': 1, 'lxc': 'PC-EAST-BR1'}
     else:  # Other PoCs with BGP per overlay design: No Regional LAN summaries (IP plan would overlap between Region)
-        east_dc_ = {'name': 'EAST-DC3', 'dc_id': 3, 'lxc': 'PC-E-DC3'}
-        east_br_ = {'name': 'EAST-BR3', 'branch_id': 3, 'lxc': 'PC-E-BR3'}
+        east_dc_ = {'name': 'EAST-DC3', 'dc_id': 3, 'lxc': 'PC-EAST-DC3'}
+        east_br_ = {'name': 'EAST-BR3', 'branch_id': 3, 'lxc': 'PC-EAST-BR3'}
 
     context['datacenter']['east']['first']['lan'] = lan_segment(segments[east_dc_['name']])['ip']
 
@@ -637,11 +637,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'FGT-D_sec': east_br,
         'FMG': FortiManager(name='FMG'),
 
-        'PC_A1': LXC(name='PC-W-DC1', template_context=lxc_context(segments['WEST-DC1'], context)),
-        'PC_B1': LXC(name='PC-W-DC2', template_context=lxc_context(segments['WEST-DC2'], context)),
+        'PC_A1': LXC(name='PC-WEST-DC1', template_context=lxc_context(segments['WEST-DC1'], context)),
+        'PC_B1': LXC(name='PC-WEST-DC2', template_context=lxc_context(segments['WEST-DC2'], context)),
         'PC_B2': LXC(name=east_dc_['lxc'], template_context=lxc_context(segments[east_dc_['name']], context)),
-        'PC_C1': LXC(name='PC-W-BR1', template_context=lxc_context(segments['WEST-BR1'], context)),
-        'PC_D1': LXC(name='PC-W-BR2', template_context=lxc_context(segments['WEST-BR2'], context)),
+        'PC_C1': LXC(name='PC-WEST-BR1', template_context=lxc_context(segments['WEST-BR1'], context)),
+        'PC_D1': LXC(name='PC-WEST-BR2', template_context=lxc_context(segments['WEST-BR2'], context)),
         'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(segments[east_br_['name']], context)),
     }
 
