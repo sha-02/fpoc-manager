@@ -86,7 +86,7 @@ def bootstrap(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     """
     # Check the request
-    if request.POST.get('targetedFOSversion') == '':
+    if not request.POST.get('targetedFOSversion'):
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': 'The FortiOS version must be specified'})
 
@@ -405,6 +405,10 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             return base_segment
         return {**base_segment, 'namespaces': other_segments(segments, context)}
 
+    def FOS(fos_version_target: str):  # converts a FOS version string "6.0.13" to a long integer 6_000_013
+        major, minor, patch = fos_version_target.split('.')
+        return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
+
     context = {
         # From HTML form
         'remote_internet': request.POST.get('remote_internet'),  # 'none', 'mpls', 'all'
@@ -421,6 +425,10 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     # Define the poc_id based on the options which were selected
 
     poc_id = None
+    targetedFOSversion = FOS(request.POST.get('targetedFOSversion', '0.0.0'))
+
+    if context['bidir_sdwan'] in ('none', 'route_tag'):  # 'or'
+        context['bgp_priority'] = None
 
     if context['bgp_design'] == 'per_overlay_legacy':  # BGP per overlay, legacy 6.4+ style
         poc_id = 6
@@ -433,34 +441,31 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
 
-        if context['bidir_sdwan'] == 'none' or context['bidir_sdwan'] == 'route_tag':
-            context['bgp_priority'] = None
-
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
         poc_id = 10
         if not context['multicast']:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
 
-        if context['bidir_sdwan'] == 'route_tag' or context['bidir_sdwan'] == 'route_priority':
+        if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
 
-        if context['bidir_sdwan'] == 'none':
-            context['bgp_priority'] = None
-
-    if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
-        poc_id = None   # TODO
-
-    if context['shortcut_routing'] == 'ipsec_selectors' and context['bgp_design'] == 'per_overlay':
+    if context['bgp_design'] == 'per_overlay' and context['shortcut_routing'] == 'ipsec_selectors':
         # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
         poc_id = 7
         context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
         if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
-            if context['bgp_design'] in ('per_overlay', 'per_overlay_legacy'):
+            if targetedFOSversion >= 7_002_000:
+                context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
+            else:
                 context['bidir_sdwan'] = 'route_tag'
-            if context['bgp_design'] in ('on_loopback', 'no_bgp'):
-                context['bidir_sdwan'] = 'remote-sla'
 
-    if context['shortcut_routing'] == 'ipsec_selectors' and context['bgp_design'] == 'on_loopback':
+        if context['bidir_sdwan'] == 'remote_sla':
+            context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
+
+    if context['bgp_design'] == 'on_loopback' and context['shortcut_routing'] == 'ipsec_selectors':
+        poc_id = None   # TODO
+
+    if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
         poc_id = None   # TODO
 
     if poc_id is None:
