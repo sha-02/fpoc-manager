@@ -218,8 +218,8 @@ $(document).ready(function(){
               <option value='remote_sla' selected>BGP priority from SD-WAN remote-sla (7.2.1+)</option>
           </select>
             BGP route priority to Branch <select name="bgp_priority">
-            <option value='preferred_link' selected>Single preferred link</option>
-            <option value='ecmp_links'>Multiple ECMP links</option>
+            <option value='preferred_link'>Single preferred link</option>
+            <option value='ecmp_links' selected>Multiple ECMP links</option>
           </select>
             <br>
             Remote Internet Access <select name="remote_internet">
@@ -231,7 +231,7 @@ $(document).ready(function(){
             ADVPN shortcut routing <select name="shortcut_routing">
               <option value='exchange_ip' selected>BGP NH convergence with exchange-interface-ip</option>
               <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>
-              <option value='dynamic_bgp'>Dynamic BGP peering (7.???)</option>
+              <option value='dynamic_bgp'>Dynamic BGP peering (7.4.1+)</option>
             </select>
             <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Regional shortcuts
             <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF segmentation over shared IPsec overlay (7.2+)
