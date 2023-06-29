@@ -426,51 +426,81 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     poc_id = None
     targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string
+    minimumFOSversion = 0
 
     if context['bidir_sdwan'] in ('none', 'route_tag'):  # 'or'
         context['bgp_priority'] = None
 
     if context['bgp_design'] == 'per_overlay_legacy':  # BGP per overlay, legacy 6.4+ style
         poc_id = 6
+        minimumFOSversion = max(minimumFOSversion, 6_004_000)
 
     if context['bgp_design'] == 'per_overlay':  # BGP per overlay, 7.0+ style
         poc_id = 9
+        minimumFOSversion = max(minimumFOSversion, 7_000_000)
 
-        context['vrf_aware_overlay'] = False    # TODO: Add support for VRF-aware overlay with "BGP per overlay"
+        if context['vrf_aware_overlay']:
+            minimumFOSversion = max(minimumFOSversion, 7_002_000)
+            poc_id = None  # TODO
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
 
+        if context['shortcut_routing'] == 'dynamic_bgp':
+            minimumFOSversion = max(minimumFOSversion, 7_004_001)
+            poc_id = None  # TODO
+
+
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
         poc_id = 10
+        minimumFOSversion = max(minimumFOSversion, 7_000_004)
+
         if not context['multicast']:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
 
+        if context['bidir_sdwan'] == 'remote_sla':
+            minimumFOSversion = max(minimumFOSversion, 7_002_001)
+
+        if context['shortcut_routing'] == 'dynamic_bgp':
+            minimumFOSversion = max(minimumFOSversion, 7_004_001)
+            poc_id = None  # TODO
+
+        if context['vrf_aware_overlay']:
+            minimumFOSversion = max(minimumFOSversion, 7_002_000)
+
+
     if context['bgp_design'] == 'per_overlay' and context['shortcut_routing'] == 'ipsec_selectors':
         # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
         poc_id = 7
+        minimumFOSversion = max(minimumFOSversion, 7_002_000)
+
         context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
         if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
-            if targetedFOSversion >= 7_002_000:
-                context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
-            else:
-                context['bidir_sdwan'] = 'route_tag'
+            context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
+            minimumFOSversion = max(minimumFOSversion, 7_002_001)
+
 
     if context['bgp_design'] == 'on_loopback' and context['shortcut_routing'] == 'ipsec_selectors':
+        minimumFOSversion = max(minimumFOSversion, 7_002_000)
         poc_id = None   # TODO
 
     if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
+        minimumFOSversion = max(minimumFOSversion, 7_002_000)
         poc_id = None   # TODO
 
     if poc_id is None:
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': 'Incompatible settings or PoC not yet done'})
+
+    if minimumFOSversion > targetedFOSversion:
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': f'The minimum version for the selected options is {minimumFOSversion:_}'})
 
     # DataCenters info used:
     # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
