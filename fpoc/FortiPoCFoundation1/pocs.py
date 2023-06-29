@@ -425,7 +425,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     # Define the poc_id based on the options which were selected
 
     poc_id = None
-    targetedFOSversion = FOS(request.POST.get('targetedFOSversion', '0.0.0'))
+    targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string
 
     if context['bidir_sdwan'] in ('none', 'route_tag'):  # 'or'
         context['bgp_priority'] = None
