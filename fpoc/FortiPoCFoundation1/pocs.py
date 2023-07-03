@@ -423,9 +423,6 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode_cfg'
     }
 
-    # Monkey patching used to pass some parameters inside the existing request object
-    request.fpoc = dict()
-
     # Define the poc_id based on the options which were selected
 
     poc_id = None
@@ -686,7 +683,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(segments[east_br_['name']], context)),
     }
 
-    # Monkey Patch the request object
+    # Monkey patching used to pass some parameters inside the existing request object
+    request.fpoc = dict()
     request.fpoc['poc_id'] = poc_id
     request.fpoc['FOS_minimum'] = minimumFOSversion
 

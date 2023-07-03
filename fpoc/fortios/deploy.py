@@ -275,7 +275,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
         prepare_api(device)  # create API admin and key if needed
         # ensure FGT runs the desired FortiOS version if user asked for a specific FOS version
         prepare_fortios_version(device, fos_version_target=request.POST['targetedFOSversion'],
-                                FOS_minimum=request.fpoc['FOS_minimum'],
+                                FOS_minimum=request.fpoc.get('FOS_minimum', 0) if hasattr(request, 'fpoc') else 0,
                                 lock=poc.lock)
 
     # Special PoC which only uploads bootstrap config to the FGT
