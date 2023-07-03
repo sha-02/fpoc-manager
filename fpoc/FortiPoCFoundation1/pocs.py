@@ -422,10 +422,13 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode_cfg'
     }
 
+    # Monkey patching used to pass some parameters inside the existing request object
+    request.fpoc = dict()
+
     # Define the poc_id based on the options which were selected
 
     poc_id = None
-    targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string
+    targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
     minimumFOSversion = 0
 
     if context['bidir_sdwan'] in ('none', 'route_tag'):  # 'or'
@@ -498,7 +501,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': 'Incompatible settings or PoC not yet done'})
 
-    if minimumFOSversion > targetedFOSversion:
+    if targetedFOSversion and minimumFOSversion > targetedFOSversion:
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': f'The minimum version for the selected options is {minimumFOSversion:_}'})
 
@@ -679,6 +682,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'PC_D1': LXC(name='PC-WEST-BR2', template_context=lxc_context(segments['WEST-BR2'], context)),
         'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(segments[east_br_['name']], context)),
     }
+
+    # Monkey Patch the request object
+    request.fpoc['poc_id'] = poc_id
+    # request.fpoc['FOS_minimum'] = minimumFOSversion
+    request.fpoc['FOS_minimum'] = 7_004_001
 
     # Check request, render and deploy configs
     return start(request, poc_id, devices)

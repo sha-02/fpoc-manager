@@ -30,16 +30,23 @@ def prepare_api(device: FortiGate):
     print(f'{device.name} : API key is {device.apikey}')
 
 
-def prepare_fortios_version(device: FortiGate, fos_version_target: str, lock: threading.Lock):
+def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_minimum: int, lock: threading.Lock):
     """
     Retrieves the FOS version running on the FGT and updates device.fos_version accordingly
     :param device:
-    :param fos_version_target: FOS version requested by user (e.g. "6.4.6"). 'None' if no FOS version is preferred
+    :param fos_version_target: FOS version requested by user (e.g. "6.4.6"). Empty string ('')' if no FOS version is preferred
+    :param fos_version_minimum: minimum FOS version which must be running on the FGT (imposed by the feature set). integer (e.g., 7_002_000)
     :param lock: mutual exclusion (mutex) lock used to download and store missing firmware
     :return:
     """
-    device.fos_version = fortios.retrieve_fos_version(device)  # Update info about the version running on FGT
+    device.fos_version = fortios.retrieve_fos_version(device)  # Update info about the version running on FGT (string, for e.g. '7.2.5')
     print(f"{device.name} : FGT is running FOS {device.fos_version}", end='')
+
+    # if the target version is not specified and the minimum version is not honored on the device then skip the device
+    if not fos_version_target and FOS_minimum > device.FOS:
+        raise StopProcessingDevice(f'the minimum FOS version required by the feature set is {FOS_minimum:_}')
+
+    # if the target version is specified, it is already compatible with the minimum version (check was done previously)
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
         print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED' before updating the firmware")
@@ -267,7 +274,9 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     else:
         prepare_api(device)  # create API admin and key if needed
         # ensure FGT runs the desired FortiOS version if user asked for a specific FOS version
-        prepare_fortios_version(device, fos_version_target=request.POST.get('targetedFOSversion'), lock=poc.lock)
+        prepare_fortios_version(device, fos_version_target=request.POST['targetedFOSversion'],
+                                FOS_minimum=request.fpoc['FOS_minimum'],
+                                lock=poc.lock)
 
     # Special PoC which only uploads bootstrap config to the FGT
     #
