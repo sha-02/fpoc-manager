@@ -685,8 +685,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     # Monkey Patch the request object
     request.fpoc['poc_id'] = poc_id
-    # request.fpoc['FOS_minimum'] = minimumFOSversion
-    request.fpoc['FOS_minimum'] = 7_004_001
+    request.fpoc['FOS_minimum'] = minimumFOSversion
 
     # Check request, render and deploy configs
     return start(request, poc_id, devices)
