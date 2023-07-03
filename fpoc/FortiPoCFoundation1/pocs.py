@@ -415,6 +415,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'bidir_sdwan': request.POST.get('bidir_sdwan'),  # 'none', 'route_tag', 'remote_sla', 'route_priority',
         'bgp_priority': request.POST.get('bgp_priority'),  # 'ecmp_links', 'preferred_link'
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
+        'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
@@ -446,12 +447,14 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             minimumFOSversion = max(minimumFOSversion, 7_002_000)
             poc_id = None  # TODO
 
-        if context['bidir_sdwan'] == 'remote_sla':
-            context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-
         if context['shortcut_routing'] == 'dynamic_bgp':
             minimumFOSversion = max(minimumFOSversion, 7_004_001)
             poc_id = None  # TODO
+
+        if context['bidir_sdwan'] == 'remote_sla':
+            context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
+
+        context['full_mesh_ipsec'] = None   # Full-mesh IPsec not implemented for bgp-per-overlay
 
 
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
