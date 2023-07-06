@@ -22,7 +22,16 @@
 
 
 <hr>
-<h2>Rendering contexts [poc_id={{poc_id}}]</h2>
+<h2>poc_id={{poc_id}}</h2>
+
+<ul>
+{% for message in messages %}
+    <li>{{message}}</li>
+{% endfor %}
+</ul>
+
+<hr>
+<h2>Rendering contexts</h2>
 {% for device in devices %}
     <a href="#{{device.name}}">{{device.name}}</a>
 

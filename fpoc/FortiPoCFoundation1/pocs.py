@@ -425,6 +425,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     # Define the poc_id based on the options which were selected
 
     poc_id = None
+    messages = []    # list of messages displayed once the rendering is done along with the rendered configurations
+
     targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
     minimumFOSversion = 0
 
@@ -449,8 +451,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
+            messages.append("Bidirectional SD-WAN with remote_sla was requested: overlay was forced to 'static'")
 
-        context['full_mesh_ipsec'] = None   # Full-mesh IPsec not implemented for bgp-per-overlay
+        if context['full_mesh_ipsec']:
+            context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
+            messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is forced to 'False'")
 
 
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
@@ -459,9 +464,12 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
         if not context['multicast']:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
+            messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
+            messages.append("Bi-directional SD-WAN was requested: method was forced to 'remote-sla' which is the only "
+                           "supported method with bgp-on-loopback")
 
         if context['bidir_sdwan'] == 'remote_sla':
             minimumFOSversion = max(minimumFOSversion, 7_002_001)
@@ -479,13 +487,19 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         poc_id = 7
         minimumFOSversion = max(minimumFOSversion, 7_002_000)
 
-        context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
+        if context['vrf_aware_overlay']:
+            context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
+            messages.append("VRF-aware overlay was requested but is disabled since it is not supported with shortcuts from phase2 selectors")
+
         if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
             context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
+            messages.append("Bidirectional SDWAN was not requested. It is however enabled (with BGP priority) "
+                           "because it is needed: shortcuts do not hide the parent with ADVPN from IPsec selectors")
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            minimumFOSversion = max(minimumFOSversion, 7_002_001)
+            messages.append("Bidirectional SDWAN with 'remote-sla' was requested: overlay is forced to 'static' since "
+                           "remote-sla with bgp-per-overlay can only work with static-overlay IP@")
 
 
     if context['bgp_design'] == 'on_loopback' and context['shortcut_routing'] == 'ipsec_selectors':
@@ -503,6 +517,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     if targetedFOSversion and minimumFOSversion > targetedFOSversion:
         return render(request, f'{APPNAME}/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': f'The minimum version for the selected options is {minimumFOSversion:_}'})
+
+    messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
 
     # DataCenters info used:
     # - as underlay interfaces IP@ by the DCs (inet1/inet2/mpls)
@@ -686,6 +702,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     request.fpoc = dict()
     request.fpoc['poc_id'] = poc_id
     request.fpoc['FOS_minimum'] = minimumFOSversion
+    request.fpoc['messages'] = messages
 
     # Check request, render and deploy configs
     return start(request, poc_id, devices)
@@ -771,5 +788,6 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
                                                {'fortigates': fortigates}, using='jinja2')
 
     # Render the deployment status using Django template engine
+    messages = request.fpoc['messages'] if hasattr(request, 'fpoc') else ["<no message>"]
     return render(request, f'{APPNAME}/deployment_status.html',
-                  {'poc_id': poc_id, 'devices': status_devices, 'fortimanager': fortimanager})
+                  {'poc_id': poc_id, 'devices': status_devices, 'fortimanager': fortimanager, 'messages': messages})
