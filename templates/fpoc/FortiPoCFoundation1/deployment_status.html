@@ -26,7 +26,7 @@
 
 <ul>
 {% for message in messages %}
-    <li>{{message}}</li>
+    <li>{{message|safe}}</li>
 {% endfor %}
 </ul>
 
