@@ -1,6 +1,20 @@
 import os
 import jinja2
 
+from django.urls import reverse
+from django.contrib.staticfiles.storage import staticfiles_storage
+# for more later django installations use:
+# from django.templatetags.static import static
+
+# Both the below import are Ok
+# ATTENTION: package 'netaddr' MUST BE INSTALLED otherwise calls to ipaddr() filter simply return "False"
+# from ansible_collections.ansible.utils.plugins.plugin_utils.base.ipaddr_utils import ipaddr
+from ansible_collections.ansible.utils.plugins.filter.ipaddr import ipaddr
+
+
+# Using Jinja2 with Django:
+# https://samuh.medium.com/using-jinja2-with-django-1-8-onwards-9c58fe1204dc
+
 
 class JinjaEnvironment(jinja2.Environment):
     def __init__(self, **kwargs):
@@ -12,5 +26,23 @@ class JinjaEnvironment(jinja2.Environment):
     # https://jinja.palletsprojects.com/en/3.0.x/api/#jinja2.Environment.join_path
     # https://stackoverflow.com/questions/30701631/how-to-use-jinja2-as-a-templating-engine-in-django-1-8
     """Override join_path() to enable relative template paths."""
+
     def join_path(self, template, parent):
         return os.path.join(os.path.dirname(parent), template)
+
+
+def environment(**options):
+    # Create an environment out of the JinJaEnvironment class defined above
+    env = JinjaEnvironment(**options)
+
+    # Allows to use Django template tags like {% url “index” %} or {% static “path/to/static/file.js” %}
+    # in Jinja2 templates
+    env.globals.update({
+        "static": staticfiles_storage.url,
+        "url": reverse
+        })
+
+    # Adds Ansible 'ipaddr' filter to Jinja2
+    env.filters['ipaddr'] = ipaddr
+
+    return env

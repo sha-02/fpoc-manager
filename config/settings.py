@@ -71,7 +71,7 @@ TEMPLATES = [
         'DIRS': ['templates_jinja'],
         'APP_DIRS': True,
         'OPTIONS': {
-            'environment': 'config.jinja.JinjaEnvironment',
+            'environment': 'config.jinja.environment',
             'extensions': [
                 'jinja2.ext.do',
                 'jinja2.ext.debug',
