@@ -14,6 +14,8 @@ from fpoc import FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
 from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1
 import fpoc.ansible as ansible
 
+import ipaddress
+
 APPNAME = "fpoc/FortiPoCFoundation1"
 
 Status = namedtuple('Status', 'is_valid is_invalid message')
@@ -388,6 +390,16 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     """
     """
 
+    def compatiblize(segments: dict):
+        # Restore the previous structure of the 'segments' to avoid having to change the jinja templates
+        # add 'mask' and 'subnet'
+        # change 'ip' from '10.10.10.1/24' to '10.10.10.1'
+        for name, device_segments in segments.items():
+            for seg in device_segments.values():
+                seg['subnet'] = str(ipaddress.ip_interface(seg['ip']).network.network_address)
+                seg['mask'] = str(ipaddress.ip_interface(seg['ip']).netmask)
+                seg['ip'] = str(ipaddress.ip_interface(seg['ip']).ip)
+
     def lan_segment(segments: dict):
         return segments['port5']
 
@@ -396,7 +408,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             return {}
 
         if context['vrf_seg0'] == context['vrf_pe']:    # SEG0/port5 is in PE VRF, so it is not a CE VRF
-            other_segs = copy.copy(segments)
+            other_segs = copy.deepcopy(segments)
             other_segs.pop('port5')
             return other_segs
 
@@ -405,9 +417,20 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     def lxc_context(segments: dict, context: dict):
         base_segment = {'ipmask': segments['port5']['ip_lxc'] + '/' + segments['port5']['mask'],
                         'gateway': segments['port5']['ip']}
+
         if not context['vrf_aware_overlay']:
             return base_segment
-        return {**base_segment, 'namespaces': CEVRF_segments(segments, context)}
+
+        # Add 'gw' (ip@ of FGT) and mask for convenience in the lxc rendering file
+        cevrf_segs = copy.deepcopy(CEVRF_segments(segments, context))
+        cevrf_segs.pop('port5', None)   # Remove 'port5' if it is part of the CE VRFs
+        for name, cevrf_seg in cevrf_segs.items():
+            cevrf_seg['ipmask'] =  cevrf_seg['ip_lxc'] + '/' + str(ipaddress.ip_interface(cevrf_seg['ip']).netmask)
+            cevrf_seg['gateway'] = str(ipaddress.ip_interface(cevrf_seg['ip']).ip)
+            # Remove unused keys
+            cevrf_seg.pop('ip'), cevrf_seg.pop('ip_lxc'), cevrf_seg.pop('subnet'), cevrf_seg.pop('mask')
+
+        return {**base_segment, 'namespaces': cevrf_segs }
 
     def FOS(fos_version_target: str):  # converts a FOS version string "6.0.13" to a long integer 6_000_013
         major, minor, patch = fos_version_target.split('.')
@@ -431,7 +454,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     # Define the poc_id based on the options which were selected
 
     poc_id = None
-    messages = []    # list of messages displayed once the rendering is done along with the rendered configurations
+    messages = []    # list of messages displayed along with the rendered configurations
 
     targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
     minimumFOSversion = 0
@@ -583,17 +606,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         }
     }
 
-    # TODO: configure django jinja2 to use Ansible filter ipaddr instead of this 'lan' dictionnary with (ip, subnet, mask)
-    # https://ansible-docs.readthedocs.io/zh/stable-2.0/rst/playbooks_filters_ipaddr.html
-    # https://github.com/ansible-collections/ansible.netcommon
-    # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
-    # https://gist.github.com/ktbyers/bdba984447636d5ac4e3d93011a861ad
-    # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
-    # https://stackoverflow.com/questions/49903636/how-to-use-pip-installed-jinja2-filters-in-python
-    # https://stackoverflow.com/questions/68440946/ansible-filters-ipaddr-in-python
-    # https://blog.networktocode.com/post/adding-jinja2-filters-in-nautobot-golden-config/
-
-    seginfo = {
+    vrf = {
         'port5': { 'vrfid': context['vrf_seg0'], 'vlanid': 0 },
         'SEGMENT_1': { 'vrfid': 1, 'vlanid': 1001 },
         'SEGMENT_2': { 'vrfid': 2, 'vlanid': 1002 },
@@ -601,46 +614,51 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     segments = {
         'WEST-DC1': {
-            'port5': {'ip': '10.1.0.1', 'subnet': '10.1.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.1.0.7', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.1.1.1', 'subnet': '10.1.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.1.1.7', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.1.2.1', 'subnet': '10.1.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.1.2.7', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.1.0.1/24', 'ip_lxc': '10.1.0.7', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.1.1.1/24', 'ip_lxc': '10.1.1.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.1.2.1/24', 'ip_lxc': '10.1.2.7', **vrf['SEGMENT_2']},
         },
         'WEST-DC2': {
-            'port5': {'ip': '10.2.0.1', 'subnet': '10.2.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.2.0.7', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.2.1.1', 'subnet': '10.2.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.2.1.7', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.2.2.1', 'subnet': '10.2.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.2.2.7', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.2.0.1/24', 'ip_lxc': '10.2.0.7', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.2.1.1/24', 'ip_lxc': '10.2.1.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.2.2.1/24', 'ip_lxc': '10.2.2.7', **vrf['SEGMENT_2']},
         },
         'WEST-BR1': {
-            'port5': {'ip': '10.0.1.1', 'subnet': '10.0.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.1.101', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.0.11.1', 'subnet': '10.0.11.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.11.101', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.0.21.1', 'subnet': '10.0.21.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.21.101', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.0.1.1/24', 'ip_lxc': '10.0.1.101', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.0.11.1/24', 'ip_lxc': '10.0.11.101', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.0.21.1/24', 'ip_lxc': '10.0.21.101', **vrf['SEGMENT_2']},
         },
         'WEST-BR2': {
-            'port5': {'ip': '10.0.2.1', 'subnet': '10.0.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.2.101', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.0.12.1', 'subnet': '10.0.12.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.12.101', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.0.22.1', 'subnet': '10.0.22.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.22.101', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.0.2.1/24', 'ip_lxc': '10.0.2.101', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.0.12.1/24', 'ip_lxc': '10.0.12.101', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.0.22.1/24', 'ip_lxc': '10.0.22.101', **vrf['SEGMENT_2']},
         },
         'EAST-DC1': {
-            'port5': {'ip': '10.4.0.1', 'subnet': '10.4.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.0.7', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.4.10.1', 'subnet': '10.4.10.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.10.7', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.4.20.1', 'subnet': '10.4.20.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.20.7', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.4.0.1/24', 'ip_lxc': '10.4.0.7', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.4.10.1/24', 'ip_lxc': '10.4.10.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.4.20.1/24', 'ip_lxc': '10.4.20.7', **vrf['SEGMENT_2']},
         },
         'EAST-BR1': {
-            'port5': {'ip': '10.4.1.1', 'subnet': '10.4.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.1.101', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.4.11.1', 'subnet': '10.4.11.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.11.101', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.4.21.1', 'subnet': '10.4.21.0', 'mask': '255.255.255.0', 'ip_lxc': '10.4.21.101', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.4.1.1/24', 'ip_lxc': '10.4.1.101', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.4.11.1/24', 'ip_lxc': '10.4.11.101', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.4.21.1/24', 'ip_lxc': '10.4.21.101', **vrf['SEGMENT_2']},
         },
         'EAST-DC3': {
-            'port5': {'ip': '10.3.0.1', 'subnet': '10.3.0.0', 'mask': '255.255.255.0', 'ip_lxc': '10.3.0.7', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.3.1.1', 'subnet': '10.3.1.0', 'mask': '255.255.255.0', 'ip_lxc': '10.3.1.7', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.3.2.1', 'subnet': '10.3.2.0', 'mask': '255.255.255.0', 'ip_lxc': '10.3.2.7', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.3.0.1/24', 'ip_lxc': '10.3.0.7', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.3.1.1/24', 'ip_lxc': '10.3.1.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.3.2.1/24', 'ip_lxc': '10.3.2.7', **vrf['SEGMENT_2']},
         },
         'EAST-BR3': {
-            'port5': {'ip': '10.0.3.1', 'subnet': '10.0.3.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.3.101', **seginfo['port5']},
-            'SEGMENT_1': {'ip': '10.0.13.1', 'subnet': '10.0.13.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.13.101', **seginfo['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.0.23.1', 'subnet': '10.0.23.0', 'mask': '255.255.255.0', 'ip_lxc': '10.0.23.101', **seginfo['SEGMENT_2']},
+            'port5': {'ip': '10.0.3.1/24', 'ip_lxc': '10.0.3.101', **vrf['port5']},
+            'SEGMENT_1': {'ip': '10.0.13.1/24', 'ip_lxc': '10.0.13.101', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.0.23.1/24', 'ip_lxc': '10.0.23.101', **vrf['SEGMENT_2']},
         }
     }
+
+    # Restore the previous structure of the 'segments' to avoid having to change the jinja templates
+    # add 'mask' and 'subnet'
+    # change 'ip' from '10.10.10.1/24' to '10.10.10.1'
+    compatiblize(segments)
 
     inter_segments = {}
     if context['vrf_aware_overlay']:
@@ -779,7 +797,7 @@ def start(request: WSGIRequest, poc_id: int, devices: dict) -> HttpResponse:
         fortigates = dict()
         for device in status_fortigates:
             device['context']['wan'] = device['context']['wan'].dictify()
-            fortigates[device['name']] = copy.copy(device['context'])  # Shallow copy is ok
+            fortigates[device['name']] = copy.deepcopy(device['context'])
             for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
                 del fortigates[device['name']][k]
 
