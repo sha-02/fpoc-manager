@@ -414,12 +414,25 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
         return segments  # SEG0/port5 is not in PE VRF, so it is a CE VRF
 
-    def lxc_context(segments: dict, context: dict):
+    def lxc_context(lxc_name: str, all_lxcs_segments: dict, context: dict):
+        segments = all_lxcs_segments[lxc_name]
+
         base_segment = {'ipmask': segments['port5']['ip_lxc'] + '/' + segments['port5']['mask'],
                         'gateway': segments['port5']['ip']}
 
+        # Construct the list of all LXCs with their IPs to populate the /etc/hosts of each LXC
+        hosts = []
+        for name, segs in all_lxcs_segments.items():
+            if not context['vrf_aware_overlay']:
+                new_name = f"PC-{name}".replace("_", "-").replace("LAN-", "")
+                hosts.append({'name': new_name, 'ip': lan_segment(segs)['ip_lxc']})
+            else:
+                for seg in segs.values():
+                    new_name = f"PC-{name}-{seg['alias']}".replace("_", "-").replace("LAN-", "")
+                    hosts.append({'name': new_name, 'ip': seg['ip_lxc']})
+
         if not context['vrf_aware_overlay']:
-            return base_segment
+            return { **base_segment, 'hosts': hosts }
 
         # Add 'gw' (ip@ of FGT) and mask for convenience in the lxc rendering file
         cevrf_segs = copy.deepcopy(CEVRF_segments(segments, context))
@@ -430,7 +443,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             # Remove unused keys
             cevrf_seg.pop('ip'), cevrf_seg.pop('ip_lxc'), cevrf_seg.pop('subnet'), cevrf_seg.pop('mask')
 
-        return {**base_segment, 'namespaces': cevrf_segs }
+        return {**base_segment, 'namespaces': cevrf_segs, 'hosts': hosts }
 
     def FOS(fos_version_target: str):  # converts a FOS version string "6.0.13" to a long integer 6_000_013
         major, minor, patch = fos_version_target.split('.')
@@ -609,9 +622,9 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     }
 
     vrf = {
-        'port5': { 'vrfid': context['vrf_seg0'], 'vlanid': 0 },
-        'SEGMENT_1': { 'vrfid': 1, 'vlanid': 1001 },
-        'SEGMENT_2': { 'vrfid': 2, 'vlanid': 1002 },
+        'port5': { 'vrfid': context['vrf_seg0'], 'vlanid': 0, 'alias': 'LAN_BLUE' },
+        'SEGMENT_1': { 'vrfid': 1, 'vlanid': 1001, 'alias': 'LAN_YELLOW' },
+        'SEGMENT_2': { 'vrfid': 2, 'vlanid': 1002, 'alias': 'LAN_RED' },
     }
 
     segments = {
@@ -731,12 +744,12 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'FGT-D_sec': east_br,
         'FMG': FortiManager(name='FMG'),
 
-        'PC_A1': LXC(name='PC-WEST-DC1', template_context=lxc_context(segments['WEST-DC1'], context)),
-        'PC_B1': LXC(name='PC-WEST-DC2', template_context=lxc_context(segments['WEST-DC2'], context)),
-        'PC_B2': LXC(name=east_dc_['lxc'], template_context=lxc_context(segments[east_dc_['name']], context)),
-        'PC_C1': LXC(name='PC-WEST-BR1', template_context=lxc_context(segments['WEST-BR1'], context)),
-        'PC_D1': LXC(name='PC-WEST-BR2', template_context=lxc_context(segments['WEST-BR2'], context)),
-        'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(segments[east_br_['name']], context)),
+        'PC_A1': LXC(name='PC-WEST-DC1', template_context=lxc_context('WEST-DC1', segments, context)),
+        'PC_B1': LXC(name='PC-WEST-DC2', template_context=lxc_context('WEST-DC2', segments, context)),
+        'PC_B2': LXC(name=east_dc_['lxc'], template_context=lxc_context(east_dc_['name'], segments, context)),
+        'PC_C1': LXC(name='PC-WEST-BR1', template_context=lxc_context('WEST-BR1', segments, context)),
+        'PC_D1': LXC(name='PC-WEST-BR2', template_context=lxc_context('WEST-BR2', segments, context)),
+        'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(east_br_['name'], segments, context)),
     }
 
     # Monkey patching used to pass some parameters inside the existing request object
