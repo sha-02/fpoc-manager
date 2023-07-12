@@ -425,7 +425,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         cevrf_segs = copy.deepcopy(CEVRF_segments(segments, context))
         cevrf_segs.pop('port5', None)   # Remove 'port5' if it is part of the CE VRFs
         for name, cevrf_seg in cevrf_segs.items():
-            cevrf_seg['ipmask'] =  cevrf_seg['ip_lxc'] + '/' + str(ipaddress.ip_interface(cevrf_seg['ip']).netmask)
+            cevrf_seg['ipmask'] =  cevrf_seg['ip_lxc'] + '/' + cevrf_seg['mask']
             cevrf_seg['gateway'] = str(ipaddress.ip_interface(cevrf_seg['ip']).ip)
             # Remove unused keys
             cevrf_seg.pop('ip'), cevrf_seg.pop('ip_lxc'), cevrf_seg.pop('subnet'), cevrf_seg.pop('mask')
