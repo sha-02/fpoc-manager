@@ -494,6 +494,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         if not context['multicast']:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
             messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
+        else:
+            messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered</b> with '{context['overlay']}' overlay")
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
