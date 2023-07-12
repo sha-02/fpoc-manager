@@ -56,9 +56,12 @@ $(document).ready(function(){
   <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
     <div class="p-2 bd-highlight">
       Name<select id="fpocSelection" name="fpocSelection">
-        <option value="0.0.0.0" selected>internal</option>
-        {% for fpoc_name, fpoc_ip in fortipoc_VMs.items %}
-          <option value="{{fpoc_ip}}">{{fpoc_name}}</option>
+        {% for name, fpoc in fortipoc_VMs.items %}
+          {% if fpoc.selected %}
+            <option value="{{fpoc.ip}}" selected>{{name}}</option>
+          {% else %}
+            <option value="{{fpoc.ip}}">{{name}}</option>
+          {% endif %}
         {% endfor %}
       </select>
     </div>
