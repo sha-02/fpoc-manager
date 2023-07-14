@@ -468,6 +468,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     poc_id = None
     messages = []    # list of messages displayed along with the rendered configurations
+    errors = []     # List of errors
 
     targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
     minimumFOSversion = 0
@@ -486,10 +487,12 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         if context['vrf_aware_overlay']:
             minimumFOSversion = max(minimumFOSversion, 7_002_000)
             poc_id = None  # TODO
+            errors.append("vrf_aware_overlay not yet available with BGP per overlay")
 
         if context['shortcut_routing'] == 'dynamic_bgp':
             minimumFOSversion = max(minimumFOSversion, 7_004_001)
             poc_id = None  # TODO
+            errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
@@ -521,6 +524,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         if context['shortcut_routing'] == 'dynamic_bgp':
             minimumFOSversion = max(minimumFOSversion, 7_004_001)
             poc_id = None  # TODO
+            errors.append("Dynamic BGP over shortcuts not yet available with BGP on loopback")
 
         if context['vrf_aware_overlay']:
             minimumFOSversion = max(minimumFOSversion, 7_002_000)
@@ -558,14 +562,16 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     if context['bgp_design'] == 'on_loopback' and context['shortcut_routing'] == 'ipsec_selectors':
         minimumFOSversion = max(minimumFOSversion, 7_002_000)
         poc_id = None   # TODO
+        errors.append("ADVPN from IPsec selectors not yet available with BGP on loopback")
 
     if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
         minimumFOSversion = max(minimumFOSversion, 7_002_000)
         poc_id = None   # TODO
+        errors.append("SD-WAN+ADVPN design without BGP is not yet available")
 
     if poc_id is None:
         return render(request, f'{APPNAME}/message.html',
-                      {'title': 'Error', 'header': 'Error', 'message': 'Incompatible settings or PoC not yet done'})
+                      {'title': 'Error', 'header': 'Error', 'message': errors})
 
     if targetedFOSversion and minimumFOSversion > targetedFOSversion:
         return render(request, f'{APPNAME}/message.html',
