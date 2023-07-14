@@ -401,49 +401,44 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                 seg['ip'] = str(ipaddress.ip_interface(seg['ip']).ip)
 
     def lan_segment(segments: dict):
-        return segments['port5']
+        return {'name': 'port5', **segments['port5']}
 
-    def CEVRF_segments(segments: dict, context: dict):
+    def vrf_segments(segments: dict, context: dict):
         if not context['vrf_aware_overlay']:
             return {}
 
-        if context['vrf_seg0'] == context['vrf_pe']:    # SEG0/port5 is in PE VRF, so it is not a CE VRF
-            other_segs = copy.deepcopy(segments)
-            other_segs.pop('port5')
-            return other_segs
+        return segments
 
-        return segments  # SEG0/port5 is not in PE VRF, so it is a CE VRF
-
-    def lxc_context(lxc_name: str, all_lxcs_segments: dict, context: dict):
-        segments = all_lxcs_segments[lxc_name]
+    def lxc_context(lxc_name: str, segments_devices: dict, context: dict):
+        segments = segments_devices[lxc_name]
 
         base_segment = {'ipmask': segments['port5']['ip_lxc'] + '/' + segments['port5']['mask'],
                         'gateway': segments['port5']['ip']}
 
         # Construct the list of all LXCs with their IPs to populate the /etc/hosts of each LXC
         hosts = []
-        for name, segs in all_lxcs_segments.items():
+        for name, segs in segments_devices.items():
             if not context['vrf_aware_overlay']:
                 new_name = f"PC-{name}".replace("_", "-").replace("LAN-", "")
                 hosts.append({'name': new_name, 'ip': lan_segment(segs)['ip_lxc']})
             else:
                 for seg in segs.values():
-                    new_name = f"PC-{name}-{seg['alias']}".replace("_", "-").replace("LAN-", "")
+                    new_name = f"PC-{name}-{seg['alias']}".replace("_", "-").replace("LAN-", "").upper()
                     hosts.append({'name': new_name, 'ip': seg['ip_lxc']})
 
         if not context['vrf_aware_overlay']:
             return { **base_segment, 'hosts': hosts }
 
         # Add 'gw' (ip@ of FGT) and mask for convenience in the lxc rendering file
-        cevrf_segs = copy.deepcopy(CEVRF_segments(segments, context))
-        cevrf_segs.pop('port5', None)   # Remove 'port5' if it is part of the CE VRFs
-        for name, cevrf_seg in cevrf_segs.items():
+        vrf_segs = copy.deepcopy(vrf_segments(segments, context))
+        vrf_segs.pop('port5', None)   # Remove port5/SEG0 because it is already the base_segment
+        for name, cevrf_seg in vrf_segs.items():
             cevrf_seg['ipmask'] =  cevrf_seg['ip_lxc'] + '/' + cevrf_seg['mask']
             cevrf_seg['gateway'] = str(ipaddress.ip_interface(cevrf_seg['ip']).ip)
             # Remove unused keys
             cevrf_seg.pop('ip'), cevrf_seg.pop('ip_lxc'), cevrf_seg.pop('subnet'), cevrf_seg.pop('mask')
 
-        return {**base_segment, 'namespaces': cevrf_segs, 'hosts': hosts }
+        return {**base_segment, 'namespaces': vrf_segs, 'hosts': hosts }
 
     def FOS(fos_version_target: str):  # converts a FOS version string "6.0.13" to a long integer 6_000_013
         major, minor, patch = fos_version_target.split('.')
@@ -456,8 +451,9 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
-        'vrf_pe': int(request.POST.get('vrf_pe', 32)),  # [0-251]
-        'vrf_seg0': int(request.POST.get('vrf_seg0', 5)),  # [0-251] port5 (no vlan) segment
+        'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-251]
+        'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-251]
+        'vrf_seg0': int(request.POST.get('vrf_seg0')),  # [0-251] port5 (no vlan) segment
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
@@ -511,7 +507,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
             messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
         else:
-            messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered</b> with '{context['overlay']}' overlay")
+            if context['vrf_pe'] == 0 and context['vrf_seg0'] == 0:
+                messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered</b> with '{context['overlay']}' overlay")
+            else:
+                messages.append(f"Multicast is requested: <b>vrf_pe and vrf_seg0 have been forced to VRF 0</b>")
+                context['vrf_pe'] = context['vrf_seg0'] = 0
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
@@ -633,7 +633,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'SEGMENT_2': { 'vrfid': 2, 'vlanid': 1002, 'alias': 'LAN_RED' },
     }
 
-    segments = {
+    segments_devices = {
         'WEST-DC1': {
             'port5': {'ip': '10.1.0.1/24', 'ip_lxc': '10.1.0.7', **vrf['port5']},
             'SEGMENT_1': {'ip': '10.1.1.1/24', 'ip_lxc': '10.1.1.7', **vrf['SEGMENT_1']},
@@ -679,45 +679,46 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     # Restore the previous structure of the 'segments' to avoid having to change the jinja templates
     # add 'mask' and 'subnet'
     # change 'ip' from '10.10.10.1/24' to '10.10.10.1'
-    compatiblize(segments)
+    compatiblize(segments_devices)
 
+    # Allow segments in VRF x to access the Internet which is in VRF {{vrf_wan}}
     inter_segments = {}
     if context['vrf_aware_overlay']:
         inter_segments = {
-            'SEG0_INET_': [ {'vrfid': context['vrf_pe'], 'ip': '10.254.254.2', 'mask':'255.255.255.252'},
+            'BLUE_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.2', 'mask':'255.255.255.252'},
                             {'vrfid': context['vrf_seg0'], 'ip': '10.254.254.1', 'mask':'255.255.255.252'} ],
-            'SEG1_INET_': [ {'vrfid': context['vrf_pe'], 'ip': '10.254.254.6', 'mask':'255.255.255.252'},
-                            {'vrfid': 1, 'ip': '10.254.254.5', 'mask':'255.255.255.252'} ],
-            'SEG2_INET_': [ {'vrfid': context['vrf_pe'], 'ip': '10.254.254.10', 'mask':'255.255.255.252'},
-                            {'vrfid': 2, 'ip': '10.254.254.9', 'mask':'255.255.255.252'} ]
+            'YELLOW_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.6', 'mask':'255.255.255.252'},
+                            {'vrfid': vrf['SEGMENT_1']['vrfid'], 'ip': '10.254.254.5', 'mask':'255.255.255.252'} ],
+            'RED_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.10', 'mask':'255.255.255.252'},
+                            {'vrfid': vrf['SEGMENT_2']['vrfid'], 'ip': '10.254.254.9', 'mask':'255.255.255.252'} ]
         }
-        if context['vrf_seg0'] == context['vrf_pe']:  # SEG0/port5 is in PE VRF, so it is not a CE VRF
-            inter_segments.pop('SEG0_INET_')  # remove it from the inter-segment list
+        if context['vrf_seg0'] == context['vrf_wan']:  # SEG0/port5 is in WAN VRF, it has direct access to WAN (INET)
+            inter_segments.pop('BLUE_')  # remove it from the inter-segment list
 
-    context['datacenter']['west']['first']['lan'] = lan_segment(segments['WEST-DC1'])['ip']
-    context['datacenter']['west']['second']['lan'] = lan_segment(segments['WEST-DC2'])['ip']
+    context['datacenter']['west']['first']['lan'] = lan_segment(segments_devices['WEST-DC1'])['ip']
+    context['datacenter']['west']['second']['lan'] = lan_segment(segments_devices['WEST-DC2'])['ip']
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1,
                                            'loopback': '10.200.1.254' if poc_id==10 else None,
-                                           'lan': lan_segment(segments['WEST-DC1']),
-                                           'cevrf_segments': CEVRF_segments(segments['WEST-DC1'],context), **context})
+                                           'lan': lan_segment(segments_devices['WEST-DC1']),
+                                           'vrf_segments': vrf_segments(segments_devices['WEST-DC1'],context), **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 2,
                                            'loopback': '10.200.1.253' if poc_id==10 else None,
-                                           'lan': lan_segment(segments['WEST-DC2']),
-                                           'cevrf_segments': CEVRF_segments(segments['WEST-DC2'],context), **context})
+                                           'lan': lan_segment(segments_devices['WEST-DC2']),
+                                           'vrf_segments': vrf_segments(segments_devices['WEST-DC2'],context), **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 1,
                                            'loopback': '10.200.1.1' if poc_id==10 else None,
-                                           'lan': lan_segment(segments['WEST-BR1']),
-                                           'cevrf_segments': CEVRF_segments(segments['WEST-BR1'],context),
+                                           'lan': lan_segment(segments_devices['WEST-BR1']),
+                                           'vrf_segments': vrf_segments(segments_devices['WEST-BR1'],context),
                                            'inter_segments': inter_segments, **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 2,
                                            'loopback': '10.200.1.2' if poc_id==10 else None,
-                                           'lan': lan_segment(segments['WEST-BR2']),
-                                           'cevrf_segments': CEVRF_segments(segments['WEST-BR2'],context),
+                                           'lan': lan_segment(segments_devices['WEST-BR2']),
+                                           'vrf_segments': vrf_segments(segments_devices['WEST-BR2'],context),
                                            'inter_segments': inter_segments, **context})
 
     if poc_id == 10:  # PoC with BGP on loopback design: Regional LAN summaries are possible
@@ -727,18 +728,18 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         east_dc_ = {'name': 'EAST-DC3', 'dc_id': 3, 'lxc': 'PC-EAST-DC3'}
         east_br_ = {'name': 'EAST-BR3', 'branch_id': 3, 'lxc': 'PC-EAST-BR3'}
 
-    context['datacenter']['east']['first']['lan'] = lan_segment(segments[east_dc_['name']])['ip']
+    context['datacenter']['east']['first']['lan'] = lan_segment(segments_devices[east_dc_['name']])['ip']
 
     east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'],
                                           'loopback': '10.200.2.254' if poc_id == 10 else None,
-                                          'lan': lan_segment(segments[east_dc_['name']]),
-                                          'cevrf_segments': CEVRF_segments(segments[east_dc_['name']], context), **context})
+                                          'lan': lan_segment(segments_devices[east_dc_['name']]),
+                                          'vrf_segments': vrf_segments(segments_devices[east_dc_['name']], context), **context})
     east_br = FortiGate(name=east_br_['name'], template_group='BRANCHES',
                         template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'],
                                           'loopback': '10.200.2.1' if poc_id == 10 else None,
-                                          'lan': lan_segment(segments[east_br_['name']]),
-                                          'cevrf_segments': CEVRF_segments(segments[east_br_['name']], context),
+                                          'lan': lan_segment(segments_devices[east_br_['name']]),
+                                          'vrf_segments': vrf_segments(segments_devices[east_br_['name']], context),
                                           'inter_segments': inter_segments, **context})
 
     devices = {
@@ -750,12 +751,12 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'FGT-D_sec': east_br,
         'FMG': FortiManager(name='FMG'),
 
-        'PC_A1': LXC(name='PC-WEST-DC1', template_context=lxc_context('WEST-DC1', segments, context)),
-        'PC_B1': LXC(name='PC-WEST-DC2', template_context=lxc_context('WEST-DC2', segments, context)),
-        'PC_B2': LXC(name=east_dc_['lxc'], template_context=lxc_context(east_dc_['name'], segments, context)),
-        'PC_C1': LXC(name='PC-WEST-BR1', template_context=lxc_context('WEST-BR1', segments, context)),
-        'PC_D1': LXC(name='PC-WEST-BR2', template_context=lxc_context('WEST-BR2', segments, context)),
-        'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(east_br_['name'], segments, context)),
+        'PC_A1': LXC(name='PC-WEST-DC1', template_context=lxc_context('WEST-DC1', segments_devices, context)),
+        'PC_B1': LXC(name='PC-WEST-DC2', template_context=lxc_context('WEST-DC2', segments_devices, context)),
+        'PC_B2': LXC(name=east_dc_['lxc'], template_context=lxc_context(east_dc_['name'], segments_devices, context)),
+        'PC_C1': LXC(name='PC-WEST-BR1', template_context=lxc_context('WEST-BR1', segments_devices, context)),
+        'PC_D1': LXC(name='PC-WEST-BR2', template_context=lxc_context('WEST-BR2', segments_devices, context)),
+        'PC_D2': LXC(name=east_br_['lxc'], template_context=lxc_context(east_br_['name'], segments_devices, context)),
     }
 
     # Monkey patching used to pass some parameters inside the existing request object
