@@ -507,11 +507,10 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
             messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
         else:
-            if context['vrf_pe'] == 0 and context['vrf_seg0'] == 0:
-                messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered</b> with '{context['overlay']}' overlay")
-            else:
-                messages.append(f"Multicast is requested: <b>vrf_pe and vrf_seg0 have been forced to VRF 0</b>")
-                context['vrf_pe'] = context['vrf_seg0'] = 0
+            messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered</b> with '{context['overlay']}' overlay")
+            if context['vrf_aware_overlay']:
+                messages.append(f"for multicast to work <b>vrf_wan, vrf_pe and vrf_seg0 have ALL been forced to VRF 0</b>")
+                context['vrf_wan'] = context['vrf_pe'] = context['vrf_seg0'] = 0
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
@@ -532,6 +531,10 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                 return render(request, f'{APPNAME}/message.html',
                               {'title': 'Error', 'header': 'Error',
                                'message': 'VRF id must be within [0-251]'})
+            if context['vrf_wan'] != context['vrf_pe']:
+                messages.append("<b>ATTENTION:</b> Remote Internet Breakout cannot work with PE-VRF <> WAN-VRF "
+                                "because the Internet interfaces are in WAN-VRF and the MPLS overlays are in PE-VRF "
+                                "it is therefore not possible to perform traffic steering between UL_INET and OL_MPLS")
             if context['cross_region_advpn']:
                 messages.append("Cross-Regional ADVPN was requested but <b>this does not work</b> with VPNv4 eBGP next-hop-unchanged (tested with FOS 7.2.5)"
                                 "<br>The BGP NH of VPNv4 prefixes is always set to the BGP loopback of the DC when advertised to eBGP peer"
