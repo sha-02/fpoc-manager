@@ -1,4 +1,5 @@
 from pathlib import Path
+import jinja2
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -71,7 +72,8 @@ TEMPLATES = [
         'DIRS': ['templates_jinja'],
         'APP_DIRS': True,
         'OPTIONS': {
-            'environment': 'config.jinja.environment',
+            'environment': 'config.jinja.environment',  # my environment() function in jinja.py
+            'undefined': jinja2.StrictUndefined,
             'extensions': [
                 'jinja2.ext.do',
                 'jinja2.ext.debug',
