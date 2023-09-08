@@ -1,4 +1,8 @@
 {
+  "7.4.1": {
+    "build": "2463",
+    "filename": "FGT_VM64_KVM-v7.4.1.F-build2463-FORTINET.out"
+  },
   "7.4.0": {
     "build": "2360",
     "filename": "FGT_VM64_KVM-v7.4.0.F-build2360-FORTINET.out"
@@ -11,84 +15,24 @@
     "build": "1396",
     "filename": "FGT_VM64_KVM-v7.2.4.F-build1396-FORTINET.out"
   },
-//  "7.2.3": {
-//    "build": "1262",
-//    "filename": "FGT_VM64_KVM-v7.2.3.F-build1262-FORTINET.out"
-//  },
-//  "7.2.2": {
-//    "build": "1255",
-//    "filename": "FGT_VM64_KVM-v7.2.2.F-build1255-FORTINET.out"
-//  },
-//  "7.2.1": {
-//    "build": "1254",
-//    "filename": "FGT_VM64_KVM-v7.2.1.F-build1254-FORTINET.out"
-//  },
-//  "7.2.0": {
-//    "build": "1157",
-//    "filename": "FGT_VM64_KVM-v7.2.0.F-build1157-FORTINET.out"
-//  },
+  "7.2.3": {
+    "build": "1262",
+    "filename": "FGT_VM64_KVM-v7.2.3.F-build1262-FORTINET.out"
+  },
   "7.0.12": {
     "build": "0489",
     "filename": "FGT_VM64_KVM-v7.0.12.M-build0523-FORTINET.out"
-  },
-  "7.0.11": {
-    "build": "0489",
-    "filename": "FGT_VM64_KVM-v7.0.11.M-build0489-FORTINET.out"
-  },
-//  "7.0.10": {
-//    "build": "0450",
-//    "filename": "FGT_VM64_KVM-v7.0.10.M-build0450-FORTINET.out"
-//  },
-//  "7.0.9": {
-//    "build": "0444",
-//    "filename": "FGT_VM64_KVM-v7.0.9.M-build0444-FORTINET.out"
-//  },
-//  "7.0.8": {
-//    "build": "0418",
-//    "filename": "FGT_VM64_KVM-v7.0.8.F-build0418-FORTINET.out"
-//  },
-//  "7.0.7": {
-//    "build": "0367",
-//    "filename": "FGT_VM64_KVM-v7.0.7.F-build0367-FORTINET.out"
-//  },
-//  "7.0.6": {
-//    "build": "0366",
-//    "filename": "FGT_VM64_KVM-v7.0.6.F-build0366-FORTINET.out"
-//  },
-//  "7.0.5": {
-//    "build": "0304",
-//    "filename": "FGT_VM64_KVM-v7.0.5-build0304-FORTINET.out"
-//  },
-//  "7.0.4": {
-//    "build": "0301",
-//    "filename": "FGT_VM64_KVM-v7.0.4-build0301-FORTINET.out"
-//  },
-//  "7.0.3": {
-//    "build": "0237",
-//    "filename": "FGT_VM64_KVM-v7.0.3-build0237-FORTINET.out"
-//  },
-//  "7.0.2": {
-//    "build": "0234",
-//    "filename": "FGT_VM64_KVM-v7.0.2-build0234-FORTINET.out"
-//  },
-//  "7.0.1": {
-//    "build": "0157",
-//    "filename": "FGT_VM64_KVM-v7.0.1-build0157-FORTINET.out"
-//  },
-//  "7.0.0": {
-//    "build": "0066",
-//    "filename": "FGT_VM64_KVM-v7.0.0-build0066-FORTINET.out"
-//  },
-  "6.4.11": {
-    "build": "2030",
-    "filename": "FGT_VM64_KVM-v6.M-build2030-FORTINET.out"
-  },
-  "6.2.12": {
-    "build": "1319",
-    "filename": "FGT_VM64_KVM-v6-build1319-FORTINET.out"
-  },
-  "6.0.15": {
-    "build": "0484",
-    "filename": "FGT_VM64_KVM-v6-build0484-FORTINET.out"
   }
+//  "6.4.11": {
+//    "build": "2030",
+//    "filename": "FGT_VM64_KVM-v6.M-build2030-FORTINET.out"
+//  },
+//  "6.2.12": {
+//    "build": "1319",
+//    "filename": "FGT_VM64_KVM-v6-build1319-FORTINET.out"
+//  },
+//  "6.0.15": {
+//    "build": "0484",
+//    "filename": "FGT_VM64_KVM-v6-build0484-FORTINET.out"
+//  }
 }
