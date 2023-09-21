@@ -193,6 +193,7 @@ class LXC(Device):
         super(LXC, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'root'  # initialize if it is None
         self.password = self.password or 'fortinet'  # initialize if it is None
+        self.template_filename = self.template_filename or 'lxc.conf'  # initialize if it is None
         self.template_context.setdefault('name', self.name)  # initialize if key does not exist
         self.template_context.setdefault('interface', 'eth0')  # initialize if key does not exist
         self.template_context.setdefault('vlan', None)  # initialize if key does not exist

@@ -22,9 +22,9 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
     # - use the per-POC LXC template if one exists
     # - otherwise use the generic LXC template
 
-    template_name = f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/lxc.conf'
+    template_name = f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_filename}'
     if not os.path.isfile(os.path.dirname(PATH_FPOC_TEMPLATES)+'/'+template_name):
-        template_name = f'fpoc/lxc.conf'
+        template_name = f'fpoc/{device.template_filename}'
 
     print(f'{device.name} : Rendering LXC template {template_name}')
 
