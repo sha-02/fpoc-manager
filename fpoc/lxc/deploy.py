@@ -61,7 +61,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: LXC):
         # 'auto_connect': True,
     }
 
-    password_list = [device.password, 'nsefortinet', '']
+    password_list = [device.password, 'fortinet', '']
     for pwd in password_list:
         ssh_params['password'] = pwd
         try:

@@ -171,7 +171,7 @@ class FortiGate(Device):
         #
         # initialize attributes inherited from parent class
         self.username = self.username or 'admin'  # initialize if it is None
-        self.password = self.password or 'fortinet'  # initialize if it is None
+        self.password = self.password or 'nsefortinet'  # initialize if it is None
         self.template_filename = self.template_filename or '_FGT.conf'  # initialize if it is None
         self.template_context['name'] = self.name
         #
@@ -192,7 +192,7 @@ class LXC(Device):
     def __post_init__(self):  # Apply default values
         super(LXC, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'root'  # initialize if it is None
-        self.password = self.password or 'fortinet'  # initialize if it is None
+        self.password = self.password or 'nsefortinet'  # initialize if it is None
         self.template_filename = self.template_filename or 'lxc.conf'  # initialize if it is None
         self.template_context.setdefault('name', self.name)  # initialize if key does not exist
         self.template_context.setdefault('interface', 'eth0')  # initialize if key does not exist
@@ -212,4 +212,4 @@ class FortiManager(Device):
     def __post_init__(self):  # Apply default values
         super(FortiManager, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'admin'  # initialize if it is None
-        self.password = self.password or 'fortinet'  # initialize if it is None
+        self.password = self.password or 'nsefortinet'  # initialize if it is None

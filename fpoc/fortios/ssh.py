@@ -33,7 +33,7 @@ def ssh_logon(device: FortiGate):
     # print(netmiko_dict)
 
     # SSH connection to the FGT
-    password_list = [ssh_params['password'], 'nsefortinet', '']
+    password_list = [ssh_params['password'], 'fortinet', '']
     for pwd in password_list:
         ssh_params['password'] = pwd
         try:
