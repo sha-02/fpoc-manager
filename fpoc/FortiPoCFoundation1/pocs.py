@@ -21,6 +21,11 @@ APPNAME = "fpoc/FortiPoCFoundation1"
 Status = namedtuple('Status', 'is_valid is_invalid message')
 
 
+def FOS(fos_version_target: str):  # converts a FOS version string "6.0.13" to a long integer 6_000_013
+    major, minor, patch = fos_version_target.split('.')
+    return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
+
+
 def upgrade(request: WSGIRequest) -> HttpResponse:
     """
     """
@@ -152,6 +157,98 @@ def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_B1': LXC(name='PC-B2', template_context={'ipmask': '192.168.2.1/24', 'gateway': '192.168.2.254'}),
         'PC_B2': LXC(name='PC-B22', template_context={'ipmask': '192.168.22.1/24', 'gateway': '192.168.22.254'}),
     }
+
+    # Check request, render and deploy configs
+    return start(request, poc_id, devices)
+
+
+def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
+    """
+    """
+    context = {
+        'l2vpn': request.POST.get('l2vpn'),  # 'vxlan-ipsec', 'vxlan'
+        'ipsec': True if 'ipsec' in request.POST.get('l2vpn') else False,
+        'control_plane': request.POST.get('control_plane'),  # 'mp-bgp', 'flood-and-learn'
+
+        # Used as VTEPs or as IPsec termination
+        'sites': {
+            1:  {
+                'ip': FortiPoCFoundation1.devices['FGT-A'].wan.inet.subnet + '.1',  # 198.51.100.1
+                'gw': FortiPoCFoundation1.devices['FGT-A'].wan.inet.subnet + '.254',  # 198.51.100.254
+            },
+            2:  {
+                'ip': FortiPoCFoundation1.devices['FGT-B'].wan.inet.subnet + '.2',  # 203.0.113.2
+                'gw': FortiPoCFoundation1.devices['FGT-B'].wan.inet.subnet + '.254',  # 203.0.113.254
+            },
+            3:  {
+                'ip': FortiPoCFoundation1.devices['FGT-C'].wan.inet.subnet + '.3',  # 192.0.2.3
+                'gw': FortiPoCFoundation1.devices['FGT-C'].wan.inet.subnet + '.254',  # 192.0.2.254
+            },
+        }
+    }
+
+    messages = []    # list of messages displayed along with the rendered configurations
+    errors = []     # List of errors
+
+    targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
+    minimumFOSversion = 0
+
+    if context['control_plane'] == 'mp-bgp':
+        minimumFOSversion = max(minimumFOSversion, 7_004_000)
+
+    if context['control_plane'] == 'flood-and-learn':
+        poc_id = None ; errors.append("flood-and-learn not yet done")
+
+    if poc_id is None:
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': errors})
+
+    if targetedFOSversion and minimumFOSversion > targetedFOSversion:
+        return render(request, f'{APPNAME}/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': f'The minimum version for the selected options is {minimumFOSversion:_}'})
+
+    messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
+
+    # List of all devices for all Scenario
+    lxcs = {
+        'PC-A11': {'ipmask': '192.168.10.1/24', 'vlan': 10},
+        'PC-A21': {'ipmask': '192.168.20.1/24', 'vlan': 20},
+        'PC-B12': {'ipmask': '192.168.10.2/24', 'vlan': 10},
+        'PC-B22': {'ipmask': '192.168.20.2/24', 'vlan': 20},
+        'PC-C13': {'ipmask': '192.168.10.3/24', 'vlan': 10},
+        'PC-C23': {'ipmask': '192.168.20.3/24', 'vlan': 20},
+    }
+
+    context = {
+        'lxcs': lxcs,
+        'vlans': [10, 20],
+        'vnis': [100, 200],
+        **context
+    }
+
+    devices = {
+        'FGT-A': FortiGate(name='FGT-A', template_group='SITES', template_context={'id': 1, **context}),
+        'FGT-B': FortiGate(name='FGT-B', template_group='SITES', template_context={'id': 2, **context}),
+        'FGT-C': FortiGate(name='FGT-C', template_group='SITES', template_context={'id': 3, **context}),
+        'Internet': VyOS(template_context={'sites': context['sites']}),
+
+        'PC_A1': LXC(name='PC-A11', template_context=lxcs['PC-A11']),
+        'PC_A2': LXC(name='PC-A21', template_context=lxcs['PC-A21']),
+        'PC_B1': LXC(name='PC-B12', template_context=lxcs['PC-B12']),
+        'PC_B2': LXC(name='PC-B22', template_context=lxcs['PC-B22']),
+        'PC_C1': LXC(name='PC-C13', template_context=lxcs['PC-C13']),
+        'PC_C2': LXC(name='PC-C23', template_context=lxcs['PC-C23']),
+    }
+
+    if context['ipsec']:    # Only FGT-A and FGT-B are used, FGT-C is not part of this scenario
+        del(devices['FGT-C']); del(devices['PC_C1']); del(lxcs['PC-C13']); del(devices['PC_C2']); del(lxcs['PC-C23'])
+        del(devices['Internet'])
+
+    # Monkey patching used to pass some parameters inside the existing request object
+    request.fpoc = dict()
+    request.fpoc['poc_id'] = poc_id
+    request.fpoc['FOS_minimum'] = minimumFOSversion
+    request.fpoc['messages'] = messages
 
     # Check request, render and deploy configs
     return start(request, poc_id, devices)
@@ -439,10 +536,6 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             cevrf_seg.pop('ip'), cevrf_seg.pop('ip_lxc'), cevrf_seg.pop('subnet'), cevrf_seg.pop('mask')
 
         return {**base_segment, 'namespaces': vrf_segs, 'hosts': hosts }
-
-    def FOS(fos_version_target: str):  # converts a FOS version string "6.0.13" to a long integer 6_000_013
-        major, minor, patch = fos_version_target.split('.')
-        return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
 
     context = {
         # From HTML form

@@ -205,6 +205,7 @@ class VyOS(Device):
         super(VyOS, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'vyos'  # initialize if it is None
         self.password = self.password or 'vyos'  # initialize if it is None
+        self.template_filename = self.template_filename or 'vyos.conf'  # initialize if it is None
 
 
 @dataclass

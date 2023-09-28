@@ -98,12 +98,12 @@ $(document).ready(function(){
   <div class="card">
   <div class="card-header" id="heading-0">
     <h2 class="mb-0">
-      <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-1" aria-expanded="true" aria-controls="collapse-1">
+      <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-0" aria-expanded="true" aria-controls="collapse-0">
         FortiPoCFoundation1
       </button>
     </h2>
   </div>
-  <div id="collapse-1" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
+  <div id="collapse-0" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
     <div class="card-body">
       <!-- 'Bootstrap' form -->
       <form id="formFortiPoCFoundation1" method="post" onsubmit="collectFortiPoCElements(this.id)">
@@ -473,6 +473,60 @@ $(document).ready(function(){
       </div>
     </div>
   </div>
+
+  <!-- ========================================================================================================= -->
+  <!-- Layer2 VPN -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+    <div class="card-header" id="heading-1">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-1" aria-expanded="false" aria-controls="collapse-1">
+          L2VPN VxLAN
+        </button>
+      </h2>
+    </div>
+    <div id="collapse-1" class="collapse" aria-labelledby="heading-1" data-parent="#accordionPoC">
+      <div class="card-body">
+        <form id="formL2VPN" method="post" action="{% url 'fpoc:l2vpn' %}" onsubmit="collectFortiPoCElements(this.id)">
+          {% csrf_token %}
+          <fieldset>
+            Devices
+            <input type="checkbox" name="FGT-A" checked>FGT-A
+            <input type="checkbox" name="FGT-B" checked>FGT-B
+            <input type="checkbox" name="FGT-C" checked>FGT-C
+            <input type="checkbox" name="Internet" style="display:none" checked> <!-- VyOS -->
+            <br>
+            LXC
+            <input type="checkbox" name="PC_A1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">PC-A11</span>
+            <input type="checkbox" name="PC_A2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A2)">PC-A21</span>
+            <input type="checkbox" name="PC_B1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">PC-B12</span>
+            <input type="checkbox" name="PC_B2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">PC-B22</span>
+            <input type="checkbox" name="PC_C1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">PC-C13</span>
+            <input type="checkbox" name="PC_C2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_C2)">PC-C23</span>
+          </fieldset>
+          <fieldset>
+            L2VPN <select name="l2vpn">
+              <option value='vxlan-ipsec' selected>Vxlan-over-IPsec between FGT-A and FGT-B</option>
+              <option value='vxlan' >plain Vxlan between FGTs FGT-A, FGT-B and FGT-C</option>
+            </select>
+            Control plane <select name="control_plane">
+              <option value='mp-bgp' selected>MP-BGP EVPN</option>
+              <option value='flood-and-learn'>Data-plane learning (flood and learn)</option>
+            </select>
+          <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:l2vpn' %}">Start</button>
+        </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 {% endblock content %}
