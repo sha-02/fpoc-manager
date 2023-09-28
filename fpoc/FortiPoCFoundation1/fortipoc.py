@@ -2,7 +2,7 @@ from django.core.handlers.wsgi import WSGIRequest
 import copy
 import threading
 
-from fpoc import FortiPoC, FortiGate, LXC, Vyos, FortiManager, WAN, Interface, Network
+from fpoc import FortiPoC, FortiGate, LXC, VyOS, FortiManager, WAN, Interface, Network
 
 
 class FortiPoCFoundation1(FortiPoC):
@@ -143,8 +143,8 @@ class FortiPoCFoundation1(FortiPoC):
                                    mpls2=Interface('port2', 145, '10.71.145'))),
 
         'ISFW-A': FortiGate(offset=8, mgmt=Interface('port10', 0, '172.16.31.13/24')),
-        'Internet': Vyos(offset=9, mgmt=Interface('eth9', 0, '172.16.31.251/24')),
-        'MPLS': Vyos(offset=10, mgmt=Interface('eth9', 0, '172.16.31.252/24')),
+        'Internet': VyOS(offset=9, mgmt=Interface('eth9', 0, '172.16.31.251/24')),
+        'MPLS': VyOS(offset=10, mgmt=Interface('eth9', 0, '172.16.31.252/24')),
         'PC_A1': LXC(offset=11, mgmt=Interface('eth9', 0, '172.16.31.111/24')),
         'PC_A2': LXC(offset=12, mgmt=Interface('eth9', 0, '172.16.31.112/24')),
         'PC_B1': LXC(offset=13, mgmt=Interface('eth9', 0, '172.16.31.121/24')),

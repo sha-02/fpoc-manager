@@ -12,7 +12,7 @@ import threading
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc import TypePoC, TypeDevice, FortiGate, LXC, Vyos, FortiManager
+from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS, FortiManager
 from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
 
 
@@ -50,7 +50,7 @@ def device_URL(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -> tuple:
 
     if isinstance(device, FortiGate) or isinstance(device, FortiManager):
         return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
-    if isinstance(device, LXC) or isinstance(device, Vyos):
+    if isinstance(device, LXC) or isinstance(device, VyOS):
         return 'SSH', f'https://{ip}/term/dev_i_{device.offset:2}_{device.name_fpoc}/ssh'
 
     return 'HTTPS', f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
@@ -62,7 +62,7 @@ def device_URL_console(request: WSGIRequest, poc: TypePoC, device: TypeDevice) -
     """
     ip = request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
 
-    if isinstance(device, FortiGate) or isinstance(device, FortiManager) or isinstance(device, Vyos):
+    if isinstance(device, FortiGate) or isinstance(device, FortiManager) or isinstance(device, VyOS):
         return f'https://{ip}/term/dev_i_{device.offset:2}_{device.name_fpoc}/cons'
     if isinstance(device, LXC):
         return f'https://{ip}/term/dev_i_{device.offset:2}_{device.name_fpoc}/lxcbash'
@@ -159,7 +159,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
         fortios.deploy(request, poc, device)
     elif isinstance(device, LXC):
         lxc.deploy(request, poc, device)
-    elif isinstance(device, Vyos):
+    elif isinstance(device, VyOS):
         vyos.deploy(request, poc, device)
     elif isinstance(device, FortiManager):
         pass    # Nothing to deploy on FMG

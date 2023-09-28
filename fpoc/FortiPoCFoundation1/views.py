@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import FortiPoCFoundation1, FortiGate, LXC, Vyos, json_to_dict
+from fpoc import FortiPoCFoundation1, FortiGate, LXC, VyOS, json_to_dict
 from config.settings import BASE_DIR
 
 #
@@ -46,7 +46,7 @@ class HomePageView(TemplateView):
         context['fortipoc_VMs'] = fortipoc_VMs()
         context['fortigates'] = FortiPoCFoundation1.devices_of_type(FortiGate).keys()
         context['lxces'] = FortiPoCFoundation1.devices_of_type(LXC).keys()
-        context['vyoses'] = FortiPoCFoundation1.devices_of_type(Vyos).keys()
+        context['vyoses'] = FortiPoCFoundation1.devices_of_type(VyOS).keys()
         return context
 
 

@@ -10,7 +10,7 @@ import copy
 
 import fpoc
 import fpoc.fortios as fortios
-from fpoc import FortiGate, FortiGate_HA, LXC, FortiManager, Vyos
+from fpoc import FortiGate, FortiGate_HA, LXC, FortiManager, VyOS
 from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1
 import fpoc.ansible as ansible
 
@@ -63,7 +63,7 @@ def poweron(request: WSGIRequest) -> HttpResponse:
     """
     fundation1_devices = FortiPoCFoundation1.devices_of_type(FortiGate)  # All FortiGate devices
     fundation1_devices.update(FortiPoCFoundation1.devices_of_type(LXC))  # + all LXC devices
-    fundation1_devices.update(FortiPoCFoundation1.devices_of_type(Vyos))  # + all VyOS devices
+    fundation1_devices.update(FortiPoCFoundation1.devices_of_type(VyOS))  # + all VyOS devices
 
     # the intersection of the keys of request.POST dict and the fundation1 dict keys produces the keys of each
     # device to be powered on

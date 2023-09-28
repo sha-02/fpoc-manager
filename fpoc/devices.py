@@ -200,9 +200,9 @@ class LXC(Device):
 
 
 @dataclass
-class Vyos(Device):
+class VyOS(Device):
     def __post_init__(self):  # Apply default values
-        super(Vyos, self).__post_init__()  # Call parent __post_init__
+        super(VyOS, self).__post_init__()  # Call parent __post_init__
         self.username = self.username or 'vyos'  # initialize if it is None
         self.password = self.password or 'vyos'  # initialize if it is None
 
