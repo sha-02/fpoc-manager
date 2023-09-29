@@ -168,23 +168,29 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
     context = {
         'l2vpn': request.POST.get('l2vpn'),  # 'vxlan-ipsec', 'vxlan'
         'ipsec': True if 'ipsec' in request.POST.get('l2vpn') else False,
+        'ipsec_design': request.POST.get('ipsec_design'),  # 'site2site', 'full-mesh', 'advpn'
+        'ipsec_site2site': True if ('ipsec' in request.POST.get('l2vpn') and request.POST.get('ipsec_design') == 'site2site') else False,
         'control_plane': request.POST.get('control_plane'),  # 'mp-bgp', 'flood-and-learn'
 
         # Used as VTEPs or as IPsec termination
         'sites': {
             1:  {
+                'name': 'FGT-A',
                 'ip': FortiPoCFoundation1.devices['FGT-A'].wan.inet.subnet + '.1',  # 198.51.100.1
                 'gw': FortiPoCFoundation1.devices['FGT-A'].wan.inet.subnet + '.254',  # 198.51.100.254
             },
             2:  {
+                'name': 'FGT-B',
                 'ip': FortiPoCFoundation1.devices['FGT-B'].wan.inet.subnet + '.2',  # 203.0.113.2
                 'gw': FortiPoCFoundation1.devices['FGT-B'].wan.inet.subnet + '.254',  # 203.0.113.254
             },
             3:  {
+                'name': 'FGT-C',
                 'ip': FortiPoCFoundation1.devices['FGT-C'].wan.inet.subnet + '.3',  # 192.0.2.3
                 'gw': FortiPoCFoundation1.devices['FGT-C'].wan.inet.subnet + '.254',  # 192.0.2.254
             },
             4:  {
+                'name': 'FGT-D',
                 'ip': FortiPoCFoundation1.devices['FGT-D'].wan.inet.subnet + '.4',  # 100.64.40.4
                 'gw': FortiPoCFoundation1.devices['FGT-D'].wan.inet.subnet + '.254',  # 100.64.40.254
             },
@@ -199,6 +205,12 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
 
     if context['control_plane'] == 'mp-bgp':
         minimumFOSversion = max(minimumFOSversion, 7_004_000)
+
+        if context['ipsec_design'] == 'advpn':
+            messages.append("Hub-and-Spoke design <b>does not work</b> with VxLAN (regardless of ADVPN) (FOS 7.4.1)"
+                            "<br>When the Hub receives a VXLAN packet from a Branch, it is not forwarded to the destination Branch"
+                            "<br>Debug flow shows receiving the vxlan udp packet and nothing more"
+                            "<br>To be tried again with an ADVPN 2.0 design (if shortcut creation is not driven by traffic)")
 
     if context['control_plane'] == 'flood-and-learn':
         poc_id = None ; errors.append("flood-and-learn not yet done")
@@ -237,7 +249,7 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'FGT-B': FortiGate(name='FGT-B', template_group='SITES', template_context={'id': 2, **context}),
         'FGT-C': FortiGate(name='FGT-C', template_group='SITES', template_context={'id': 3, **context}),
         'FGT-D': FortiGate(name='FGT-D', template_group='SITES', template_context={'id': 4, **context}),
-        'Internet': VyOS(template_context={'sites': context['sites']}),
+        'Internet': VyOS(template_context={'sites': context['sites'], 'ipsec': context['ipsec']}),
 
         'PC_A1': LXC(name='PC-A11', template_context=lxcs['PC-A11']),
         'PC_A2': LXC(name='PC-A21', template_context=lxcs['PC-A21']),
@@ -249,7 +261,7 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_D2': LXC(name='PC-D24', template_context=lxcs['PC-D24']),
     }
 
-    if context['ipsec']:    # Only FGT-A and FGT-B are used, FGT-C/D are not part of this scenario
+    if context['ipsec_site2site']:    # Only FGT-A and FGT-B are used, FGT-C/D are not part of this scenario
         del(devices['FGT-C']); del(devices['FGT-D'])
         del(devices['PC_C1']); del(lxcs['PC-C13']); del(devices['PC_C2']); del(lxcs['PC-C23'])
         del(devices['PC_D1']); del(lxcs['PC-D14']); del(devices['PC_D2']); del(lxcs['PC-D24'])

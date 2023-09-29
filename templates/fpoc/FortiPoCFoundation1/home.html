@@ -517,11 +517,16 @@ $(document).ready(function(){
           </fieldset>
           <fieldset>
             L2VPN <select name="l2vpn">
-              <option value='vxlan-ipsec' selected>Vxlan-over-IPsec between FGT-A and FGT-B</option>
-              <option value='vxlan' >plain Vxlan between all FGTs</option>
+            <option value='vxlan-ipsec' selected>Vxlan over IPsec</option>
+            <option value='vxlan' >plain Vxlan</option>
+            </select>
+            IPsec <select name="ipsec_design">
+            <option value='site2site' >site to site (FGT-A - FGT-B)</option>
+            <option value='full-mesh' selected>Full mesh</option>
+            <option value='advpn' >Hub and Spoke ADVPN (FGT-A Hub)</option>
             </select>
             Control plane <select name="control_plane">
-              <option value='mp-bgp' selected>MP-BGP EVPN</option>
+              <option value='mp-bgp' selected>MP-BGP EVPN (7.4+)</option>
               <option value='flood-and-learn'>Data-plane learning (flood and learn)</option>
             </select>
           <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:l2vpn' %}">Start</button>
