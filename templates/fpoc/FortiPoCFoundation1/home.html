@@ -494,6 +494,7 @@ $(document).ready(function(){
             <input type="checkbox" name="FGT-A" checked>FGT-A
             <input type="checkbox" name="FGT-B" checked>FGT-B
             <input type="checkbox" name="FGT-C" checked>FGT-C
+            <input type="checkbox" name="FGT-D" checked>FGT-D
             <input type="checkbox" name="Internet" style="display:none" checked> <!-- VyOS -->
             <br>
             LXC
@@ -509,11 +510,15 @@ $(document).ready(function(){
               <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">PC-C13</span>
             <input type="checkbox" name="PC_C2" checked>
               <span data-toggle="tooltip" data-placement="top" title="(PC_C2)">PC-C23</span>
+            <input type="checkbox" name="PC_D1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">PC-D14</span>
+            <input type="checkbox" name="PC_D2" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">PC-D24</span>
           </fieldset>
           <fieldset>
             L2VPN <select name="l2vpn">
               <option value='vxlan-ipsec' selected>Vxlan-over-IPsec between FGT-A and FGT-B</option>
-              <option value='vxlan' >plain Vxlan between FGTs FGT-A, FGT-B and FGT-C</option>
+              <option value='vxlan' >plain Vxlan between all FGTs</option>
             </select>
             Control plane <select name="control_plane">
               <option value='mp-bgp' selected>MP-BGP EVPN</option>

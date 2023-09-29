@@ -184,6 +184,10 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
                 'ip': FortiPoCFoundation1.devices['FGT-C'].wan.inet.subnet + '.3',  # 192.0.2.3
                 'gw': FortiPoCFoundation1.devices['FGT-C'].wan.inet.subnet + '.254',  # 192.0.2.254
             },
+            4:  {
+                'ip': FortiPoCFoundation1.devices['FGT-D'].wan.inet.subnet + '.4',  # 100.64.40.4
+                'gw': FortiPoCFoundation1.devices['FGT-D'].wan.inet.subnet + '.254',  # 100.64.40.254
+            },
         }
     }
 
@@ -217,6 +221,8 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC-B22': {'ipmask': '192.168.20.2/24', 'vlan': 20},
         'PC-C13': {'ipmask': '192.168.10.3/24', 'vlan': 10},
         'PC-C23': {'ipmask': '192.168.20.3/24', 'vlan': 20},
+        'PC-D14': {'ipmask': '192.168.10.4/24', 'vlan': 10},
+        'PC-D24': {'ipmask': '192.168.20.4/24', 'vlan': 20},
     }
 
     context = {
@@ -230,6 +236,7 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'FGT-A': FortiGate(name='FGT-A', template_group='SITES', template_context={'id': 1, **context}),
         'FGT-B': FortiGate(name='FGT-B', template_group='SITES', template_context={'id': 2, **context}),
         'FGT-C': FortiGate(name='FGT-C', template_group='SITES', template_context={'id': 3, **context}),
+        'FGT-D': FortiGate(name='FGT-D', template_group='SITES', template_context={'id': 4, **context}),
         'Internet': VyOS(template_context={'sites': context['sites']}),
 
         'PC_A1': LXC(name='PC-A11', template_context=lxcs['PC-A11']),
@@ -238,10 +245,14 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'PC_B2': LXC(name='PC-B22', template_context=lxcs['PC-B22']),
         'PC_C1': LXC(name='PC-C13', template_context=lxcs['PC-C13']),
         'PC_C2': LXC(name='PC-C23', template_context=lxcs['PC-C23']),
+        'PC_D1': LXC(name='PC-D14', template_context=lxcs['PC-D14']),
+        'PC_D2': LXC(name='PC-D24', template_context=lxcs['PC-D24']),
     }
 
-    if context['ipsec']:    # Only FGT-A and FGT-B are used, FGT-C is not part of this scenario
-        del(devices['FGT-C']); del(devices['PC_C1']); del(lxcs['PC-C13']); del(devices['PC_C2']); del(lxcs['PC-C23'])
+    if context['ipsec']:    # Only FGT-A and FGT-B are used, FGT-C/D are not part of this scenario
+        del(devices['FGT-C']); del(devices['FGT-D'])
+        del(devices['PC_C1']); del(lxcs['PC-C13']); del(devices['PC_C2']); del(lxcs['PC-C23'])
+        del(devices['PC_D1']); del(lxcs['PC-D14']); del(devices['PC_D2']); del(lxcs['PC-D24'])
         del(devices['Internet'])
 
     # Monkey patching used to pass some parameters inside the existing request object
