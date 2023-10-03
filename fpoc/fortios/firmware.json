@@ -7,6 +7,10 @@
     "build": "2360",
     "filename": "FGT_VM64_KVM-v7.4.0.F-build2360-FORTINET.out"
   },
+  "7.2.6": {
+    "build": "1575",
+    "filename": "FOS_VM64_KVM-v7.2.6.F-build1575-FORTINET.out"
+  },
   "7.2.5": {
     "build": "1517",
     "filename": "FGT_VM64_KVM-v7.2.5.F-build1517-FORTINET.out"
