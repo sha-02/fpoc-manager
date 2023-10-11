@@ -625,10 +625,10 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
             messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
         else:
-            messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered</b> with '{context['overlay']}' overlay")
+            messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered with '{context['overlay']}' overlay</b>")
             if context['vrf_aware_overlay']:
-                messages.append(f"for multicast to work <b>vrf_wan, vrf_pe and vrf_seg0 have ALL been forced to VRF 0</b>")
-                context['vrf_wan'] = context['vrf_pe'] = context['vrf_seg0'] = 0
+                messages.append(f"for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
+                context['vrf_pe'] = context['vrf_seg0'] = 0
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
@@ -653,17 +653,14 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             ce_vrfids = [context['vrf_seg0'], context['vrf_seg1'], context['vrf_seg2']] # list of all CE VRF IDs
             if len(set(ce_vrfids)) != len(ce_vrfids):  # check if the CE VRF IDs are all unique
                 poc_id = None; errors.append('All CE VRF IDs must be unique')
-            if context['vrf_wan'] != context['vrf_pe']:
-                messages.append("<b>ATTENTION:</b> Remote Internet Breakout cannot work with PE-VRF <> WAN-VRF "
-                                "because the Internet interfaces are in WAN-VRF and the MPLS overlays are in PE-VRF "
-                                "it is therefore not possible to perform traffic steering between UL_INET and OL_MPLS")
+
             if context['cross_region_advpn']:
                 messages.append("Cross-Regional ADVPN was requested but <b>this does not work</b> with VPNv4 eBGP next-hop-unchanged (tested with FOS 7.2.5)"
                                 "<br>The BGP NH of VPNv4 prefixes is always set to the BGP loopback of the DC when advertised to eBGP peer"
                                 "<br>It breaks all cross-regional shortcut routing convergence: inter-region branch-to-branch and inter-region branch-to-DC")
 
-            messages.append("BGP Route-reflection (for ADVPN) is done only for VRFs BLUE and YELLOW. No RR (no ADPVPN) for VRF RED")
-            messages.append("CE VRFs of WEST-BR1/BR2 have DIA while there is no DIA for the CE VRFs of EAST-BR1 (only RIA)")
+            messages.append("design choice: BGP Route-reflection (for ADVPN) is done only for VRFs BLUE and YELLOW. No RR (no ADPVPN) for VRF RED")
+            messages.append("design choice: CE VRFs of WEST-BR1/BR2 have DIA while there is no DIA for the CE VRFs of EAST-BR1 (only RIA)")
 
 
     if context['bgp_design'] == 'per_overlay' and context['shortcut_routing'] == 'ipsec_selectors':
@@ -720,13 +717,13 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
     segments_devices = {
         'WEST-DC1': {
             'port5': {'ip': '10.1.0.1/24', 'ip_lxc': '10.1.0.7', **vrf['port5']},
-            'SEGMENT_1': {'ip': '10.1.1.1/24', 'ip_lxc': '10.1.1.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.1.2.1/24', 'ip_lxc': '10.1.2.7', **vrf['SEGMENT_2']},
+            'SEGMENT_1': {'ip': '10.1.10.1/24', 'ip_lxc': '10.1.10.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.1.20.1/24', 'ip_lxc': '10.1.20.7', **vrf['SEGMENT_2']},
         },
         'WEST-DC2': {
             'port5': {'ip': '10.2.0.1/24', 'ip_lxc': '10.2.0.7', **vrf['port5']},
-            'SEGMENT_1': {'ip': '10.2.1.1/24', 'ip_lxc': '10.2.1.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.2.2.1/24', 'ip_lxc': '10.2.2.7', **vrf['SEGMENT_2']},
+            'SEGMENT_1': {'ip': '10.2.10.1/24', 'ip_lxc': '10.2.10.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.2.20.1/24', 'ip_lxc': '10.2.20.7', **vrf['SEGMENT_2']},
         },
         'WEST-BR1': {
             'port5': {'ip': '10.0.1.1/24', 'ip_lxc': '10.0.1.101', **vrf['port5']},
@@ -750,8 +747,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         },
         'EAST-DC3': {
             'port5': {'ip': '10.3.0.1/24', 'ip_lxc': '10.3.0.7', **vrf['port5']},
-            'SEGMENT_1': {'ip': '10.3.1.1/24', 'ip_lxc': '10.3.1.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.3.2.1/24', 'ip_lxc': '10.3.2.7', **vrf['SEGMENT_2']},
+            'SEGMENT_1': {'ip': '10.3.10.1/24', 'ip_lxc': '10.3.10.7', **vrf['SEGMENT_1']},
+            'SEGMENT_2': {'ip': '10.3.20.1/24', 'ip_lxc': '10.3.20.7', **vrf['SEGMENT_2']},
         },
         'EAST-BR3': {
             'port5': {'ip': '10.0.3.1/24', 'ip_lxc': '10.0.3.101', **vrf['port5']},

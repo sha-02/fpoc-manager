@@ -240,7 +240,7 @@ $(document).ready(function(){
             seg1/YELLOW <input type="text" name="vrf_seg1" maxlength="3" size="3" value="1">
             seg2/RED <input type="text" name="vrf_seg2" maxlength="3" size="3" value="2">
 
-            <br><input type="checkbox" name="multicast" value=0> Multicast routing
+            <br><input type="checkbox" name="multicast" value=0> Multicast routing (only BLUE VRF if VRF segmentation)
           </fieldset>
         <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'fpoc:sdwan_advpn_dualdc_dualregion' %}" formaction="{% url 'fpoc:sdwan_advpn_dualdc_dualregion' %}" >Start</button>
