@@ -610,7 +610,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            messages.append("Bidirectional SD-WAN with remote_sla was requested: overlay was forced to 'static'")
+            messages.append("Bidirectional SDWAN with 'remote-sla' was requested: <b>overlay is therefore forced to 'static'</b> since "
+                           "remote-sla with bgp-per-overlay can only work with static-overlay IP@")
 
         if context['full_mesh_ipsec']:
             context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
@@ -670,18 +671,12 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
         if context['vrf_aware_overlay']:
             context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
-            messages.append("VRF-aware overlay was requested but is disabled since it is not supported with shortcuts from phase2 selectors")
+            messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported with shortcuts from phase2 selectors")
 
         if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
             context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
-            messages.append("Bidirectional SDWAN was not requested. It is however enabled (with BGP priority) "
+            messages.append("Bidirectional SDWAN was not requested. It is however <b>forced to enable</b> (with BGP priority) "
                            "because it is needed: shortcuts do not hide the parent with ADVPN from IPsec selectors")
-
-        if context['bidir_sdwan'] == 'remote_sla':
-            minimumFOSversion = max(minimumFOSversion, 7_002_001)
-            context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            messages.append("Bidirectional SDWAN with 'remote-sla' was requested: overlay is forced to 'static' since "
-                           "remote-sla with bgp-per-overlay can only work with static-overlay IP@")
 
 
     if context['bgp_design'] == 'on_loopback' and context['shortcut_routing'] == 'ipsec_selectors':
