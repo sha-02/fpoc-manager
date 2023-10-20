@@ -582,7 +582,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'bgp_aggregation': None,  # 'boolean' defined later
     }
 
-
+    #
     # Define the poc_id based on the options which were selected
 
     poc_id = None
@@ -591,6 +591,15 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     targetedFOSversion = FOS(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
     minimumFOSversion = 0
+
+    if context['shortcut_routing'] == 'ipsec_selectors':
+        minimumFOSversion = max(minimumFOSversion, 7_002_000)
+    if context['vrf_aware_overlay']:
+        minimumFOSversion = max(minimumFOSversion, 7_002_000)
+    if context['bidir_sdwan'] == 'remote_sla':
+        minimumFOSversion = max(minimumFOSversion, 7_002_001)
+    if context['shortcut_routing'] == 'dynamic_bgp':
+        minimumFOSversion = max(minimumFOSversion, 7_004_001)
 
     if context['shortcut_routing'] == 'no_advpn':
         context['regional_advpn'] = context['cross_region_advpn'] = False
@@ -610,6 +619,13 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         else:
             context['bgp_aggregation'] = True
 
+    if context['shortcut_routing'] == 'ipsec_selectors':
+        if context['cross_region_advpn']:
+            messages.append("Cross-regional branch-to-remoteHub shortcuts are <b>not possible</b>. See comments with CLI settings.")
+        if context['vrf_aware_overlay']:
+            context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
+            messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported with shortcuts from phase2 selectors")
+
     if context['bidir_sdwan'] in ('none', 'route_tag'):  # 'or'
         context['bgp_priority'] = None
 
@@ -622,18 +638,16 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         minimumFOSversion = max(minimumFOSversion, 7_000_000)
 
         if context['shortcut_routing'] == 'dynamic_bgp':
-            minimumFOSversion = max(minimumFOSversion, 7_004_001)
             poc_id = None  # TODO
             errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
 
         if context['shortcut_routing'] == 'ipsec_selectors':
             # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
             poc_id = 7
-            minimumFOSversion = max(minimumFOSversion, 7_002_000)
 
-            if context['vrf_aware_overlay']:
-                context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
-                messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported with shortcuts from phase2 selectors")
+            if context['bidir_sdwan'] == 'remote_sla':
+                context['bidir_sdwan'] = 'route_priority'
+                messages.append("ADVPN from IPsec selectors <b>DOES NOT WORK</b> with bgp-per-overlay and remote-sla (see comment in code). <b>Forcing 'BGP priority'</b>")
 
             if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
                 context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
@@ -641,7 +655,6 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                "because it is needed: shortcuts do not hide the parent with ADVPN from IPsec selectors")
 
         if context['vrf_aware_overlay']:
-            minimumFOSversion = max(minimumFOSversion, 7_002_000)
             poc_id = None  # TODO
             errors.append("vrf_aware_overlay not yet available with BGP per overlay")
 
@@ -673,19 +686,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             messages.append("Bi-directional SD-WAN was requested: method was forced to 'remote-sla' which is the only "
                            "supported method with bgp-on-loopback")
 
-        if context['bidir_sdwan'] == 'remote_sla':
-            minimumFOSversion = max(minimumFOSversion, 7_002_001)
-
-        if context['shortcut_routing'] == 'ipsec_selectors':
-            minimumFOSversion = max(minimumFOSversion, 7_002_000)
-            poc_id = None   # TODO
-            errors.append("ADVPN from IPsec selectors not yet available with BGP on loopback")
-
-        if context['shortcut_routing'] == 'dynamic_bgp':
-            minimumFOSversion = max(minimumFOSversion, 7_004_001)
-
         if context['vrf_aware_overlay']:
-            minimumFOSversion = max(minimumFOSversion, 7_002_000)
             for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_seg0', 'vrf_seg1', 'vrf_seg2'):
                 if context[vrf_name] > 251 or context[vrf_name] < 0:
                     poc_id = None; errors.append('VRF id must be within [0-251]')
