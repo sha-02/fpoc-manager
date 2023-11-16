@@ -259,7 +259,7 @@ def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
 
 def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     """
-    Render the configuration (Django template) and deploy it to the FGT
+    Render the configuration (Jinja2 template) and deploy it to the FGT
 
     :param request:
     :param poc:
@@ -323,7 +323,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
             raise CompletedDeviceProcessing
         else:
             device.apikey = None  # reset cached API key since there is no API key in the bootstrap config
-            raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to load the config and reboot
+            raise ReProcessDevice(sleep=120)  # Leave enough time for the FGT to load the config and reboot
 
     # Save this CLI configuration to disk
     save_config(poc.__class__.__name__, device, poc.id)
