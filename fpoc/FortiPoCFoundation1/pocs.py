@@ -619,6 +619,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         else:
             context['bgp_aggregation'] = True
 
+    if context['shortcut_routing'] == 'dynamic_bgp' and not context['cross_region_advpn']:
+        context['cross_region_advpn'] = True
+        messages.append("cross_region_advpn is <b>forced</b> because dynamic ADVPN BGP is used"
+                        "<br>Need to test if cross-region shortcuts can be controlled with network-id and auto-discovery-crossover")
+
     if context['shortcut_routing'] == 'ipsec_selectors':
         if context['cross_region_advpn']:
             messages.append("Cross-regional branch-to-remoteHub shortcuts are <b>not possible</b>. See comments with CLI settings.")
@@ -683,7 +688,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
         if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
             context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
-            messages.append("Bi-directional SD-WAN was requested: method was forced to 'remote-sla' which is the only "
+            messages.append("Bi-directional SD-WAN was requested: <b>method was forced to 'remote-sla'</b> which is the only "
                            "supported method with bgp-on-loopback")
 
         if context['vrf_aware_overlay']:
@@ -696,11 +701,14 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             if len(set(ce_vrfids)) != len(ce_vrfids):  # check if the CE VRF IDs are all unique
                 poc_id = None; errors.append('All CE VRF IDs must be unique')
 
-            if context['cross_region_advpn']:
-                messages.append("Cross-Regional ADVPN was requested but <b>this does not work</b> with VPNv4 eBGP next-hop-unchanged (tested with FOS 7.2.5)"
+            if context['cross_region_advpn'] and context['shortcut_routing'] == 'exchange_ip':
+                messages.append("Cross-Regional ADVPN based off BGP NH convergence was requested but <b>this does not work</b> with VPNv4 eBGP next-hop-unchanged (tested with FOS 7.2.5)"
                                 "<br>The BGP NH of VPNv4 prefixes is always set to the BGP loopback of the DC when advertised to eBGP peer"
                                 "<br>It breaks all cross-regional shortcut routing convergence: inter-region branch-to-branch and inter-region branch-to-DC")
-            messages.append("design choice: BGP Route-reflection (for ADVPN) is done only for VRFs BLUE and YELLOW. No RR (no ADPVPN) for VRF RED")
+
+            if context['bgp_route_reflection']:
+                messages.append("design choice: BGP Route-reflection (for ADVPN) is done only for VRFs BLUE and YELLOW. No RR (no ADPVPN) for VRF RED")
+
             messages.append("design choice: CE VRFs of WEST-BR1/BR2 have DIA while there is no DIA for the CE VRFs of EAST-BR1 (only RIA)")
 
 
