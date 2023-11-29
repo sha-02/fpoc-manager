@@ -225,13 +225,20 @@ $(document).ready(function(){
               <option value='all'>RIA over all overlays</option>
             </select>
             <br>
-            ADVPN shortcut routing <select name="shortcut_routing">
+            ADVPN Hub branch-to-branch routing <select name="br2br_routing">
+              <option value='fib'>Simple FIB lookup</option>
+              <option value='strict_overlay_stickiness' selected>Stick to same overlay</option>
+              <option value='hub_side_steering'>Leverage Hub-side steering</option>
+            </select>
+            ADVPN Branch shortcut routing <select name="shortcut_routing">
               <option value='no_advpn' >No ADVPN</option>
               <option value='exchange_ip' selected>BGP NH convergence with exchange-interface-ip</option>
               <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>
               <option value='dynamic_bgp'>Dynamic BGP peering (7.4.1+)</option>
             </select>
-            <input type="checkbox" name="cross_region_advpn" value=1 checked> Cross-Regional shortcuts
+            <br>
+            <input type="checkbox" name="advpnv2" value=0> ADVPN v2.0
+            <input type="checkbox" name="cross_region_advpn" value=1 checked> ADVPN Cross-Regional shortcuts
             <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
 
             <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation (7.2+) :

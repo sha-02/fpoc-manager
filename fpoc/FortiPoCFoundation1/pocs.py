@@ -566,12 +566,14 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         'cross_region_advpn': bool(request.POST.get('cross_region_advpn', False)),  # True or False
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+        'advpnv2': bool(request.POST.get('advpnv2', False)),  # True or False
         'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-251] VRF for Internet and MPLS links
         'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-251] VRF for IPsec tunnels
         'vrf_seg0': int(request.POST.get('vrf_seg0')),  # [0-251] port5 (no vlan) segment
         'vrf_seg1': int(request.POST.get('vrf_seg1')),  # [0-251] vlan segment
         'vrf_seg2': int(request.POST.get('vrf_seg2')),  # [0-251] vlan segment
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
+        'br2br_routing': request.POST.get('br2br_routing'),  # 'strict_overlay_stickiness', 'hub_side_steering', 'fib'
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'no_advpn', 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'per_overlay_legacy', 'on_loopback', 'no_bgp'
         'overlay': request.POST.get('overlay'),  # 'static' or 'mode_cfg'
@@ -600,6 +602,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         minimumFOSversion = max(minimumFOSversion, 7_002_001)
     if context['shortcut_routing'] == 'dynamic_bgp':
         minimumFOSversion = max(minimumFOSversion, 7_004_001)
+    if context['advpnv2']:
+        minimumFOSversion = max(minimumFOSversion, 7_004_002)
 
     if context['shortcut_routing'] == 'no_advpn':
         context['regional_advpn'] = context['cross_region_advpn'] = False
@@ -619,9 +623,20 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         else:
             context['bgp_aggregation'] = True
 
+    if context['advpnv2']:
+        context['br2br_routing'] = 'fib'
+        messages.append("ADVPN v2.0 no longer need any form of branch-to-branch routing strategy on the Hub "
+                        "(strict_overlay_stickiness or hub_side_steering). So Hub's br-2-br is set to basic 'fib'")
+
+    if context['shortcut_routing'] in ('ipsec_selectors', 'dynamic_bgp') and context['br2br_routing'] in ('strict_overlay_stickiness', 'fib'):
+        messages.append(f"Hub's branch-to-branch routing strategy '{context['br2br_routing']}' prevents shortcut switchover on "
+                f"remote SLA failures when there is no BGP route-reflection (a shortcut does not hide its parent). "
+                f"<b>Forcing</b> Hub's branch-to-branch routing to <b>hub_side_steering</b>")
+        context['br2br_routing'] = 'hub_side_steering'
+
     if context['shortcut_routing'] == 'dynamic_bgp' and not context['cross_region_advpn']:
         context['cross_region_advpn'] = True
-        messages.append("cross_region_advpn is <b>forced</b> because dynamic ADVPN BGP is used"
+        messages.append("cross_region_advpn is <b>forced</b> because dynamic BGP over shortcuts is used"
                         "<br>Need to test if cross-region shortcuts can be controlled with network-id and auto-discovery-crossover")
 
     if context['shortcut_routing'] == 'ipsec_selectors':
@@ -631,51 +646,62 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
             messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported with shortcuts from phase2 selectors")
 
-    if context['bidir_sdwan'] in ('none', 'route_tag'):  # 'or'
-        context['bgp_priority'] = None
+    #
+    # PoC 6 #####
 
     if context['bgp_design'] == 'per_overlay_legacy':  # BGP per overlay, legacy 6.4+ style
         poc_id = 6
         minimumFOSversion = max(minimumFOSversion, 6_004_000)
 
+    #
+    # PoC 9 #####
+
     if context['bgp_design'] == 'per_overlay':  # BGP per overlay, 7.0+ style
         poc_id = 9
         minimumFOSversion = max(minimumFOSversion, 7_000_000)
 
-        if context['shortcut_routing'] == 'dynamic_bgp':
-            poc_id = None  # TODO
-            errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
-
-        if context['shortcut_routing'] == 'ipsec_selectors':
-            # ADVPN shortcuts negotiated with phase2 selectors (no BGP RR)
-            poc_id = 7
-
-            if context['bidir_sdwan'] == 'remote_sla':
-                context['bidir_sdwan'] = 'route_priority'
-                messages.append("ADVPN from IPsec selectors <b>DOES NOT WORK</b> with bgp-per-overlay and remote-sla (see comment in code). <b>Forcing 'BGP priority'</b>")
-
-            if context['bidir_sdwan'] == 'none':  # Hub-side steering is required because shortcuts do not hide the parent
-                context['bidir_sdwan'] = 'route_priority'  # do not default to 'remote_sla' since it is broken with shortcuts based off IPsec selectors
-                messages.append("Bidirectional SDWAN was not requested. It is however <b>forced to enable</b> (with BGP priority) "
-                               "because it is needed: shortcuts do not hide the parent with ADVPN from IPsec selectors")
-
         if context['vrf_aware_overlay']:
             poc_id = None  # TODO
             errors.append("vrf_aware_overlay not yet available with BGP per overlay")
+
+        if context['full_mesh_ipsec']:
+            context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
+            messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is forced to 'False'")
+
+        if context['br2br_routing'] == 'hub_side_steering':
+            if context['bidir_sdwan'] == 'none':
+                context['bidir_sdwan'] = 'route_priority'
+                messages.append(f"Hub's branch-to-branch is set to '{context['br2br_routing']}' but Bidirectional SD-WAN is "
+                                f"not set. <b>Forcing</b> bidirectional sd-wan to <b>'BGP priority'</b>")
+
+            messages.append("'hub_side_steering' is only available for Hub's branch-to-branch routing within the same region. "
+                            "It is not yet available for branch-to-remoteRegion where only strict_overlay_stickiness "
+                            "is currently available over inter-regional tunnels")
+
+        if context['shortcut_routing'] == 'dynamic_bgp':
+            errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
+
+        if context['shortcut_routing'] == 'ipsec_selectors' and context['bidir_sdwan'] == 'remote_sla':
+            context['bidir_sdwan'] = 'route_priority'
+            messages.append("ADVPN from IPsec selectors <b>DOES NOT WORK with</b> bgp-per-overlay and <b>remote-sla</b>"
+                            " (see comment in code). <b>Forcing 'BGP priority'</b>")
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
             messages.append("Bidirectional SDWAN with 'remote-sla' was requested: <b>overlay is therefore forced to 'static'</b> since "
                            "remote-sla with bgp-per-overlay can only work with static-overlay IP@")
 
-        if context['full_mesh_ipsec']:
-            context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
-            messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is forced to 'False'")
-
     #
+    # PoC 10 #####
+
     if context['bgp_design'] == 'on_loopback':  # BGP on loopback, as of 7.0.4
         poc_id = 10
         minimumFOSversion = max(minimumFOSversion, 7_000_004)
+
+        if context['br2br_routing'] == 'hub_side_steering' and context['bidir_sdwan'] == 'none':
+            context['bidir_sdwan'] = 'remote_sla'
+            messages.append(f"Hub's branch-to-branch is set to '{context['br2br_routing']}' but Bidirectional SD-WAN is "
+                            f"not set. <b>Forcing</b> bidirectional sd-wan to <b>'remote-sla'</b>")
 
         if not context['multicast']:
             context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
@@ -711,6 +737,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
             messages.append("design choice: CE VRFs of WEST-BR1/BR2 have DIA while there is no DIA for the CE VRFs of EAST-BR1 (only RIA)")
 
+    #
+    # PoC x #####
 
     if context['bgp_design'] == 'no_bgp':  # No BGP, as of 7.2
         minimumFOSversion = max(minimumFOSversion, 7_002_000)
