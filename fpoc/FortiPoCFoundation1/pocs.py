@@ -630,7 +630,7 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     if context['shortcut_routing'] in ('ipsec_selectors', 'dynamic_bgp') and context['br2br_routing'] in ('strict_overlay_stickiness', 'fib'):
         messages.append(f"Hub's branch-to-branch routing strategy '{context['br2br_routing']}' prevents shortcut switchover on "
-                f"remote SLA failures when there is no BGP route-reflection (a shortcut does not hide its parent). "
+                f"remote SLA failures when there is no BGP route-reflection because a shortcut does not hide its parent. "
                 f"<b>Forcing</b> Hub's branch-to-branch routing to <b>hub_side_steering</b>")
         context['br2br_routing'] = 'hub_side_steering'
 
@@ -698,6 +698,11 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
         poc_id = 10
         minimumFOSversion = max(minimumFOSversion, 7_000_004)
 
+        if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
+            context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
+            messages.append("Bi-directional SD-WAN was requested: <b>method was forced to 'remote-sla'</b> which is the only "
+                           "supported method with bgp-on-loopback")
+
         if context['br2br_routing'] == 'hub_side_steering' and context['bidir_sdwan'] == 'none':
             context['bidir_sdwan'] = 'remote_sla'
             messages.append(f"Hub's branch-to-branch is set to '{context['br2br_routing']}' but Bidirectional SD-WAN is "
@@ -711,11 +716,6 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             if context['vrf_aware_overlay']:
                 messages.append(f"for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
                 context['vrf_pe'] = context['vrf_seg0'] = 0
-
-        if context['bidir_sdwan'] in ('route_tag', 'route_priority'):  # 'or'
-            context['bidir_sdwan'] = 'remote_sla'  # route_tag and route_priority only works with BGP per overlay
-            messages.append("Bi-directional SD-WAN was requested: <b>method was forced to 'remote-sla'</b> which is the only "
-                           "supported method with bgp-on-loopback")
 
         if context['vrf_aware_overlay']:
             for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_seg0', 'vrf_seg1', 'vrf_seg2'):
