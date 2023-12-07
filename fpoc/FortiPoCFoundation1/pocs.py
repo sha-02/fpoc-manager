@@ -678,8 +678,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                             "It is not yet available for branch-to-remoteRegion where only strict_overlay_stickiness "
                             "is currently available over inter-regional tunnels")
 
-        if context['shortcut_routing'] == 'dynamic_bgp':
-            errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
+        # if context['shortcut_routing'] == 'dynamic_bgp':
+        #     errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
 
         if context['shortcut_routing'] == 'ipsec_selectors' and context['bidir_sdwan'] == 'remote_sla':
             context['bidir_sdwan'] = 'route_priority'
