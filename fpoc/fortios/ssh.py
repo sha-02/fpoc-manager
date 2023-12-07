@@ -48,7 +48,9 @@ def ssh_logon(device: FortiGate):
 
     return ssh
 
-
+# DEPRECATED:
+# Replaced by API authentication based on username-password to retrieve an access_token
+# Creation of an api-user via SSH is no longer needed
 def create_api_admin(device: FortiGate):
     """
     Create an API admin and retrieve an API key for this admin

@@ -10,7 +10,10 @@ from config.settings import PATH_FPOC_FIRMWARE
 from fpoc import FortiGate
 from fpoc import StopProcessingDevice
 
-# TODO:
+# FGT use self-signed certificate => De-activate the TLS warnings.
+urllib3.disable_warnings()
+
+
 #
 # API authentication based on username-password instead of API token
 # https://fndn.fortinet.net/index.php?/fortiapi/1-fortios/596/
@@ -22,9 +25,30 @@ from fpoc import StopProcessingDevice
 # and optional trusted-host for API admin was introduced in 6.4.2:
 # https://mantis.fortinet.com/bug_view_page.php?bug_id=0647762
 #
+def retrieve_access_token(device: FortiGate) -> str:
+    """
+    Retrieve an access_token using APIv2 admin/password authentication without the need to create an API admin (api-user) via SSH
 
-# FGT use self-signed certificate => De-activate the TLS warnings.
-urllib3.disable_warnings()
+    :param device:
+    :return:
+    """
+
+    url = f"https://{device.ip}:{device.https_port}/api/v2/authentication"
+
+    payload = {'username': device.username, 'secretkey': device.password, 'ack_post_disclaimer': True, 'request_key': True }
+    response = requests.request("POST", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+                                verify=False)
+
+    if response.status_code != 200:
+        # API access failed => skip this device
+        raise StopProcessingDevice(f'{device.name} : failure to retrieve an access_token using APIv2 admin/password authentication'
+                                   f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
+
+    response_json = response.json()
+    # pprint(response_json)
+
+    # return the access_token
+    return response_json['session_key']
 
 
 def retrieve_hostname(device: FortiGate) -> str:
@@ -48,7 +72,6 @@ def retrieve_hostname(device: FortiGate) -> str:
     response_json = response.json()
     # pprint(response_json)
 
-    # Updates the FOS version => string returned by JSON is e.g. "v6.4.4", so need to only keep "6.4.4"
     return response_json['results']['hostname']
 
 
