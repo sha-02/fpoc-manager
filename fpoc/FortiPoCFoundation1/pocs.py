@@ -857,7 +857,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.12.1
                     'mpls': FortiPoCFoundation1.devices['FGT-A'].wan.mpls1.subnet + '.1',  # 10.0.14.1
                     'lan': lan_segment(segments_devices['WEST-DC1'])['ip'],
-                    'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None
+                    # 'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None
+                    'loopback': dc_loopbacks['WEST-DC1']
                 }
 
     west_dc2_ = {
@@ -866,7 +867,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
                     'mpls': FortiPoCFoundation1.devices['FGT-B'].wan.mpls1.subnet + '.2',  # 10.0.24.2
                     'lan': lan_segment(segments_devices['WEST-DC2'])['ip'],
-                    'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None
+                    # 'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None
+                    'loopback': dc_loopbacks['WEST-DC2']
                 }
 
     east_dc1_ = {
@@ -875,7 +877,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.3',  # 100.64.122.3
                     'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.3',  # 10.0.124.3
                     'lan': lan_segment(segments_devices[east_dc_['name']])['ip'],
-                    'loopback': dc_loopbacks['EAST-DC1'] if poc_id==10 else None
+                    # 'loopback': dc_loopbacks['EAST-DC1'] if poc_id==10 else None
+                    'loopback': dc_loopbacks['EAST-DC1']
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
@@ -884,7 +887,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCFoundation1.devices['FGT-B_sec'].wan.inet2.subnet + '.4',  # 100.64.122.4
                     'mpls': FortiPoCFoundation1.devices['FGT-B_sec'].wan.mpls1.subnet + '.4',  # 10.0.124.4
                     'lan': '0.0.0.0',
-                    'loopback': dc_loopbacks['EAST-DC2'] if poc_id==10 else None
+                    # 'loopback': dc_loopbacks['EAST-DC2'] if poc_id==10 else None
+                    'loopback': dc_loopbacks['EAST-DC2']
                 }
 
     datacenters = {
@@ -917,7 +921,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1,
-                                           'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None,
+                                           # 'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None,
+                                           'loopback': dc_loopbacks['WEST-DC1'],
                                            'lan': lan_segment(segments_devices['WEST-DC1']),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-DC1'],context),
                                            'inter_segments': inter_segments,
@@ -925,7 +930,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 2,
-                                           'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None,
+                                           # 'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None,
+                                           'loopback': dc_loopbacks['WEST-DC2'],
                                            'lan': lan_segment(segments_devices['WEST-DC2']),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-DC2'],context),
                                            'inter_segments': inter_segments,
@@ -933,7 +939,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 1,
-                                           'loopback': '10.200.1.1' if poc_id==10 else None,
+                                           # 'loopback': '10.200.1.1' if poc_id==10 else None,
+                                           'loopback': '10.200.1.1',
                                            'lan': lan_segment(segments_devices['WEST-BR1']),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-BR1'],context),
                                            'direct_internet_access': True, 'inter_segments': inter_segments,
@@ -941,7 +948,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 2,
-                                           'loopback': '10.200.1.2' if poc_id==10 else None,
+                                           # 'loopback': '10.200.1.2' if poc_id==10 else None,
+                                           'loopback': '10.200.1.2',
                                            'lan': lan_segment(segments_devices['WEST-BR2']),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-BR2'],context),
                                            'direct_internet_access': True, 'inter_segments': inter_segments,
@@ -949,7 +957,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'],
-                                          'loopback': dc_loopbacks['EAST-DC1'] if poc_id == 10 else None,
+                                          # 'loopback': dc_loopbacks['EAST-DC1'] if poc_id == 10 else None,
+                                          'loopback': dc_loopbacks['EAST-DC1'],
                                           'lan': lan_segment(segments_devices[east_dc_['name']]),
                                           'vrf_segments': vrf_segments(segments_devices[east_dc_['name']], context),
                                           'inter_segments': inter_segments,
@@ -957,7 +966,8 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     east_br = FortiGate(name=east_br_['name'], template_group='BRANCHES',
                         template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'],
-                                          'loopback': '10.200.2.1' if poc_id == 10 else None,
+                                          # 'loopback': '10.200.2.1' if poc_id == 10 else None,
+                                          'loopback': '10.200.2.1',
                                           'lan': lan_segment(segments_devices[east_br_['name']]),
                                           'vrf_segments': vrf_segments(segments_devices[east_br_['name']], context),
                                           'direct_internet_access': False, 'inter_segments': {}, # inter_segments,
