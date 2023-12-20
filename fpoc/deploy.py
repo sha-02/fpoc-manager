@@ -98,7 +98,8 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
     Deploy the configuration for a device
 
     """
-    print('=' * 50, f'{device.name} : Processing device', '=' * 50)
+    # print('=' * 50, f'{device.name} : Processing device', '=' * 50)
+    print(f'{device.name} : Processing device')
     nb_failures = 0
 
     while True:  # a device may require multiple deployment attempts
