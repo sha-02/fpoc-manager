@@ -624,15 +624,16 @@ def sdwan_advpn_dualdc(request: WSGIRequest) -> HttpResponse:
             context['bgp_aggregation'] = True
 
     if context['advpnv2']:
-        context['br2br_routing'] = 'fib'
-        messages.append("ADVPN v2.0 no longer need any form of branch-to-branch routing strategy on the Hub "
-                        "(strict_overlay_stickiness or hub_side_steering). So Hub's br-2-br is set to basic 'fib'")
-
-    if context['shortcut_routing'] in ('ipsec_selectors', 'dynamic_bgp') and context['br2br_routing'] in ('strict_overlay_stickiness', 'fib'):
-        messages.append(f"Hub's branch-to-branch routing strategy '{context['br2br_routing']}' prevents shortcut switchover on "
-                f"remote SLA failures when there is no BGP route-reflection because a shortcut does not hide its parent. "
-                f"<b>Forcing</b> Hub's branch-to-branch routing to <b>hub_side_steering</b>")
-        context['br2br_routing'] = 'hub_side_steering'
+        if context['br2br_routing'] != 'fib':
+            context['br2br_routing'] = 'fib'
+            messages.append("ADVPN v2.0 no longer need any form of branch-to-branch routing strategy on the Hub. "
+                            "So <b>Hub's br-2-br is forced to 'Simple FIB lookup'</b>")
+    else:
+        if context['shortcut_routing'] in ('ipsec_selectors', 'dynamic_bgp') and context['br2br_routing'] in ('strict_overlay_stickiness', 'fib'):
+            messages.append(f"Hub's branch-to-branch routing strategy '{context['br2br_routing']}' prevents shortcut switchover on "
+                    f"remote SLA failures when there is no BGP route-reflection because a shortcut does not hide its parent. "
+                    f"<b>Forcing</b> Hub's branch-to-branch routing to <b>hub_side_steering</b>")
+            context['br2br_routing'] = 'hub_side_steering'
 
     if context['shortcut_routing'] == 'dynamic_bgp' and not context['cross_region_advpn']:
         context['cross_region_advpn'] = True
