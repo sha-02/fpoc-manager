@@ -1,4 +1,8 @@
 {
+  "7.4.2": {
+    "build": "2571",
+    "filename": "FGT_VM64_KVM-v7.4.2.F-build2571-FORTINET.out"
+  },
   "7.4.1": {
     "build": "2463",
     "filename": "FGT_VM64_KVM-v7.4.1.F-build2463-FORTINET.out"
