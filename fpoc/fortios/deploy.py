@@ -89,15 +89,16 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # firmware filename can also be prefixed by the version. So filename can be, for e.g.:
     # - 'FGT_VM64_KVM-v6-build1911-FORTINET.out'
     # - or '6.4.7_FGT_VM64_KVM-v6-build1911-FORTINET.out'
-    for firmware in (firmwares[fos_version_target]["filename"],
-                     fos_version_target + '_' + firmwares[fos_version_target]["filename"]):
+    firmware_names = ( device.model + firmwares[fos_version_target]["trailername"],
+                       fos_version_target + '_' + device.model + firmwares[fos_version_target]["trailername"] )
+    for firmware_name in firmware_names:
         try:
-            with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', "rb"):
+            with open(f'{PATH_FPOC_FIRMWARE}/{firmware_name}', "rb"):   # Check if firmware file exists
                 break
         except FileNotFoundError:
             pass
     else:
-        print(f'{device.name} : Firmware not found in folder {PATH_FPOC_FIRMWARE}')
+        print(f'{device.name} : Firmware {fos_version_target} for model {device.model} not found in folder {PATH_FPOC_FIRMWARE}')
         lock.release()
         raise StopProcessingDevice
         # print(f'{device.name} : Downloading firmware image from store... ')
@@ -108,9 +109,9 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # release the lock so that other treads can now check the existence of the firmware file
     lock.release()
 
-    print(f'{device.name} : Found firmware {firmware} in folder {PATH_FPOC_FIRMWARE}')
+    print(f'{device.name} : Found firmware {fos_version_target} for model {device.model} in folder {PATH_FPOC_FIRMWARE}')
     print(f'{device.name} : Uploading firmware... ')
-    fortios.upload_firmware(device, firmware)
+    fortios.upload_firmware(device, firmware_name)
     print(f'{device.name} : Firmware uploaded.')
 
 

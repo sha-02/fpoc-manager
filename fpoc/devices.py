@@ -159,6 +159,7 @@ class FortiGate_HA:
 
 @dataclass
 class FortiGate(Device):
+    model: str = "FGT_VM64_KVM"   # FGT model as displayed in the firmware filename
     apiadmin: str = None  # username for the API admin
     apikey: str = None  # API key for the API admin
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
