@@ -13,7 +13,7 @@ import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
 from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS, FortiManager
-from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment
+from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
 
 
 def start(request: WSGIRequest, poc: TypePoC) -> list:
@@ -127,7 +127,7 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
             return None
 
         # except (ConnectionError, Timeout, TimeoutError, RemoteDisconnected, NetmikoTimeoutException) as ex:
-        except Exception as ex:
+        except (RetryProcessingDevice, Exception) as ex:
             nb_failures += 1
             if nb_failures >= 5:
                 print(f'\n{device.name} : *** ERROR ***', ex, f' *** limit of 5 failures is reached, '
@@ -135,8 +135,11 @@ def deploy_config(request: WSGIRequest, poc: TypePoC, device: TypeDevice):
                 device.deployment_status = 'skipped'
                 break  # exit the 'while True' loop to process the next device
 
-            print(f'\n{device.name} : error - ', ex,
-                  f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
+            print(f'\n{device.name} : error (#{nb_failures}/5)- ', ex)
+            if "401 Unauthorized" in str(ex):
+                print(f'\n{device.name} : Authentication error happened, flushing API key before retrying')
+                device.apikey = None
+            print(f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
             time.sleep(15)
             print(f'{device.name} : Processing device once again')  # before reprocessing the device
 

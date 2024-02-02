@@ -18,7 +18,7 @@ def prepare_api(device: FortiGate):
     """
 
     # Checks if an API key is associated to the FGT. If no, create API admin/key on the FGT via SSH.
-    print(f'{device.name} : Checking if FGT has an API key')
+    # print(f'{device.name} : Checking if FGT has an API key')
 
     if not device.apikey:
         # There is no API key (access_token) for this FGT. Get it via APIv2 using admin/password
