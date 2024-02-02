@@ -196,7 +196,7 @@ def render_bootstrap_config(device: FortiGate):
 
     # Check if there is a bootstrap config for this FOS firmware on the disk (file name e.g. '6.4.6.out')
     try:
-        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{device.fos_version}.conf', mode='r') as f:
+        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf', mode='r') as f:
             f.read()
     except:
         print(
@@ -212,7 +212,7 @@ def render_bootstrap_config(device: FortiGate):
     device.template_context['HA'] = device.ha
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.fos_version}.conf',
+    device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf',
                                             device.template_context, using='jinja2')
 
 
