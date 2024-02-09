@@ -101,7 +101,7 @@ $(document).ready(function(){
       </button>
     </h2>
   </div>
-  <div id="collapse-0" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
+  <div id="collapse-0" class="collapse show" aria-labelledby="heading-0" data-parent="#accordionPoC"> <!-- 'show' in class to ensure it is opened by default -->
     <div class="card-body">
       <!-- 'Bootstrap' form -->
       <form id="formFortiPoCSDWAN" method="post" onsubmit="collectFortiPoCElements(this.id)">
@@ -140,114 +140,62 @@ $(document).ready(function(){
             </div>
           </div>
         </fieldset>
-        <br>
+
         <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices" formaction="{% url 'sdwan:poweron' %}">Power-On Devices</button>
         <button type="submit" class="btn btn-warning btn-sm" title="Upgrade/Downgrade FortiGates" formaction="{% url 'sdwan:upgrade' %}">Upgrade FortiGates</button>
         <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'sdwan:bootstrap' %}" >Deploy Bootstrap Config to FortiGates</button>
-<!--      </form>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</div>-->
-
-  <!-- ========================================================================================================= -->
-  <!-- SDWAN + ADVPN -->
-  <!-- ========================================================================================================= -->
-<!--  <div class="card">-->
-<!--  <div class="card-header" id="heading-4">-->
-<!--    <h2 class="mb-0">-->
-<!--      <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse-4" aria-expanded="false" aria-controls="collapse-4">-->
-<!--        SDWAN + ADVPN-->
-<!--      </button>-->
-<!--    </h2>-->
-<!--  </div>-->
-<!--  <div id="collapse-4" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">-->
-    <div class="card-body">
-<!--      <h5>Dual DC & Dual Region</h5>-->
-      <form id="formSDWANADVPN" method="post" onsubmit="collectFortiPoCElements(this.id)">
-        {% csrf_token %}
-<!--          <fieldset>-->
-<!--            FGT-->
-<!--            <input type="checkbox" name="FGT-A" checked>West DC-1-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)"></span>-->
-<!--            <input type="checkbox" name="FGT-B" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">West DC-2</span>-->
-<!--            <input type="checkbox" name="FGT-C" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">West Branch-1</span>-->
-<!--            <input type="checkbox" name="FGT-D" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-D)">West Branch-2</span>-->
-<!--            <input type="checkbox" name="FGT-B_sec" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-B_sec)">East DC</span>-->
-<!--            <input type="checkbox" name="FGT-D_sec" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(FGT-D_sec)">East Branch</span>-->
-<!--            <input type="checkbox" name="SRV_INET" style="display:none" checked>-->
-<!--          </fieldset>-->
-<!--          <fieldset>-->
-<!--            LXC-->
-<!--            <input type="checkbox" name="PC_A1" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">West DC-1</span>-->
-<!--            <input type="checkbox" name="PC_B1" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">West DC-2</span>-->
-<!--            <input type="checkbox" name="PC_C1" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">West Branch-1</span>-->
-<!--            <input type="checkbox" name="PC_D1" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_D1)">West Branch-2</span>-->
-<!--            <input type="checkbox" name="PC_B2" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">East DC</span>-->
-<!--            <input type="checkbox" name="PC_D2" checked>-->
-<!--              <span data-toggle="tooltip" data-placement="top" title="(PC_D2)">East Branch</span>-->
-<!--          </fieldset>-->
+        <br><br>
+        <fieldset>
+          BGP design <select name="bgp_design">
+            <option value='on_loopback' selected>BGP on loopback (7.0.4+)</option>
+            <option value='per_overlay'>BGP per overlay (7.0+)</option>
+            <option value='no_bgp'>No BGP (7.2+)</option>
+            <option disabled>----------------------</option>
+            <option value='per_overlay_legacy'>BGP per overlay legacy (6.4+)</option>
+          </select>
+          Overlay <select name="overlay">
+            <option value='mode_cfg' selected>Dynamic (Mode-Config)</option>
+            <option value='static'>static (exchange-interface-ip)</option>
+          </select>
           <br>
-          <fieldset>
-            BGP design <select name="bgp_design">
-              <option value='on_loopback' selected>BGP on loopback (7.0.4+)</option>
-              <option value='per_overlay'>BGP per overlay (7.0+)</option>
-              <option value='no_bgp'>No BGP (7.2+)</option>
-              <option disabled>----------------------</option>
-              <option value='per_overlay_legacy'>BGP per overlay legacy (6.4+)</option>
-            </select>
-            Overlay <select name="overlay">
-              <option value='mode_cfg' selected>Dynamic (Mode-Config)</option>
-              <option value='static'>static (exchange-interface-ip)</option>
-            </select>
-            <br>
-            Hub-side Steering <select name="bidir_sdwan">
-              <option value='none'>No Hub-side steering</option>
-              <option value='route_tag'>SD-WAN route-tags from BGP community</option>
-              <option value='route_priority'>BGP priority from BGP community (7.2+)</option>
-              <option value='remote_sla' selected>BGP priority from SD-WAN remote-sla (7.2.1+)</option>
-            </select>
-            <br>
-            Remote Internet Access <select name="remote_internet">
-              <option value='none'>DIA only</option>
-              <option value='mpls' selected>RIA over MPLS</option>
-              <option value='all'>RIA over all overlays</option>
-            </select>
-            <br>
-            ADVPN Hub branch-to-branch routing <select name="br2br_routing">
-              <option value='fib'>Simple FIB lookup</option>
-              <option value='strict_overlay_stickiness' selected>Stick to same overlay</option>
-              <option value='hub_side_steering'>Leverage Hub-side steering</option>
-            </select>
-            ADVPN Branch shortcut routing <select name="shortcut_routing">
-              <option value='no_advpn' >No ADVPN</option>
-              <option value='exchange_ip' selected>BGP NH convergence with exchange-interface-ip</option>
-              <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>
-              <option value='dynamic_bgp'>Dynamic BGP peering (7.4.1+)</option>
-            </select>
-            <br>
-            <input type="checkbox" name="advpnv2" value=0> ADVPN v2.0
-            <input type="checkbox" name="cross_region_advpn" value=1 checked> ADVPN Cross-Regional shortcuts
-            <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
+          Hub-side Steering <select name="bidir_sdwan">
+            <option value='none'>No Hub-side steering</option>
+            <option value='route_tag'>SD-WAN route-tags from BGP community</option>
+            <option value='route_priority'>BGP priority from BGP community (7.2+)</option>
+            <option value='remote_sla' selected>BGP priority from SD-WAN remote-sla (7.2.1+)</option>
+          </select>
+          <br>
+          Remote Internet Access <select name="remote_internet">
+            <option value='none'>DIA only</option>
+            <option value='mpls' selected>RIA over MPLS</option>
+            <option value='all'>RIA over all overlays</option>
+          </select>
+          <br>
+          ADVPN Hub branch-to-branch routing <select name="br2br_routing">
+            <option value='fib'>Simple FIB lookup</option>
+            <option value='strict_overlay_stickiness' selected>Stick to same overlay</option>
+            <option value='hub_side_steering'>Leverage Hub-side steering</option>
+          </select>
+          ADVPN Branch shortcut routing <select name="shortcut_routing">
+            <option value='no_advpn' >No ADVPN</option>
+            <option value='exchange_ip' selected>BGP NH convergence with exchange-interface-ip</option>
+            <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>
+            <option value='dynamic_bgp'>Dynamic BGP peering (7.4.1+)</option>
+          </select>
+          <br>
+          <input type="checkbox" name="advpnv2" value=0> ADVPN v2.0
+          <input type="checkbox" name="cross_region_advpn" value=1 checked> ADVPN Cross-Regional shortcuts
+          <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
 
-            <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation (7.2+) :
-            Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="32">
-            Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="32">
-            port5/seg0/BLUE <input type="text" name="vrf_seg0" maxlength="3" size="3" value="3">
-            seg1/YELLOW <input type="text" name="vrf_seg1" maxlength="3" size="3" value="1">
-            seg2/RED <input type="text" name="vrf_seg2" maxlength="3" size="3" value="2">
+          <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation (7.2+) :
+          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="32">
+          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="32">
+          port5/seg0/BLUE <input type="text" name="vrf_seg0" maxlength="3" size="3" value="3">
+          seg1/YELLOW <input type="text" name="vrf_seg1" maxlength="3" size="3" value="1">
+          seg2/RED <input type="text" name="vrf_seg2" maxlength="3" size="3" value="2">
 
-            <br><input type="checkbox" name="multicast" value=0> Multicast routing (only BLUE VRF if VRF segmentation)
-          </fieldset>
+          <br><input type="checkbox" name="multicast" value=0> Multicast routing (only BLUE VRF if VRF segmentation)
+        </fieldset>
         <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion' %}" formaction="{% url 'sdwan:dualdc_dualregion' %}" >Start</button>
       </form>
@@ -255,6 +203,47 @@ $(document).ready(function(){
   </div>
 </div>
 
+  <!-- ========================================================================================================= -->
+  <!-- Network Design FortiPoC #10 (BGP on loopback) -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+  <div class="card-header" id="heading-10">
+    <h2 class="mb-0">
+      <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-10" aria-expanded="true" aria-controls="collapse-10">
+        Network Diagram FortiPoC #10 (BGP on loopback)
+      </button>
+    </h2>
+  </div>
+  <div id="collapse-10" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
+    <div class="card-body">
+      <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+        <img src="{% static 'images/poc_10.png' %}" class="img-fluid" alt="PoC10 design"/>
+        <p class="lead">PoC#10 - BGP on loopback</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ========================================================================================================= -->
+  <!-- Network Design FortiPoC #9 (BGP per overlay) -->
+  <!-- ========================================================================================================= -->
+  <div class="card">
+  <div class="card-header" id="heading-9">
+    <h2 class="mb-0">
+      <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-9" aria-expanded="true" aria-controls="collapse-9">
+        Network Design FortiPoC #9 (BGP per overlay)
+      </button>
+    </h2>
+  </div>
+  <div id="collapse-9" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
+    <div class="card-body">
+      <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+        <img src="{% static 'images/poc_9.png' %}" class="img-fluid" alt="PoC9 design"/>
+        <p class="lead">PoC#9 - BGP per overlay</p>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
 {% endblock content %}
