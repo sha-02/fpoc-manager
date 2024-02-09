@@ -38,7 +38,7 @@
   "7.0.14": {
     "build": "0601",
     "trailername": "-v7.0.14.M-build0601-FORTINET.out"
-  },
+  }
 //  "7.0.13": {
 //    "build": "0566",
 //    "trailername": "-v7.0.13.M-build0566-FORTINET.out"
