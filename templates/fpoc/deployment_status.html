@@ -51,7 +51,7 @@
     <h3>No configuration was generated</h3>
 {% endfor %}
 
-{% if fortimanager %}
+{% if fortimanager|default:false %}
     <h3>Jinja script for FortiManager Provisioning Templates</h3>
     {{fortimanager|safe}}
 {% endif %}

@@ -1,5 +1,4 @@
 from netmiko import NetmikoAuthenticationException
-from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
 import os.path
 
@@ -7,14 +6,13 @@ import os.path
 from config.settings import PATH_FPOC_TEMPLATES
 from fpoc import TypePoC, VyOS
 
-import netmiko, paramiko
+import netmiko
 
 
-def deploy(request: WSGIRequest, poc: TypePoC, device: VyOS):
+def deploy(poc: TypePoC, device: VyOS):
     """
     Render the configuration (Django template) and deploy it
 
-    :param request:
     :param poc:
     :param device:
     :return:
@@ -35,7 +33,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: VyOS):
 
     # Deploy the config
     #
-    if request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
+    if poc.request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
         return None  # No more processing needed for this FGT
 
     # Run the CLI settings on the LXC

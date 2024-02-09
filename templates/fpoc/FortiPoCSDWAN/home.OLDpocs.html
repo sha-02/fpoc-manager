@@ -1,0 +1,69 @@
+      <hr>
+      <h5>Single Hub</h5>
+      <form id="formMultiPathIPsec2" method="post" onsubmit="collectFortiPoCElements(this.id)">
+        {% csrf_token %}
+          <fieldset>
+            FGT
+            <input type="checkbox" name="FGT-A" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-A)">DataCenter</span>
+            <input type="checkbox" name="FGT-B" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-B)">Branch-1</span>
+            <input type="checkbox" name="FGT-C" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(FGT-C)">Branch-2</span>
+            HA <select name="HA">
+              <option value="standalone" selected>standalone</option>
+              <option value="FGCP">FGCP</option>
+            </select>
+            <br>LXC
+            <input type="checkbox" name="PC_A1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_A1)">DataCenter</span>
+            <input type="checkbox" name="PC_B1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">Branch-1</span>
+            <input type="checkbox" name="PC_C1" checked>
+              <span data-toggle="tooltip" data-placement="top" title="(PC_C1)">Branch-2</span>
+            <input type="hidden" name="FGT-A_sec" value="FGT-A_sec">
+            <input type="hidden" name="FGT-B_sec" value="FGT-B_sec">
+            <input type="hidden" name="FGT-C_sec" value="FGT-C_sec">
+          </fieldset>
+          <br>
+          <div class="row">
+            <div class="col">
+              <b>FortiOS 7.0+</b>
+              <fieldset>
+                Remote Internet Access <select name="remote_internet">
+                  <option value='none'>DIA only</option>
+                  <option value='mpls' selected>RIA over MPLS</option>
+                  <option value='all'>RIA over all overlays</option>
+                </select>
+                <br><input type="checkbox" name="vrf_aware_overlay" value=1> VRF-aware overlay (7.2+)
+              </fieldset>
+              <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:singlehub_fos70' %}" formaction="{% url 'sdwan:singlehub_fos70' %}">BGP per overlay</button>
+            </div>
+            <div class="col">
+              <b>FortiOS 6.2+</b>
+              <fieldset>
+                Overlay <select name="overlay">
+                  <option value='static'>static (exchange-interface-ip)</option>
+                  <option value='modecfg' selected>Dynamic (Mode-Config)</option>
+                </select>
+              </fieldset>
+              <fieldset>
+                Duplicate Add-Paths <select name="duplicate_paths">
+                  <option value='keep_duplicates' selected>Keep duplicates</option>
+                  <option value='onnet_pref_spokes'>On-net preference on the Spokes</option>
+                  <option value='offnet_filter_hub'>Off-net filtering on the Hub</option>
+                </select>
+                <br><input type="checkbox" name="override_with_hub_nexthop" value=1> Override off-net prefixes with the Hub's BGP Next-Hop
+              </fieldset>
+              <fieldset>
+                Branches overlay static routes <select name="feasible_routes">
+                  <option value='none' selected>No feasible route</option>
+                  <option value='rfc1918'>RFC1918 routes</option>
+                  <option value='remote_internet_all'>Default route (RBO/RIA) for all overlays</option>
+                  <option value='remote_internet_mpls' selected>Default route (RBO/RIA) for MPLS</option>
+                </select>
+              </fieldset>
+              <button type="submit" class="btn btn-warning btn-sm" title="{% url 'sdwan:singlehub_fos62' %}" formaction="{% url 'sdwan:singlehub_fos62' %}">Start</button>
+            </div>
+          </div>
+      </form>

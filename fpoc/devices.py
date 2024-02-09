@@ -61,6 +61,9 @@ class Network:
     def __init__(self, network: str):
         self.network = network
 
+    def __repr__(self):
+        return f'{self.network}'
+
     def dictify(self):
         return self.__dict__
 
@@ -100,16 +103,16 @@ class WAN:
 
 @dataclass
 class Device:
-    offset: int = None  # Offset of this device in the FortiPoC (used for SSH/HTTPS mgmt port)
+    offset: int = None  # Offset of this device if inside a FortiPoC (used to derive SSH/HTTPS external port)
 
-    ip: str = None  # IP@ used to access the device = IP@ of the FortiPoC or mgmt_ip of the device within FortiPoC
-    ssh_port: int = None  # e.g., 10100+offset (access from FortiPoC IP) or 22 (access from within FortiPoC)
-    https_port: int = None  # e.g., 10400+offset (access from FortiPoC IP) or 443 (access from within FortiPoC)
+    ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/fortipoc IP)
+    ssh_port: int = 22  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
+    https_port: int = 443  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
 
-    mgmt: Interface = None  # (port, vlanid, ipaddress/mask) for the OOB mgmt inside the FortiPoC (eg, ('port10', 0, '172.16.31.1/24'))
-    mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the OOB mgmt subnet inside the FortiPoC (eg, '172.16.31.254/24')
+    mgmt: Interface = None  # mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
+    mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the mgmt subnet inside FortiPoC (eg, '172.16.31.254/24')
 
-    name: str = None  # Name of the device for the poc
+    name: str = None  # Name configured on the device
     name_fpoc: str = None  # Name of the device in the FortiPoC
     username: str = None  # username for SSH session
     password: str = None  # password for SSH session
@@ -129,9 +132,8 @@ class Device:
 
     @property
     def mgmt_fpoc_ip(self):
-        """
-        """
-        return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed  # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
+        # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
+        return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed
 
 
 @dataclass
@@ -165,6 +167,7 @@ class FortiGate(Device):
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
     ha: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
+    lan: Interface = None  # used to define the LAN connectivity (eg, "port5")
     wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
 
     def __post_init__(self):  # Apply default values
@@ -180,12 +183,16 @@ class FortiGate(Device):
         self.apiadmin = 'adminapi'
         self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
-    @property
-    def FOS(self):  # long integer of the fos_version, e.g. "6.0.13" returns 6_000_013 (used for django template)
-        """
-        """
-        major, minor, patch = self.fos_version.split('.')
+    @classmethod
+    def FOS_int(cls, fos_version: str):
+        # converts a FOS version string "6.0.13" to a long integer 6_000_013
+        major, minor, patch = fos_version.split('.')
         return int(major) * 1_000_000 + int(minor) * 1_000 + int(patch)
+
+    @property
+    def FOS(self):
+        # long integer of the fos_version, e.g. 6_000_013 for 6.0.13, used in django templates to compare FOS versions
+        return self.__class__.FOS_int(self.fos_version)
 
 
 @dataclass

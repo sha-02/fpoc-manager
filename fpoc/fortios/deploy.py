@@ -1,4 +1,3 @@
-from django.core.handlers.wsgi import WSGIRequest
 from django.template import loader
 from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
 import threading
@@ -42,7 +41,7 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
     Retrieves the FOS version running on the FGT and updates device.fos_version accordingly
     :param device:
     :param fos_version_target: FOS version requested by user (e.g. "6.4.6"). Empty string ('')' if no FOS version is preferred
-    :param fos_version_minimum: minimum FOS version which must be running on the FGT (imposed by the feature set). integer (e.g., 7_002_000)
+    :param FOS_minimum: minimum FOS version which must be running on the FGT (imposed by the feature set). integer (e.g., 7_002_000)
     :param lock: mutual exclusion (mutex) lock used to download and store missing firmware
     :return:
     """
@@ -89,8 +88,8 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # firmware filename can also be prefixed by the version. So filename can be, for e.g.:
     # - 'FGT_VM64_KVM-v6-build1911-FORTINET.out'
     # - or '6.4.7_FGT_VM64_KVM-v6-build1911-FORTINET.out'
-    firmware_names = ( device.model + firmwares[fos_version_target]["trailername"],
-                       fos_version_target + '_' + device.model + firmwares[fos_version_target]["trailername"] )
+    firmware_names = (device.model + firmwares[fos_version_target]["trailername"],
+                       fos_version_target + '_' + device.model + firmwares[fos_version_target]["trailername"])
     for firmware_name in firmware_names:
         try:
             with open(f'{PATH_FPOC_FIRMWARE}/{firmware_name}', "rb"):   # Check if firmware file exists
@@ -265,11 +264,10 @@ def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
         print(f'{device.name} : full-config saved to {filename}')
 
 
-def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
+def deploy(poc: TypePoC, device: FortiGate):
     """
     Render the configuration (Jinja2 template) and deploy it to the FGT
 
-    :param request:
     :param poc:
     :param device:
     :return:
@@ -277,13 +275,13 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
 
     # Prepare the FGT: API admin, API key and FortiOS version
     #
-    if request.POST.get('previewOnly') and request.POST.get('targetedFOSversion'):
-        device.fos_version = request.POST['targetedFOSversion']  # FOS version assigned to FGTs for config rendering
+    if poc.request.POST.get('previewOnly') and poc.request.POST.get('targetedFOSversion'):
+        device.fos_version = poc.request.POST['targetedFOSversion']  # FOS version assigned to FGTs for config rendering
     else:
         prepare_api(device)  # create API admin and key if needed
         # ensure FGT runs the desired FortiOS version if user asked for a specific FOS version
-        prepare_fortios_version(device, fos_version_target=request.POST['targetedFOSversion'],
-                                FOS_minimum=request.fpoc.get('FOS_minimum', 0) if hasattr(request, 'fpoc') else 0,
+        prepare_fortios_version(device, fos_version_target=poc.request.POST['targetedFOSversion'],
+                                FOS_minimum=poc.minimum_FOS_version,
                                 lock=poc.lock)
 
     # Special PoC which only uploads bootstrap config to the FGT
@@ -292,7 +290,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
         device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt.ip if any(
             (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
         render_bootstrap_config(device)
-        if not request.POST.get('previewOnly'):
+        if not poc.request.POST.get('previewOnly'):
             upload_bootstrap_config(device)  # for this PoC, the bootstrap config is pushed unconditionally, without
             # checking if there is a bootstrap config already running on the FGT. This is because there are different
             # possible options for the bootstrap config (e.g., 'WAN_underlays', 'fmg_ip')
@@ -323,7 +321,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     # print(cli_settings)
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
-    if not request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
+    if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
         render_bootstrap_config(device)
         upload_bootstrap_config(device)
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
@@ -337,7 +335,7 @@ def deploy(request: WSGIRequest, poc: TypePoC, device: FortiGate):
     save_config(poc.__class__.__name__, device, poc.id)
 
     # Deploy the config
-    if request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
+    if poc.request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
         raise CompletedDeviceProcessing  # No more processing needed for this FGT
 
     if is_config_snippets(device.config):
@@ -360,49 +358,3 @@ def is_config_snippets(config: str) -> bool:
     """
     """
     return not ('config-version=' in config)  # 'True' if config snippet, 'False' if full FOS config file
-
-
-# Legacy functions from previous version ############################################################################
-
-
-def __old__prepare_bootstrap(device: FortiGate):
-    """
-    Check if FGT is running a bootstrap config. Save it to revision if not already done.
-        If FGT is not running bootstrap config, revert to bootstrap revision if there is one
-        If FGT is not running bootstrap config and there is no bootstrap revision, stop processing this device
-
-    :param device:
-    :return:
-    """
-
-    # Check if FGT has a bootstrap config in the revision
-    print('Checking if there is a bootstrap config in the revision', end='')
-    fgt_bootstrap_revision_id = fortios.check_having_bootstrap_revision(device)
-    print(f' => {fgt_bootstrap_revision_id}')
-
-    # Check if FGT is running a bootstrap config
-    print('Checking if FGT is running a bootstrap config', end='')
-    fgt_is_running_bootstrap = fortios.check_running_bootstrap(device)
-    print(f' => {fgt_is_running_bootstrap}')
-
-    # Not running bootstrap & no bootstrap in revision => skip device
-    if not fgt_is_running_bootstrap and not fgt_bootstrap_revision_id:
-        raise StopProcessingDevice(f'{device.name} : FGT is not running a bootstrap config'
-                                   f' and there is no boostrap config in the revision history')
-
-    # Running bootstrap & no bootstrap in revision => save running bootstrap config in revision
-    if fgt_is_running_bootstrap and not fgt_bootstrap_revision_id:
-        print('FGT is running a bootstrap config but has no bootstrap revision yet. '
-              'Saving the bootstrap config in the revision.')
-        fortios.save_to_revision(device, comment='bootstrap configuration')
-
-    # Not running bootstrap & bootstrap in revision => revert to bootstrap config revision
-    if not fgt_is_running_bootstrap and fgt_bootstrap_revision_id:
-        print('FGT is not running a bootstrap config. However, there is a bootstrap config in the revision. '
-              'Reverting to the bootstrap configuration.')
-        fortios.revert_to_revision(device, fgt_bootstrap_revision_id)  # Reload the bootstrap config on the FGT
-        device.apikey = None  # FGT will reboot with no API key
-        raise ReProcessDevice(sleep=30)  # Raise exception to re-process FGT, asking the exception handler to sleep 30s
-
-    # Running bootstrap & bootstrap revision
-    print('FGT is running a boostrap config and has a bootstrap revision')

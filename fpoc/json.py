@@ -1,8 +1,7 @@
 import json
 from jsmin import jsmin
 
-from fpoc import AbortDeployment
-from config.settings import BASE_DIR
+from fpoc.exceptions import AbortDeployment
 
 
 def json_to_dict(filepath: str) -> dict:

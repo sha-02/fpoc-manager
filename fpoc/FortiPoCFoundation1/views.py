@@ -3,8 +3,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import FortiPoCFoundation1, FortiGate, LXC, VyOS, json_to_dict
-from config.settings import BASE_DIR
+from fpoc import FortiPoCFoundation1, FortiGate, LXC, VyOS, fortipoc_VMs
 
 #
 # return render(request, 'fpoc/fpoc01/snr01/_FGT.conf', {'FGT': 'B'})
@@ -27,14 +26,6 @@ from config.settings import BASE_DIR
 #     return output
 
 APPNAME = "fpoc/FortiPoCFoundation1"
-
-
-def fortipoc_VMs() -> dict:
-    """
-    Load the FortiPoC VM dictionary from JSON file
-    :return: dict of FortiPoC VMs
-    """
-    return json_to_dict(f'{BASE_DIR}/fpoc/FortiPoCFoundation1/fortipoc_VM.json')
 
 
 class HomePageView(TemplateView):
