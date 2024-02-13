@@ -42,6 +42,10 @@ def environment(**options):
         "url": reverse
         })
 
+    # Allow to use Python built-in function isinstance() in Jinja templates for Checking the type of variable in Jinja2
+    # Another alternative is to test like this:  var.__class__.__name__ == 'list'  to check if 'var' is a list
+    env.globals.update({"isinstance": isinstance})
+
     # Adds Ansible 'ipaddr' filter to Jinja2
     env.filters['ipaddr'] = ipaddr
 
