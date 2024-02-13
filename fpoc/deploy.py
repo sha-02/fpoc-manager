@@ -204,7 +204,7 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
     """
     # print('=' * 50, f'{device.name} : Processing device', '=' * 50)
     print(f'{device.name} : Processing device')
-    nb_failures = 0
+    nb_failures = auth_failures = 0
 
     while True:  # a device may require multiple deployment attempts
         try:
@@ -246,9 +246,15 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
 
-            if "401 Unauthorized" in str(ex):
-                print(f'\n{device.name} : Authentication error happened, flushing API key before retrying')
+            if isinstance(device, FortiGate) and "401 Unauthorized" in str(ex):
+                print(f'\n{device.name} : Authentication failure')
                 device.apikey = None
+                if device.apiv2auth:
+                    auth_failures += 1
+                    if auth_failures >= 2 and device.apiv2auth:
+                        print(f'\n{device.name} : admin/pwd APIv2 authentication failed twice, trying with API user')
+                        device.apiv2auth = False    # Switch to authentication based on API admin (config.system.api-user)
+
             print(f'\n{device.name} : Waiting for 15 seconds before re-processing device ...')
             time.sleep(15)
             print(f'{device.name} : Processing device once again')  # before reprocessing the device

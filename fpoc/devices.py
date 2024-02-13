@@ -162,7 +162,8 @@ class FortiGate_HA:
 @dataclass
 class FortiGate(Device):
     model: str = "FGT_VM64_KVM"   # FGT model as displayed in the firmware filename
-    apiadmin: str = None  # username for the API admin
+    apiv2auth: bool = True  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
+    apiadmin: str = 'adminapi'  # username for the API admin
     apikey: str = None  # API key for the API admin
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
@@ -180,7 +181,7 @@ class FortiGate(Device):
         self.template_context['name'] = self.name
         #
         # initialize attributes from local class
-        self.apiadmin = 'adminapi'
+        # self.apiadmin = 'adminapi'
         self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
     @classmethod
