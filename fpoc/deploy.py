@@ -156,7 +156,7 @@ def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
     if isinstance(device, FortiGate) or isinstance(device, FortiManager):
         return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
     if isinstance(device, LXC) or isinstance(device, VyOS):
-        return 'SSH', f'https://{ip}/term/dev_i_{device.offset:2}_{device.name_fpoc}/ssh'
+        return 'SSH', f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/ssh'
 
     return 'HTTPS', f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
 
@@ -168,9 +168,9 @@ def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
 
     if isinstance(device, FortiGate) or isinstance(device, FortiManager) or isinstance(device, VyOS):
-        return f'https://{ip}/term/dev_i_{device.offset:2}_{device.name_fpoc}/cons'
+        return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/cons'
     if isinstance(device, LXC):
-        return f'https://{ip}/term/dev_i_{device.offset:2}_{device.name_fpoc}/lxcbash'
+        return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/lxcbash'
 
     return f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
 
