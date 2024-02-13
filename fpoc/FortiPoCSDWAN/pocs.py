@@ -427,7 +427,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         rendezvous_points = {
             'WEST-DC1': dc_loopbacks['WEST-DC1'],
             'WEST-DC2': dc_loopbacks['WEST-DC2'],
-            'EAST-DC1': dc_loopbacks['EAST-DC1'],
+            'EAST-DC1': dc_loopbacks['EAST-DC1'],   # used by PoC10 only
+            'EAST-DC3': dc_loopbacks['EAST-DC1'],   # used by PoC9 only
         }
 
     # merge dictionaries
