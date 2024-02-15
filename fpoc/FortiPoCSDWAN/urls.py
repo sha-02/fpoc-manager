@@ -25,5 +25,6 @@ urlpatterns = [
     path('dualdc_dualregion/', pocs.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10
 
     # path('singlehub/bgp_per_overlay/fos62/', pocs.singlehub, {'poc_id': 5}, name='singlehub_fos62'),
+    # poc6 = SDWAN+ADVPN Dual-DC with bgp-per-overlay for FOS 6.4
     # path('singlehub/bgp_per_overlay/fos70/', pocs.singlehub, {'poc_id': 8}, name='singlehub_fos70'),
 ]
