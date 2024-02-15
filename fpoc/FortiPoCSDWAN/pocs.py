@@ -442,7 +442,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # 'inter_segments' describe the inter-vrf links used for DIA.
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
-                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 1,
+                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
                                            # 'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None,
                                            'loopback': dc_loopbacks['WEST-DC1'],
                                            'lan': lan_segment('WEST-DC1', poc, segments_devices),
@@ -451,7 +451,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            'datacenter': datacenters,
                                            **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
-                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 2,
+                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
                                            # 'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None,
                                            'loopback': dc_loopbacks['WEST-DC2'],
                                            'lan': lan_segment('WEST-DC2', poc, segments_devices),
@@ -460,7 +460,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            'datacenter': datacenters,
                                            **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
-                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 1,
+                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
                                            # 'loopback': '10.200.1.1' if poc_id==10 else None,
                                            'loopback': '10.200.1.1',
                                            'lan': lan_segment('WEST-BR1', poc, segments_devices),
@@ -469,7 +469,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            'datacenter': datacenters['west'],
                                            **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
-                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 2,
+                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
                                            # 'loopback': '10.200.1.2' if poc_id==10 else None,
                                            'loopback': '10.200.1.2',
                                            'lan': lan_segment('WEST-BR2', poc, segments_devices),
@@ -478,7 +478,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            'datacenter': datacenters['west'],
                                            **context})
     east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
-                        template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'],
+                        template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'], 'gps': (52.2296756, 21.0122287),
                                           # 'loopback': dc_loopbacks['EAST-DC1'] if poc_id == 10 else None,
                                           'loopback': dc_loopbacks['EAST-DC1'],
                                           'lan': lan_segment((east_dc_['generic_name'],east_dc_['name']), poc, segments_devices),
@@ -487,7 +487,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            'datacenter': datacenters,
                                            **context})
     east_br = FortiGate(name=east_br_['name'], template_group='BRANCHES',
-                        template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'],
+                        template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'], 'gps': (47.497912, 19.040235),
                                           # 'loopback': '10.200.2.1' if poc_id == 10 else None,
                                           'loopback': '10.200.2.1',
                                           'lan': lan_segment((east_br_['generic_name'],east_br_['name']), poc, segments_devices),
