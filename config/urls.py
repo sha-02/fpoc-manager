@@ -9,6 +9,7 @@ from config.settings import BASE_DIR
 sites = {
     'FortiPoC_Foundation1/': 'fpoc.FortiPoCFoundation1.urls',
     'FortiPoC_SDWAN/': 'fpoc.FortiPoCSDWAN.urls',
+    'FortiPoC_Airbus/': 'fpoc.FortiPoCAirbus.urls',
 }
 
 # Which FortiPoC/FortiLab project is being managed ? (default is 'FortiPoCFoundation1')
