@@ -149,9 +149,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                             "So <b>Hub's br-2-br is forced to 'Simple FIB lookup'</b>")
     else:
         if context['shortcut_routing'] in ('ipsec_selectors', 'dynamic_bgp') and context['br2br_routing'] in ('strict_overlay_stickiness', 'fib'):
-            messages.append(f"Hub's branch-to-branch routing strategy '{context['br2br_routing']}' prevents shortcut switchover on "
-                    f"remote SLA failures when there is no BGP route-reflection because a shortcut does not hide its parent. "
-                    f"<b>Forcing</b> Hub's branch-to-branch routing to <b>hub_side_steering</b>")
+            messages.append(f"INET1 to INET2 shortcut failover on remote SLA failure requires <b>forcing</b> Hub's "
+                            f"branch-to-branch routing to <b>hub_side_steering</b>. This is because the shortcut routing"
+                            f" is independent from the Hub routing so the \"shortcut does not hide its parent\"")
             context['br2br_routing'] = 'hub_side_steering'
 
     if context['shortcut_routing'] == 'dynamic_bgp' and not context['cross_region_advpn']:
@@ -160,8 +160,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                         "<br>Need to test if cross-region shortcuts can be controlled with network-id and auto-discovery-crossover")
 
     if context['shortcut_routing'] == 'ipsec_selectors':
+        if not context['advpnv2']:
+            messages.append("<b>Shortcut failover</b> on remote SLA failure is <b>only possible between INET1 and INET2</b>. "
+                            "It is <b>not possible between INET and MPLS</b>")
         if context['cross_region_advpn']:
-            messages.append("Cross-regional branch-to-remoteHub shortcuts are <b>not possible</b>. See comments with CLI settings.")
+            messages.append("Cross-regional branch-to-remoteHub shortcut routing <b>cannot be done with IPsec selectors</b>. See comments with CLI settings.")
         if context['vrf_aware_overlay']:
             context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
             messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported with shortcuts from phase2 selectors")
