@@ -1,5 +1,7 @@
 {
   "internal": { "ip": "0.0.0.0", "selected": true },
+  "almodo10": { "ip": "almodo10", "selected": false },
+  "almodo20": { "ip": "almodo20", "selected": false },
   "almodovar10": { "ip": "10.222.52.29", "selected": false },
   "almodovar20": { "ip": "10.222.52.39", "selected": false }
 }
