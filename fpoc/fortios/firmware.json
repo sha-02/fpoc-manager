@@ -11,9 +11,13 @@
     "build": "2463",
     "trailername": "-v7.4.1.F-build2463-FORTINET.out"
   },
-  "7.4.0": {
-    "build": "2360",
-    "trailername": "-v7.4.0.F-build2360-FORTINET.out"
+//  "7.4.0": {
+//    "build": "2360",
+//    "trailername": "-v7.4.0.F-build2360-FORTINET.out"
+//  },
+  "7.2.8": {
+    "build": "1639",
+    "trailername": "-v7.2.8.M-build1639-FORTINET.out"
   },
   "7.2.7": {
     "build": "1577",
