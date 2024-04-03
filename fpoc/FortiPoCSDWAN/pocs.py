@@ -380,7 +380,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet2.subnet + '.1',  # 100.64.12.1
                     'mpls': FortiPoCSDWAN.devices['WEST-DC1'].wan.mpls1.subnet + '.1',  # 10.0.14.1
                     'lan': segments_devices['WEST-DC1']['LAN']['ip'],
-                    # 'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None
                     'loopback': dc_loopbacks['WEST-DC1']
                 }
 
@@ -390,7 +389,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet2.subnet + '.2',  # 100.64.22.2
                     'mpls': FortiPoCSDWAN.devices['WEST-DC2'].wan.mpls1.subnet + '.2',  # 10.0.24.2
                     'lan': segments_devices['WEST-DC2']['LAN']['ip'],
-                    # 'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None
                     'loopback': dc_loopbacks['WEST-DC2']
                 }
 
@@ -400,7 +398,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.3',  # 100.64.122.3
                     'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.3',  # 10.0.124.3
                     'lan': segments_devices[east_dc_['name']]['LAN']['ip'],
-                    # 'loopback': dc_loopbacks['EAST-DC1'] if poc_id==10 else None
                     'loopback': dc_loopbacks['EAST-DC1']
                 }
 
@@ -410,7 +407,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                     'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.4',  # 100.64.122.4
                     'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.4',  # 10.0.124.4
                     'lan': '0.0.0.0',
-                    # 'loopback': dc_loopbacks['EAST-DC2'] if poc_id==10 else None
                     'loopback': dc_loopbacks['EAST-DC2']
                 }
 
@@ -446,7 +442,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
-                                           # 'loopback': dc_loopbacks['WEST-DC1'] if poc_id==10 else None,
                                            'loopback': dc_loopbacks['WEST-DC1'],
                                            'lan': lan_segment('WEST-DC1', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-DC1'],context),
@@ -455,7 +450,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
-                                           # 'loopback': dc_loopbacks['WEST-DC2'] if poc_id==10 else None,
                                            'loopback': dc_loopbacks['WEST-DC2'],
                                            'lan': lan_segment('WEST-DC2', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-DC2'],context),
@@ -464,7 +458,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
-                                           # 'loopback': '10.200.1.1' if poc_id==10 else None,
                                            'loopback': '10.200.1.1',
                                            'lan': lan_segment('WEST-BR1', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-BR1'],context),
@@ -473,7 +466,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
-                                           # 'loopback': '10.200.1.2' if poc_id==10 else None,
                                            'loopback': '10.200.1.2',
                                            'lan': lan_segment('WEST-BR2', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-BR2'],context),
@@ -482,7 +474,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'], 'gps': (52.2296756, 21.0122287),
-                                          # 'loopback': dc_loopbacks['EAST-DC1'] if poc_id == 10 else None,
                                           'loopback': dc_loopbacks['EAST-DC1'],
                                           'lan': lan_segment((east_dc_['generic_name'],east_dc_['name']), poc, segments_devices),
                                           'vrf_segments': vrf_segments(segments_devices[east_dc_['name']], context),
@@ -491,7 +482,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            **context})
     east_br = FortiGate(name=east_br_['name'], template_group='BRANCHES',
                         template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'], 'gps': (47.497912, 19.040235),
-                                          # 'loopback': '10.200.2.1' if poc_id == 10 else None,
                                           'loopback': '10.200.2.1',
                                           'lan': lan_segment((east_br_['generic_name'],east_br_['name']), poc, segments_devices),
                                           'vrf_segments': vrf_segments(segments_devices[east_br_['name']], context),
