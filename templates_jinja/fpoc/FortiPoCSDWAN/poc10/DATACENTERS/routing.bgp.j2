@@ -12,9 +12,9 @@
 
 {# BGP static neighbors for inter-region #}
 {% if region == 'West' -%}
-    {% set neighbors = [ {'ip': '10.200.2.254', 'RM_in':'H1_TAG'} ] %}
+    {% set neighbors = [ {'ip': '10.200.2.254', 'RM_in':'REGION_IN'} ] %}
 {% else %}
-    {% set neighbors = [ {'ip': '10.200.1.254', 'RM_in':'H1_TAG'}, {'ip': '10.200.1.253', 'RM_in':'H2_TAG'}] %}
+    {% set neighbors = [ {'ip': '10.200.1.254', 'RM_in':'REGION_IN'}, {'ip': '10.200.1.253', 'RM_in':'REGION_IN2'}] %}
 {% endif -%}
 
 {# BGP configuration from other jinja templates #}
