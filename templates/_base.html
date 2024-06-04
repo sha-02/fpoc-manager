@@ -63,7 +63,7 @@
     <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
       {% if fortipoc_VMs %}
         <div class="p-2 bd-highlight">
-          Name<select id="fpocSelection" name="fpocSelection">
+          PoC <select id="fpocSelection" name="fpocSelection">
               {% for name, fpoc in fortipoc_VMs.items %}
                 {% if fpoc.selected %}
                   <option value="{{fpoc.ip}}" selected>{{name}}</option>
