@@ -50,7 +50,7 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': inspect(poc.request).message})
 
-    if '127.0.0.1' in poc.request.get_host():
+    if '127.0.0.1' in poc.request.get_host() and poc.request.POST['fpocSelection']=='0.0.0.0':
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error',
                        'message': "Select a PoC in the list, 'internal' is not a valid choice from 127.0.0.1"})
