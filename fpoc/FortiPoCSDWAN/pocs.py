@@ -251,9 +251,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                 poc_id = None; errors.append('All CE VRF IDs must be unique')
 
             if context['cross_region_advpn'] and context['shortcut_routing'] == 'exchange_ip':
+                context['cross_region_advpn'] = False
                 messages.append("Cross-Regional ADVPN based off BGP NH convergence was requested but <b>this does not work</b> with VPNv4 eBGP next-hop-unchanged (tested with FOS 7.2.5)"
                                 "<br>The BGP NH of VPNv4 prefixes is always set to the BGP loopback of the DC when advertised to eBGP peer"
-                                "<br>It breaks all cross-regional shortcut routing convergence: inter-region branch-to-branch and inter-region branch-to-DC")
+                                "<br>inter-regional branch-to-branch manages to flow via the regional Hubs"
+                                "<br>but inter-regional branch-to-DC traffic <b>breaks</b> once the branch-to-remoteHub shortcut is created (RPF issue on Hub)"
+                                "<br>consequently, <b>cross-regional ADVPN is forced to 'disable'</b> with VRF segmentation and ADVPN from BGP NextHop")
 
             if context['bgp_route_reflection']:
                 messages.append("design choice: BGP Route-reflection (for ADVPN) is done only for VRFs BLUE and YELLOW. No RR (no ADPVPN) for VRF RED")
