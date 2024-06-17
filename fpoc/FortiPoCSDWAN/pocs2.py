@@ -87,7 +87,7 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
             if len(set(ce_vrfids)) != len(ce_vrfids):  # check if the CE VRF IDs are all unique
                 poc_id = None; errors.append('All CE VRF IDs must be unique')
 
-            # messages.append("design choice: CE VRFs of WEST-BR1/BR2 have DIA while there is no DIA for the CE VRFs of EAST-BR (only RIA)")
+            messages.append("design choice: All CE VRFs from all Branches in all Regions have DIA (there is no Branch with only RIA)")
 
     #
     # BGP per overlay - sanity checks
