@@ -46,7 +46,7 @@
   "7.0.15": {
     "build": "0632",
     "trailername": "-v7.0.15.M-build0632-FORTINET.out"
-  }
+  },
 //  "7.0.14": {
 //    "build": "0601",
 //    "trailername": "-v7.0.14.M-build0601-FORTINET.out"
@@ -59,16 +59,16 @@
 //    "build": "0489",
 //    "trailername": "-v7.0.12.M-build0523-FORTINET.out"
 //  },
-//  "6.4.11": {
-//    "build": "2030",
-//    "trailername": "-v6.M-build2030-FORTINET.out"
-//  },
-//  "6.2.12": {
-//    "build": "1319",
-//    "trailername": "-v6-build1319-FORTINET.out"
-//  },
-//  "6.0.15": {
-//    "build": "0484",
-//    "trailername": "-v6-build0484-FORTINET.out"
-//  }
+  "6.4.15": {
+    "build": "2095",
+    "trailername": "-v6.M-build2095-FORTINET.out"
+  },
+  "6.2.16": {
+    "build": "1392",
+    "trailername": "-v6-build1392-FORTINET.out"
+  },
+  "6.0.18": {
+    "build": "0549",
+    "trailername": "-v6-build0549-FORTINET.out"
+  }
 }

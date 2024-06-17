@@ -7,8 +7,9 @@ from config.settings import BASE_DIR
 # List of FortiPoC/FortiLab projects
 
 sites = {
-    'FortiPoC_Foundation1/': 'fpoc.FortiPoCFoundation1.urls',
+    'FortiPoC_SDWAN/ADVPNv2/': 'fpoc.FortiPoCSDWAN.urls',
     'FortiPoC_SDWAN/': 'fpoc.FortiPoCSDWAN.urls',
+    'FortiPoC_Foundation1/': 'fpoc.FortiPoCFoundation1.urls',
     'FortiPoC_Airbus/': 'fpoc.FortiPoCAirbus.urls',
 }
 

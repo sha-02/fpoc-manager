@@ -10,15 +10,24 @@ APPNAME = "fpoc/FortiPoCSDWAN"
 
 
 class HomePageView(TemplateView):
-    template_name = f'{APPNAME}/home.html'
+    # template_name = f'{APPNAME}/home.html'
+
+    def get_template_names(self):
+        if 'ADVPNv2' in self.request.path:
+            template_name = f'{APPNAME}/home2.html'
+        else:
+            template_name = f'{APPNAME}/home.html'
+
+        return [template_name]
 
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
-        context['firmware'] = fortios_firmware()
-        context['fortipoc_VMs'] = fortipoc_VMs()
         context['fortigates'] = FortiPoCSDWAN.devices_of_type(FortiGate).keys()
         context['lxces'] = FortiPoCSDWAN.devices_of_type(LXC).keys()
         context['vyoses'] = FortiPoCSDWAN.devices_of_type(VyOS).keys()
+        context['fortipoc_VMs'] = fortipoc_VMs()
+        minmum_fortios = '7.4.4' if 'ADVPNv2' in self.request.path else '7.0.0'
+        context['firmware'] = fortios_firmware(minmum_fortios)
         return context
 
 

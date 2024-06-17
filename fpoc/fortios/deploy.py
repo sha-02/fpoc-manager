@@ -114,13 +114,15 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     print(f'{device.name} : Firmware uploaded.')
 
 
-def fortios_firmware() -> dict:
+def fortios_firmware(minimum: str ="0.0.0") -> dict:
     """
     Load the fortios firmware dictionary from JSON file
+    minumum: minimum FOS version desired (default= all versions) - dotted FOS version, eg. '7.4.4'
     :return: dict of fos firmware
     """
-    return json_to_dict(f'{BASE_DIR}/fpoc/fortios/firmware.json')
-
+    firmware = json_to_dict(f'{BASE_DIR}/fpoc/fortios/firmware.json')   # Load all firmware definition
+    # Return firmware with higher version then 'minimum'
+    return { version: firmware[version] for version in firmware.keys() if FortiGate.FOS_int(version) >= FortiGate.FOS_int(minimum) }
 
 def firmware_download(firmware: str):
     """
