@@ -33,7 +33,7 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
         'vrf_red': int(request.POST.get('vrf_red')),  # [0-251] vlan segment
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'on_loopback'
-        'overlay': request.POST.get('overlay'),  # 'static' or 'mode_cfg'
+        'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
     }
 
     # Create the poc
@@ -69,10 +69,18 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
                            "supported method with bgp-on-loopback")
 
         if not context['multicast']:
-            context['overlay'] = None   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
+            context['overlay'] = 'no_ip'   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
             messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
         else:
-            messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered with '{context['overlay']}' overlay</b>")
+            if context['overlay'] == 'no_ip':
+                messages.append("Unnumbered overlay was requested but this is not possible for multicast so <b>forcing static IP</b> for overlays")
+                context['overlay'] = 'static_ip'
+
+            if context['overlay'] == 'mode_cfg':
+                messages.append(f"Multicast is requested and IPsec tunnels are requested to be numbered with 'mode-cfg'. "
+                    "As a side note: 'static' overlay IPs could be a better choice since it allows to "
+                    "configure 'independent' shortcuts due to having independent BGP routing for shortcuts (dynamic BGP)")
+
             if context['vrf_aware_overlay']:
                 messages.append(f"for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
                 context['vrf_pe'] = context['vrf_blue'] = 0
@@ -96,6 +104,10 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
         poc_id = None
         errors.append("BGP per overlay with Golden design is not yet implemented")
 
+        if context['bidir_sdwan_bgp_priority'] != 'bgp_community':
+            messages.append("design choice: BGP priority for Hub-side steering is <b>forced</b> to be from BGP community")
+            context['bidir_sdwan_bgp_priority'] = 'bgp_community'
+
         if context['vrf_aware_overlay']:
             poc_id = None  # TODO
             errors.append("vrf_aware_overlay not yet available with BGP per overlay")
@@ -105,9 +117,9 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
             messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is forced to 'False'")
 
         if context['bidir_sdwan_bgp_priority'] == 'remote_sla_hc':
-            context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            messages.append("Bidirectional SDWAN with 'remote-sla' was requested: <b>overlay is therefore forced to 'static'</b> since "
-                           "remote-sla with bgp-per-overlay can only work with static-overlay IP@")
+            context['overlay'] = 'static_ip'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
+            messages.append("Bidirectional SDWAN with 'remote-sla-HC' was requested: <b>overlay is therefore forced to 'static'</b> since "
+                           "remote-sla-HC with bgp-per-overlay can only work with static-overlay IP@")
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
 

@@ -118,8 +118,9 @@ $(document).ready(function(){
             <option value='per_overlay'>BGP per overlay</option>
           </select>
           Overlay <select name="overlay">
-            <option value='mode_cfg' selected>Dynamic (Mode-Config)</option>
-            <option value='static'>static (exchange-interface-ip)</option>
+            <option value='no_ip' selected>unnumbered (no IP)</option>
+          <option value='static_ip'>static (exchange-interface-ip)</option>
+          <option value='mode_cfg' >dynamic (Mode-Config)</option>
           </select>
           <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
           <br>
