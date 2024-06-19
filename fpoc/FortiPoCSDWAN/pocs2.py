@@ -77,12 +77,12 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
                 context['overlay'] = 'static_ip'
 
             if context['overlay'] == 'mode_cfg':
-                messages.append(f"Multicast is requested and IPsec tunnels are requested to be numbered with 'mode-cfg'. "
+                messages.append("Multicast is requested and IPsec tunnels are requested to be numbered with 'mode-cfg'. "
                     "As a side note: 'static' overlay IPs could be a better choice since it allows to "
-                    "configure 'independent' shortcuts due to having independent BGP routing for shortcuts (dynamic BGP)")
+                    "configure 'independent' shortcuts due to having independent BGP routing over shortcuts (dynamic BGP)")
 
             if context['vrf_aware_overlay']:
-                messages.append(f"for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
+                messages.append("for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
                 context['vrf_pe'] = context['vrf_blue'] = 0
 
         if context['vrf_aware_overlay']:
@@ -101,24 +101,32 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
     # BGP per overlay - sanity checks
 
     if context['bgp_design'] == 'per_overlay':
-        poc_id = None
-        errors.append("BGP per overlay with Golden design is not yet implemented")
+
+        if context['overlay'] == 'no_ip':
+            context['overlay'] = 'mode_cfg'
+            messages.append("Unnumbered overlays were requested but this is not possible for BGP per overlay: "
+                            "<b>dynamic (mode-cfg) overlay IPs</b> are configured")
+
+        if context['overlay'] == 'static_ip':
+            context['overlay'] = 'mode_cfg'
+            messages.append("with setup (per-overlay BGP to Hub, on-loopback dynBGP for shortcuts) only dynamic overlay "
+                            "works (details in '_restriction_no-static-IP-for-BGP-per-Overlay.md'). <b>Forcing to mode-cfg</b>")
 
         if context['bidir_sdwan_bgp_priority'] != 'bgp_community':
-            messages.append("design choice: BGP priority for Hub-side steering is <b>forced</b> to be from BGP community")
             context['bidir_sdwan_bgp_priority'] = 'bgp_community'
+            messages.append("design choice: BGP priority for Hub-side steering is <b>forced</b> to be based on <b>BGP community</b>")
 
         if context['vrf_aware_overlay']:
-            poc_id = None  # TODO
-            errors.append("vrf_aware_overlay not yet available with BGP per overlay")
+            context['vrf_aware_overlay'] = False
+            messages.append("vrf_aware_overlay not yet tested with BGP per overlay: option is <b>forced to 'disable'</b>")
 
         if context['full_mesh_ipsec']:
             context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
-            messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is forced to 'False'")
+            messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is <b>forced to 'False'</b>")
 
         if context['bidir_sdwan_bgp_priority'] == 'remote_sla_hc':
             context['overlay'] = 'static_ip'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            messages.append("Bidirectional SDWAN with 'remote-sla-HC' was requested: <b>overlay is therefore forced to 'static'</b> since "
+            messages.append("Bidirectional SDWAN with 'remote_sla_HC' is requested: <b>overlay is therefore forced to 'static'</b> since "
                            "remote-sla-HC with bgp-per-overlay can only work with static-overlay IP@")
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
@@ -178,6 +186,14 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
         'EAST-DC2': '10.200.2.253',
     }
 
+    # For bgp-per-overlay with BGP RR (legacy ADVPN shortcut routing) it was important that every Branch in every
+    # region has a unique overlay IP address for each of its overlay tunnel (H{1|2}_INET{1|2}, H{1|2}_MPLS)
+    # With shortcut routing based off dynamic BGP peering over shortcuts this is no longer needed
+    # If bgp-per-overlay is done with the Hub then uniqueness of the overlay IP address is only within the region itself
+    # So we don't need anymore that the 'id' of each Hub in the 'datacenters' dict be globally unique
+    # it just needs to be unique within the region
+    # So the 'id' of EAST-DC1/EAST-DC2 which were 3 and 4 respectively in previous design are now switched to 1 and 2
+
     west_dc1_ = {
                     'id': 1,
                     'inet1': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet1.subnet + '.1',  # 100.64.11.1
@@ -197,7 +213,7 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
                 }
 
     east_dc1_ = {
-                    'id': 3,
+                    'id': 1,
                     'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1.subnet + '.3',  # 100.64.121.3
                     'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.3',  # 100.64.122.3
                     'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.3',  # 10.0.124.3
@@ -206,7 +222,7 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
-                    'id': 4,
+                    'id': 2,
                     'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1.subnet + '.4',  # 100.64.121.4
                     'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.4',  # 100.64.122.4
                     'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.4',  # 10.0.124.4
