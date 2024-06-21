@@ -152,11 +152,11 @@ $(document).ready(function(){
 <!--          <input type="checkbox" name="cross_region_advpn" value=1 checked> ADVPN Cross-Regional shortcuts-->
 
           <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation (7.2+) :
-          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="32">
-          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="32">
-          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="3">
-          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="1">
-          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="2">
+          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="1">
+          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">
+          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">
+          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">
+          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">
 
           <br><input type="checkbox" name="multicast" value=0> Multicast routing (only BLUE VRF if VRF segmentation)
         </fieldset>
@@ -181,7 +181,7 @@ $(document).ready(function(){
   <div id="collapse-10" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
     <div class="card-body">
       <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-        <img src="{% static 'images/poc_10.png' %}" class="img-fluid" alt="BGP-on-loopback design"/>
+        <img src="{% static 'images/poc_11.png' %}" class="img-fluid" alt="BGP-on-loopback design"/>
         <p class="lead">SDWAN ADVPNv2.0 with dynamic BGP on-loopback for shortcuts</p>
       </div>
     </div>

@@ -344,43 +344,55 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
 # VRF segmentation
 #
 
+# From Dmitry's SDWAN workshop:
+#
+# The choice of PE VRF=1 is not completely arbitrary. While generally any non-zero PE VRF would work, we
+# recommend using PE VRF=1 whenever possible, because it optimizes local-out traffic flows in some
+# scenarios. While the detailed discussion is not in scope of this lab, we will simply mention that in certain
+# situations the local-out traffic (such as the communication with FortiManager, FortiGuard and so on) may
+# be taking an extra hop inside the FortiGate device, if the Internet VRF (which is the PE VRF!) has an ID
+# higher than a CE VRF.
+# Exactly for this reason the optimal configuration is when VRF=0 is not used, VRF=1 is configured as PE
+# and the rest is left to CEs.
+#
+
 def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     vrf = {
         'LAN': { 'vrfid': context['vrf_blue'], 'vlanid': 0, 'color': 'BLUE', 'alias': 'LAN_BLUE' },
-        'SEG_YELLOW': { 'vrfid': context['vrf_yellow'], 'vlanid': 1001, 'color': 'YELLOW', 'alias': 'LAN_YELLOW' },
-        'SEG_RED': { 'vrfid': context['vrf_red'], 'vlanid': 1002, 'color': 'RED', 'alias': 'LAN_RED' },
+        'SEG_YELLOW': { 'vrfid': context['vrf_yellow'], 'vlanid': 100+context['vrf_yellow'], 'color': 'YELLOW', 'alias': 'LAN_YELLOW' },
+        'SEG_RED': { 'vrfid': context['vrf_red'], 'vlanid': 100+context['vrf_red'], 'color': 'RED', 'alias': 'LAN_RED' },
     }
 
     segments = {
         'WEST-DC1': {
             'LAN': {'ip': '10.1.0.1/24', 'host_rank': 7, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.1.10.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.1.20.1/24', 'host_rank': 7, **vrf['SEG_RED']},
+            'SEG_YELLOW': {'ip': '10.1.1.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.1.2.1/24', 'host_rank': 7, **vrf['SEG_RED']},
         },
         'WEST-DC2': {
             'LAN': {'ip': '10.2.0.1/24', 'host_rank': 7, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.2.10.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.2.20.1/24', 'host_rank': 7, **vrf['SEG_RED']},
+            'SEG_YELLOW': {'ip': '10.2.1.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.2.2.1/24', 'host_rank': 7, **vrf['SEG_RED']},
         },
         'WEST-BR1': {
             'LAN': {'ip': '10.0.1.1/24', 'host_rank': 101, **vrf['LAN']},
             'SEG_YELLOW': {'ip': '10.0.11.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.0.21.1/24', 'host_rank': 101, **vrf['SEG_RED']},
+            'SEG_RED': {'ip': '10.0.12.1/24', 'host_rank': 101, **vrf['SEG_RED']},
         },
         'WEST-BR2': {
             'LAN': {'ip': '10.0.2.1/24', 'host_rank': 101, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.0.12.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
+            'SEG_YELLOW': {'ip': '10.0.21.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
             'SEG_RED': {'ip': '10.0.22.1/24', 'host_rank': 101, **vrf['SEG_RED']},
         },
         'EAST-DC': {
             'LAN': {'ip': '10.4.0.1/24', 'host_rank': 7, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.4.10.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.4.20.1/24', 'host_rank': 7, **vrf['SEG_RED']},
+            'SEG_YELLOW': {'ip': '10.4.1.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.4.2.1/24', 'host_rank': 7, **vrf['SEG_RED']},
         },
         'EAST-BR': {
             'LAN': {'ip': '10.4.1.1/24', 'host_rank': 101, **vrf['LAN']},
             'SEG_YELLOW': {'ip': '10.4.11.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.4.21.1/24', 'host_rank': 101, **vrf['SEG_RED']},
+            'SEG_RED': {'ip': '10.4.12.1/24', 'host_rank': 101, **vrf['SEG_RED']},
         },
     }
 
