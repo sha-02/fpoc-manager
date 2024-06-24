@@ -31,6 +31,7 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
         'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-251] port5 (no vlan) segment
         'vrf_yellow': int(request.POST.get('vrf_yellow')),  # [0-251] vlan segment
         'vrf_red': int(request.POST.get('vrf_red')),  # [0-251] vlan segment
+        'vrf_ria': request.POST.get('vrf_ria'),  # 'preserve_origin' or 'nat_origin'
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'on_loopback'
         'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
@@ -344,7 +345,7 @@ def dualdc2(request: WSGIRequest) -> HttpResponse:
 # VRF segmentation
 #
 
-# From Dmitry's SDWAN workshop:
+# About VRF IDs (from Dmitry 'Managed SDWAN' workshop):
 #
 # The choice of PE VRF=1 is not completely arbitrary. While generally any non-zero PE VRF would work, we
 # recommend using PE VRF=1 whenever possible, because it optimizes local-out traffic flows in some
@@ -416,38 +417,55 @@ def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, t
 
     # Allow segments in VRF x to access the Internet which is in VRF {{vrf_wan}}
     inter_segments = {
-        'BLUE_I1_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.2', 'mask':'255.255.255.254'},
+        'BLUE_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.2', 'mask':'255.255.255.254'},
                         {'vrfid': context['vrf_blue'], 'ip': '10.254.254.3', 'mask':'255.255.255.254'} ],
-        'BLUE_I2_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.4', 'mask':'255.255.255.254'},
-                        {'vrfid': context['vrf_blue'], 'ip': '10.254.254.5', 'mask':'255.255.255.254'} ],
-        'YELLOW_I1_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.6', 'mask':'255.255.255.254'},
-                        {'vrfid': vrf['SEG_YELLOW']['vrfid'], 'ip': '10.254.254.7', 'mask':'255.255.255.254'} ],
-        'YELLOW_I2_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.8', 'mask':'255.255.255.254'},
-                        {'vrfid': vrf['SEG_YELLOW']['vrfid'], 'ip': '10.254.254.9', 'mask':'255.255.255.254'} ],
-        'RED_I1_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.10', 'mask':'255.255.255.254'},
-                        {'vrfid': vrf['SEG_RED']['vrfid'], 'ip': '10.254.254.11', 'mask':'255.255.255.254'} ],
-        'RED_I2_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.12', 'mask':'255.255.255.254'},
-                        {'vrfid': vrf['SEG_RED']['vrfid'], 'ip': '10.254.254.13', 'mask':'255.255.255.254'} ]
+        'YELLOW_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.4', 'mask':'255.255.255.254'},
+                        {'vrfid': vrf['SEG_YELLOW']['vrfid'], 'ip': '10.254.254.5', 'mask':'255.255.255.254'} ],
+        'RED_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.6', 'mask':'255.255.255.254'},
+                        {'vrfid': vrf['SEG_RED']['vrfid'], 'ip': '10.254.254.7', 'mask':'255.255.255.254'} ],
     }
 
     if context['vrf_blue'] == context['vrf_wan']:  # SEG0/port5 is in WAN VRF, it has direct access to WAN (INET)
-        inter_segments.pop('BLUE_I1_')  # remove it from the inter-segment list
-        inter_segments.pop('BLUE_I2_')  # remove it from the inter-segment list
+        inter_segments.pop('BLUE_')  # remove it from the inter-segment list
+
+    # Hubs do not provide RIA service, they offer this service to other branches
+    # so a single inter-vrf link per VRF is needed
+    dc_inter_segments = copy.copy(inter_segments)
+
+    if context['vrf_ria'] == 'preserve_origin':
+        inter_segments.update(
+            {
+            'BLUE2_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.8', 'mask':'255.255.255.254'},
+                            {'vrfid': context['vrf_blue'], 'ip': '10.254.254.9', 'mask':'255.255.255.254'} ],
+            'YELLOW2_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.10', 'mask':'255.255.255.254'},
+                            {'vrfid': vrf['SEG_YELLOW']['vrfid'], 'ip': '10.254.254.11', 'mask':'255.255.255.254'} ],
+            'RED2_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.12', 'mask':'255.255.255.254'},
+                            {'vrfid': vrf['SEG_RED']['vrfid'], 'ip': '10.254.254.13', 'mask':'255.255.255.254'} ]
+            }
+        )
+
+        if context['vrf_blue'] == context['vrf_wan']:  # SEG0/port5 is in WAN VRF, it has direct access to WAN (INET)
+            inter_segments.pop('BLUE2_')  # remove it from the inter-segment list
+
 
     #
     # Update FortiGate devices
     #
 
     for name in ('WEST-DC1', 'WEST-DC2', 'EAST-DC', 'WEST-BR1', 'WEST-BR2', 'EAST-BR'):
-        # 'inter_segments' describes the inter-vrf links used for DIA.
         devices[name].template_context['lan'].update(vrf['LAN'])
         devices[name].template_context['vrf_segments'] = segments[name]
-        devices[name].template_context['inter_segments'] = inter_segments
 
         # Update Host Devices
         devices[f'PC-{name}'].template_context['namespaces'] = segments[name]
         devices[f'PC-{name}'].template_context['hosts'] = hosts
         devices[f'PC-{name}'].template_filename = 'lxc.vrf.conf'
 
+    # 'inter_segments' describes the inter-vrf links
 
+    for name in ('WEST-BR1', 'WEST-BR2', 'EAST-BR'):    # Branches
+        devices[name].template_context['inter_segments'] = inter_segments
+
+    for name in ('WEST-DC1', 'WEST-DC2', 'EAST-DC'):    # DCs
+        devices[name].template_context['inter_segments'] = dc_inter_segments
 

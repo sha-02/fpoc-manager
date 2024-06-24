@@ -151,14 +151,22 @@ $(document).ready(function(){
 <!--          <input type="checkbox" name="advpnv2" value=0> ADVPN v2.0-->
 <!--          <input type="checkbox" name="cross_region_advpn" value=1 checked> ADVPN Cross-Regional shortcuts-->
 
-          <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation (7.2+) :
-          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="1">
-          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">
-          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">
-          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">
-          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">
+          <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation
+<!--          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">-->
+<!--          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">-->
+<!--          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">-->
+<!--          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">-->
+          <input type="hidden" name="vrf_wan" maxlength="3" size="3" value="1">
+          <input type="hidden" name="vrf_pe" maxlength="3" size="3" value="1">
+          <input type="hidden" name="vrf_blue" maxlength="3" size="3" value="13">
+          <input type="hidden" name="vrf_yellow" maxlength="3" size="3" value="11">
+          <input type="hidden" name="vrf_red" maxlength="3" size="3" value="12">
+          CE VRF RIA <select name="vrf_ria">
+          <option value='nat_origin' selected>origin IP can be NATed</option>
+          <option value='preserve_origin'>origin IP must be preserved, no NAT to the Hub</option>
+          </select>
 
-          <br><input type="checkbox" name="multicast" value=0> Multicast routing (only BLUE VRF if VRF segmentation)
+          <br><input type="checkbox" name="multicast" value=0 title="(only BLUE VRF if VRF segmentation)"> Multicast routing
         </fieldset>
         <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion_v2' %}" formaction="{% url 'sdwan:dualdc_dualregion_v2' %}" >Start</button>
