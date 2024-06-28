@@ -155,11 +155,11 @@ $(document).ready(function(){
           <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
 
           <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation (7.2+) :
-          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="32">
-          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="32">
-          port5/seg0/BLUE <input type="text" name="vrf_seg0" maxlength="3" size="3" value="3">
-          seg1/YELLOW <input type="text" name="vrf_seg1" maxlength="3" size="3" value="1">
-          seg2/RED <input type="text" name="vrf_seg2" maxlength="3" size="3" value="2">
+          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="1">
+          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">
+          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">
+          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">
+          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">
 
           <br><input type="checkbox" name="multicast" value=0> Multicast routing (only BLUE VRF if VRF segmentation)
         </fieldset>

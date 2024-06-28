@@ -86,9 +86,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'advpnv2': bool(request.POST.get('advpnv2', False)),  # True or False
         'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-251] VRF for Internet and MPLS links
         'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-251] VRF for IPsec tunnels
-        'vrf_seg0': int(request.POST.get('vrf_seg0')),  # [0-251] port5 (no vlan) segment
-        'vrf_seg1': int(request.POST.get('vrf_seg1')),  # [0-251] vlan segment
-        'vrf_seg2': int(request.POST.get('vrf_seg2')),  # [0-251] vlan segment
+        'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-251] port5 (no vlan) segment
+        'vrf_yellow': int(request.POST.get('vrf_yellow')),  # [0-251] vlan segment
+        'vrf_red': int(request.POST.get('vrf_red')),  # [0-251] vlan segment
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'br2br_routing': request.POST.get('br2br_routing'),  # 'strict_overlay_stickiness', 'hub_side_steering', 'fib'
         'shortcut_routing': request.POST.get('shortcut_routing'),  # 'no_advpn', 'exchange_ip', 'ipsec_selectors', 'dynamic_bgp'
@@ -238,15 +238,15 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             messages.append(f"Multicast is requested: <b>IPsec tunnels are numbered with '{context['overlay']}' overlay</b>")
             if context['vrf_aware_overlay']:
                 messages.append(f"for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
-                context['vrf_pe'] = context['vrf_seg0'] = 0
+                context['vrf_pe'] = context['vrf_blue'] = 0
 
         if context['vrf_aware_overlay']:
-            for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_seg0', 'vrf_seg1', 'vrf_seg2'):
+            for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_blue', 'vrf_yellow', 'vrf_red'):
                 if context[vrf_name] > 251 or context[vrf_name] < 0:
                     poc_id = None; errors.append('VRF id must be within [0-251]')
-            if context['vrf_pe'] in (context['vrf_seg1'], context['vrf_seg2']):
+            if context['vrf_pe'] in (context['vrf_yellow'], context['vrf_red']):
                 poc_id = None; errors.append("Only seg0/BLUE VRF can be in the same VRF as the PE VRF")
-            ce_vrfids = [context['vrf_seg0'], context['vrf_seg1'], context['vrf_seg2']] # list of all CE VRF IDs
+            ce_vrfids = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red']] # list of all CE VRF IDs
             if len(set(ce_vrfids)) != len(ce_vrfids):  # check if the CE VRF IDs are all unique
                 poc_id = None; errors.append('All CE VRF IDs must be unique')
 
@@ -286,51 +286,51 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     #
 
     vrf = {
-        'LAN': { 'vrfid': context['vrf_seg0'], 'vlanid': 0, 'alias': 'LAN_BLUE' },
-        'SEGMENT_1': { 'vrfid': context['vrf_seg1'], 'vlanid': 1001, 'alias': 'LAN_YELLOW' },
-        'SEGMENT_2': { 'vrfid': context['vrf_seg2'], 'vlanid': 1002, 'alias': 'LAN_RED' },
+        'LAN': { 'vrfid': context['vrf_blue'], 'vlanid': 0, 'color': 'BLUE', 'alias': 'LAN_BLUE' },
+        'SEG_YELLOW': { 'vrfid': context['vrf_yellow'], 'vlanid':  100+context['vrf_yellow'], 'color': 'YELLOW', 'alias': 'LAN_YELLOW' },
+        'SEG_RED': { 'vrfid': context['vrf_red'], 'vlanid': 100+context['vrf_red'], 'color': 'RED', 'alias': 'LAN_RED' },
     }
 
     segments_devices = {
         'WEST-DC1': {
             'LAN': {'ip': '10.1.0.1/24', 'ip_lxc': '10.1.0.7', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.1.10.1/24', 'ip_lxc': '10.1.10.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.1.20.1/24', 'ip_lxc': '10.1.20.7', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.1.1.1/24', 'ip_lxc': '10.1.1.7', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.1.2.1/24', 'ip_lxc': '10.1.2.7', **vrf['SEG_RED']},
         },
         'WEST-DC2': {
             'LAN': {'ip': '10.2.0.1/24', 'ip_lxc': '10.2.0.7', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.2.10.1/24', 'ip_lxc': '10.2.10.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.2.20.1/24', 'ip_lxc': '10.2.20.7', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.2.1.1/24', 'ip_lxc': '10.2.1.7', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.2.2.1/24', 'ip_lxc': '10.2.2.7', **vrf['SEG_RED']},
         },
         'WEST-BR1': {
             'LAN': {'ip': '10.0.1.1/24', 'ip_lxc': '10.0.1.101', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.0.11.1/24', 'ip_lxc': '10.0.11.101', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.0.21.1/24', 'ip_lxc': '10.0.21.101', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.0.11.1/24', 'ip_lxc': '10.0.11.101', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.0.12.1/24', 'ip_lxc': '10.0.12.101', **vrf['SEG_RED']},
         },
         'WEST-BR2': {
             'LAN': {'ip': '10.0.2.1/24', 'ip_lxc': '10.0.2.101', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.0.12.1/24', 'ip_lxc': '10.0.12.101', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.0.22.1/24', 'ip_lxc': '10.0.22.101', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.0.21.1/24', 'ip_lxc': '10.0.21.101', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.0.22.1/24', 'ip_lxc': '10.0.22.101', **vrf['SEG_RED']},
         },
         'EAST-DC1': {
             'LAN': {'ip': '10.4.0.1/24', 'ip_lxc': '10.4.0.7', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.4.10.1/24', 'ip_lxc': '10.4.10.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.4.20.1/24', 'ip_lxc': '10.4.20.7', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.4.1.1/24', 'ip_lxc': '10.4.1.7', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.4.2.1/24', 'ip_lxc': '10.4.2.7', **vrf['SEG_RED']},
         },
         'EAST-BR1': {
             'LAN': {'ip': '10.4.1.1/24', 'ip_lxc': '10.4.1.101', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.4.11.1/24', 'ip_lxc': '10.4.11.101', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.4.21.1/24', 'ip_lxc': '10.4.21.101', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.4.11.1/24', 'ip_lxc': '10.4.11.101', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.4.12.1/24', 'ip_lxc': '10.4.12.101', **vrf['SEG_RED']},
         },
         'EAST-DC3': {
             'LAN': {'ip': '10.3.0.1/24', 'ip_lxc': '10.3.0.7', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.3.10.1/24', 'ip_lxc': '10.3.10.7', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.3.20.1/24', 'ip_lxc': '10.3.20.7', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.3.1.1/24', 'ip_lxc': '10.3.1.7', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.3.2.1/24', 'ip_lxc': '10.3.2.7', **vrf['SEG_RED']},
         },
         'EAST-BR3': {
             'LAN': {'ip': '10.0.3.1/24', 'ip_lxc': '10.0.3.101', **vrf['LAN']},
-            'SEGMENT_1': {'ip': '10.0.13.1/24', 'ip_lxc': '10.0.13.101', **vrf['SEGMENT_1']},
-            'SEGMENT_2': {'ip': '10.0.23.1/24', 'ip_lxc': '10.0.23.101', **vrf['SEGMENT_2']},
+            'SEG_YELLOW': {'ip': '10.0.31.1/24', 'ip_lxc': '10.0.31.101', **vrf['SEG_YELLOW']},
+            'SEG_RED': {'ip': '10.0.32.1/24', 'ip_lxc': '10.0.32.101', **vrf['SEG_RED']},
         }
     }
 
@@ -344,13 +344,13 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     if context['vrf_aware_overlay']:
         inter_segments = {
             'BLUE_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.2', 'mask':'255.255.255.252'},
-                            {'vrfid': context['vrf_seg0'], 'ip': '10.254.254.1', 'mask':'255.255.255.252'} ],
+                            {'vrfid': context['vrf_blue'], 'ip': '10.254.254.1', 'mask':'255.255.255.252'} ],
             'YELLOW_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.6', 'mask':'255.255.255.252'},
-                            {'vrfid': vrf['SEGMENT_1']['vrfid'], 'ip': '10.254.254.5', 'mask':'255.255.255.252'} ],
+                            {'vrfid': vrf['SEG_YELLOW']['vrfid'], 'ip': '10.254.254.5', 'mask':'255.255.255.252'} ],
             'RED_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.10', 'mask':'255.255.255.252'},
-                            {'vrfid': vrf['SEGMENT_2']['vrfid'], 'ip': '10.254.254.9', 'mask':'255.255.255.252'} ]
+                            {'vrfid': vrf['SEG_RED']['vrfid'], 'ip': '10.254.254.9', 'mask':'255.255.255.252'} ]
         }
-        if context['vrf_seg0'] == context['vrf_wan']:  # SEG0/port5 is in WAN VRF, it has direct access to WAN (INET)
+        if context['vrf_blue'] == context['vrf_wan']:  # SEG0/port5 is in WAN VRF, it has direct access to WAN (INET)
             inter_segments.pop('BLUE_')  # remove it from the inter-segment list
 
 
