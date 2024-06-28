@@ -91,17 +91,17 @@ $(document).ready(function(){
                 <br>central-management <input type="checkbox" name="FMG">
               </div>
               <div class="col">
-                <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)" checked>
+                <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)">
                 <b>LXC</b>
                 {% for lxc in lxces %}
-                  <br><input type="checkbox" name="{{lxc}}" checked> {{lxc}}
+                  <br><input type="checkbox" name="{{lxc}}"> {{lxc}}
                 {% endfor %}
               </div>
               <div class="col">
-                <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)" checked>
+                <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)">
                 <b>VyOS</b>
                 {% for vyos in vyoses %}
-                  <br><input type="checkbox" name="{{vyos}}" checked> {{vyos}}
+                  <br><input type="checkbox" name="{{vyos}}"> {{vyos}}
                 {% endfor %}
               </div>
             </div>
