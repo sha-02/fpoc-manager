@@ -492,6 +492,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                            'datacenter': datacenters['east'],
                                            **context})
 
+    lxc_config = 'lxc.vrf.conf' if context['vrf_aware_overlay'] else 'lxc.conf'
+
     devices = {
         'WEST-DC1': west_dc1,
         'WEST-DC2': west_dc2,
@@ -501,12 +503,18 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'EAST-BR': east_br,
         # 'FMG': FortiManager(name='FMG'),
 
-        'PC-WEST-DC1': LXC(name="PC-WEST-DC1", template_context=lxc_context('WEST-DC1', segments_devices, context)),
-        'PC-WEST-DC2': LXC(name="PC-WEST-DC2",template_context=lxc_context('WEST-DC2', segments_devices, context)),
-        'PC-EAST-DC': LXC(name=east_dc_['lxc'], template_context=lxc_context(east_dc_['name'], segments_devices, context)),
-        'PC-WEST-BR1': LXC(name="PC-WEST-BR1",template_context=lxc_context('WEST-BR1', segments_devices, context)),
-        'PC-WEST-BR2': LXC(name="PC-WEST-BR2",template_context=lxc_context('WEST-BR2', segments_devices, context)),
-        'PC-EAST-BR': LXC(name=east_br_['lxc'], template_context=lxc_context(east_br_['name'], segments_devices, context)),
+        'PC-WEST-DC1': LXC(name="PC-WEST-DC1", template_context=lxc_context('WEST-DC1', segments_devices, context),
+                           template_filename=lxc_config),
+        'PC-WEST-DC2': LXC(name="PC-WEST-DC2",template_context=lxc_context('WEST-DC2', segments_devices, context),
+                           template_filename=lxc_config),
+        'PC-EAST-DC': LXC(name=east_dc_['lxc'], template_context=lxc_context(east_dc_['name'], segments_devices, context),
+                          template_filename=lxc_config),
+        'PC-WEST-BR1': LXC(name="PC-WEST-BR1",template_context=lxc_context('WEST-BR1', segments_devices, context),
+                           template_filename=lxc_config),
+        'PC-WEST-BR2': LXC(name="PC-WEST-BR2",template_context=lxc_context('WEST-BR2', segments_devices, context),
+                           template_filename=lxc_config),
+        'PC-EAST-BR': LXC(name=east_br_['lxc'], template_context=lxc_context(east_br_['name'], segments_devices, context),
+                          template_filename=lxc_config),
         'INTERNET-SERVER': LXC(name="INTERNET-SERVER", template_filename='lxc_SRV_INET.conf')
     }
 
