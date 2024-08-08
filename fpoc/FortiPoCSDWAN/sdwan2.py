@@ -13,7 +13,7 @@ import typing
 import ipaddress
 
 
-def dualdc2(request: WSGIRequest) -> HttpResponse:
+def dualdc(request: WSGIRequest) -> HttpResponse:
     """
     SDWAN+ADVPN v2.0
     Dual-Region WEST/EAST

@@ -6,8 +6,8 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 # for more later django installations use:
 # from django.templatetags.static import static
 
-# Both the below import are Ok
 # ATTENTION: package 'netaddr' MUST BE INSTALLED otherwise calls to ipaddr() filter simply return "False"
+# Both the below import are Ok
 # from ansible_collections.ansible.utils.plugins.plugin_utils.base.ipaddr_utils import ipaddr
 from ansible_collections.ansible.utils.plugins.filter.ipaddr import ipaddr
 

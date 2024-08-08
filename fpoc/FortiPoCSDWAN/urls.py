@@ -1,6 +1,6 @@
-from django.urls import path
+from django.urls import path, reverse
 
-from . import views, pocs, FortiPoCSDWAN, pocs2
+from . import views, FortiPoCSDWAN, sdwan1, sdwan2
 import fpoc
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
@@ -22,10 +22,11 @@ urlpatterns = [
     path('upgrade/', fpoc.pocs.upgrade, {'Class_PoC': FortiPoCSDWAN}, name='upgrade'),
     path('bootstrap/', fpoc.pocs.bootstrap, {'Class_PoC': FortiPoCSDWAN}, name='bootstrap'),
 
-    path('dualdc_dualregion/', pocs.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10
-    path('dualdc_dualregion_v2/', pocs2.dualdc2, name='dualdc_dualregion_v2'),  # poc_id 11
+    path('dualdc_dualregion/', sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10
+    path('dualdc_dualregion2/', sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11
 
-    # path('singlehub/bgp_per_overlay/fos62/', pocs.singlehub, {'poc_id': 5}, name='singlehub_fos62'),
+    # path('singlehub/bgp_per_overlay/fos62/', sdwan0.singlehub, {'poc_id': 5}, name='singlehub_fos62'),
     # poc6 = SDWAN+ADVPN Dual-DC with bgp-per-overlay for FOS 6.4
-    # path('singlehub/bgp_per_overlay/fos70/', pocs.singlehub, {'poc_id': 8}, name='singlehub_fos70'),
+    # path('singlehub/bgp_per_overlay/fos70/', sdwan0.singlehub, {'poc_id': 8}, name='singlehub_fos70'),
 ]
+
