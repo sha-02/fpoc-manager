@@ -8,6 +8,9 @@ import fpoc
 from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
 import fpoc.ansible as ansible
 
+#
+# Functions/Views which are common to multiple PoCs
+#
 
 def upgrade(request: WSGIRequest, Class_PoC) -> HttpResponse:
     """

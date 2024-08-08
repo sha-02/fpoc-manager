@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
 from fpoc.FortiPoCSDWAN import FortiPoCSDWAN
-from fpoc import FortiGate, LXC, VyOS, fortipoc_VMs
+from fpoc import FortiGate, LXC, VyOS, poc_instances
 
 APPNAME = "fpoc/FortiPoCSDWAN"
 
@@ -25,7 +25,7 @@ class HomePageView(TemplateView):
         context['fortigates'] = FortiPoCSDWAN.devices_of_type(FortiGate).keys()
         context['lxces'] = FortiPoCSDWAN.devices_of_type(LXC).keys()
         context['vyoses'] = FortiPoCSDWAN.devices_of_type(VyOS).keys()
-        context['fortipoc_VMs'] = fortipoc_VMs()
+        context['poc_instances'] = poc_instances()
         minmum_fortios = '7.4.4' if 'ADVPNv2' in self.request.path else '7.0.0'
         context['firmware'] = fortios_firmware(minmum_fortios)
         return context

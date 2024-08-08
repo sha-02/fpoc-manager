@@ -13,7 +13,7 @@ class FortiPoC(FortiLab):
         super(FortiPoC, self).__init__(request, poc_id)
 
         # IP of FortiPoC is retrieved from the WSGI request: either from the fpoc selection or from a provided IP
-        fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('fpocSelection')
+        fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('pocInstance')
         if fpoc_ip == '0.0.0.0':  # fpoc-manager is running inside the FortiPoC
             self.manager_inside_fpoc = True
             self.ip = '172.16.31.254'  # device is accessed by fpoc-manager from within the FortiPoC OOB inside IP

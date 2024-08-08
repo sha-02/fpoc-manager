@@ -50,12 +50,12 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': inspect(poc.request).message})
 
-    if '127.0.0.1' in poc.request.get_host() and poc.request.POST['fpocSelection']=='0.0.0.0' \
+    if '127.0.0.1' in poc.request.get_host() and poc.request.POST['pocInstance']=='0.0.0.0' \
             and poc.request.POST['fpocIP'] == '' \
             and bool(poc.request.POST.get('previewOnly', False)) == False:
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error',
-                       'message': "Select a PoC in the list, 'internal' is not a valid choice from 127.0.0.1"})
+                       'message': "Select a PoC instance from the list, 'inside_fpoc' is not a valid choice from 127.0.0.1"})
 
     # Create the list of devices which must be used for this PoC
     # devices = copy.deepcopy(devices)

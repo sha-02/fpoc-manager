@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
 from fpoc.FortiPoCAirbus import FortiPoCAirbus
-from fpoc import FortiGate, LXC, VyOS, fortipoc_VMs
+from fpoc import FortiGate, LXC, VyOS, poc_instances
 
 APPNAME = "fpoc/FortiPoCAirbus"
 
@@ -15,7 +15,7 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
         context['firmware'] = fortios_firmware()
-        context['fortipoc_VMs'] = fortipoc_VMs()
+        context['poc_instances'] = poc_instances()
         context['fortigates'] = FortiPoCAirbus.devices_of_type(FortiGate).keys()
         context['lxces'] = FortiPoCAirbus.devices_of_type(LXC).keys()
         context['vyoses'] = FortiPoCAirbus.devices_of_type(VyOS).keys()

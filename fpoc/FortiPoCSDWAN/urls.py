@@ -18,9 +18,9 @@ urlpatterns = [
     # Which means that the exact same class instance is passed to the function each time
     # I must therefore create the class instance inside the function itself by passing the class name here
     # Creating the instance in this file (before the urlpatterns) does not work either
-    path('poweron/', fpoc.pocs.poweron, {'Class_PoC': FortiPoCSDWAN}, name='poweron'),
-    path('upgrade/', fpoc.pocs.upgrade, {'Class_PoC': FortiPoCSDWAN}, name='upgrade'),
-    path('bootstrap/', fpoc.pocs.bootstrap, {'Class_PoC': FortiPoCSDWAN}, name='bootstrap'),
+    path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCSDWAN}, name='poweron'),
+    path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCSDWAN}, name='upgrade'),
+    path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCSDWAN}, name='bootstrap'),
 
     path('dualdc_dualregion/', sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10
     path('dualdc_dualregion2/', sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11

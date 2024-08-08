@@ -1,7 +1,8 @@
 {
-  "internal": { "ip": "0.0.0.0", "selected": true },
+  "inside_fpoc": { "ip": "0.0.0.0", "selected": true },
   "almodo10": { "ip": "almodo10", "selected": false },
   "almodo20": { "ip": "almodo20", "selected": false },
   "almodovar10 [IP]": { "ip": "10.222.52.29", "selected": false },
-  "almodovar20 [IP]": { "ip": "10.222.52.39", "selected": false }
+  "almodovar20 [IP]": { "ip": "10.222.52.39", "selected": false },
+  "Hardware Lab": { "ip": "0.0.0.1", "selected": false }
 }
