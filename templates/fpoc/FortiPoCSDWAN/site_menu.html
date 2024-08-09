@@ -1,0 +1,19 @@
+<!-- inspired from https://forum.blocsapp.com/t/option-select-submit-button-to-navigate-to-corresponding-url/11268/4 -->
+
+<select name ='menu1' id ='menu1' class = 'menu1' style = "color: #006699;font-family: Helvetica;font-size: 18px;font-style: normal;background-color: #FFFFFF;padding: 10px">
+<!--    <option value = "Select a Lab and click Submit">Select and Lab and click Submit</option>-->
+
+<!--            <option value = "/SDWAN/">v1</option>-->
+<!--            <option value = "/SDWAN/ADVPNv2/">v2</option>-->
+
+    {% for url, site in sdwan_sites.items %}
+        {% if site.selected %}
+            <option value="/{{url}}" selected>{{url}}</option>
+        {% else %}
+            <option value="/{{url}}">{{url}}</option>
+        {% endif %}
+    {% endfor %}
+ </select>
+
+<!-- using location.replace() instead of window.open() to avoid creating a new broswer tab -->
+<input type = 'button' id = 'btnmenu1' class = 'btnmenu1' style = "color: #FFFFFF;font-family: Helvetica;font-size: 18px;font-style: normal;background-color: #006699;padding: 10px;border-style: solid;border-color: #FFFFFF;cursor: pointer" onmouseover = "this.style.backgroundColor = '#008FD6'"  onmouseout = "this.style.backgroundColor = '#006699'"  onclick = 'location.replace(document.getElementById("menu1").options[document.getElementById("menu1").selectedIndex].value)' value = 'Submit' />

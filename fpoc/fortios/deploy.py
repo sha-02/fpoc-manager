@@ -3,7 +3,7 @@ from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, REL
 import threading
 
 import fpoc.fortios as fortios
-from fpoc import FortiGate, FortiGate_HA, FortiManager, TypePoC, json_to_dict
+from fpoc import FortiGate, FortiGate_HA, TypePoC, json_to_dict
 from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice
 
 
@@ -186,7 +186,7 @@ def is_running_bootstrap(device: FortiGate) -> bool:
     return bootstrap
 
 
-def render_bootstrap_config(device: FortiGate):
+def render_bootstrap_config(poc: TypePoC, device: FortiGate):
     """
     Render the bootstrap config based on the FortiOS version of the FGT (device.fos_version)
     Bootstrap config is stored in device.config
@@ -196,19 +196,23 @@ def render_bootstrap_config(device: FortiGate):
     """
 
     # Check if there is a bootstrap config for this FOS firmware on the disk (file name e.g. '6.4.6.out')
+    bootstrap_filename = f'{device.model}_{device.fos_version}.conf'
     try:
-        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf', mode='r') as f:
+        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{bootstrap_filename}', mode='r') as f:
             f.read()
     except:
         print(
-            f'{device.name} : Could not find bootstrap configuration "{device.fos_version}.conf" in folder {PATH_FPOC_BOOTSTRAP_CONFIGS}')
+            f'{device.name} : Could not find bootstrap configuration "{bootstrap_filename}" in folder {PATH_FPOC_BOOTSTRAP_CONFIGS}')
         raise StopProcessingDevice
 
     # Render the bootstrap configuration
 
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
     device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
-    device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # e.g., 172.16.31.254
+    # device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # e.g., 172.16.31.254
+    device.template_context['mgmt_gw'] = poc.mgmt_gw
+    device.template_context['mgmt_dns'] = poc.mgmt_dns
+    device.template_context['mgmt_vrf'] = poc.mgmt_vrf
     device.template_context['apiadmin'] = device.apiadmin
     device.template_context['HA'] = device.ha
 
@@ -289,13 +293,11 @@ def deploy(poc: TypePoC, device: FortiGate):
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
-        device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt.ip if any(
-            (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
-        render_bootstrap_config(device)
+        render_bootstrap_config(poc, device)
         if not poc.request.POST.get('previewOnly'):
             upload_bootstrap_config(device)  # for this PoC, the bootstrap config is pushed unconditionally, without
             # checking if there is a bootstrap config already running on the FGT. This is because there are different
-            # possible options for the bootstrap config (e.g., 'WAN_underlays', 'fmg_ip')
+            # possible options for the bootstrap config (e.g., 'WAN_underlays')
             # It's simpler to push the bootstrap config unconditionally than having to check whether the bootstrap
             # config running on the FGT has the same options as the ones requested
 
@@ -310,21 +312,23 @@ def deploy(poc: TypePoC, device: FortiGate):
     # Add information to the template context of this device
     device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
     device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
+    # device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
+    device.template_context['mgmt_gw'] = poc.mgmt_gw
+    device.template_context['mgmt_dns'] = poc.mgmt_dns
+    device.template_context['mgmt_vrf'] = poc.mgmt_vrf
     device.template_context['HA'] = device.ha
     device.template_context['wan'] = device.wan
-    device.template_context['fmg_ip'] = poc.devices['FMG'].mgmt.ip if any(
-        (True for dev in poc.devices.values() if isinstance(dev, FortiManager))) else None  # mgmt IP of FMG (if any), otherwise None
-    device.template_context['FMG_FORTIGATE_ID'] = None
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
+    # device.config = loader.render_to_string(f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
+    #                                         device.template_context, using='jinja2')
+    device.config = loader.render_to_string(f'fpoc/{poc.template_folder}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
                                             device.template_context, using='jinja2')
     # print(cli_settings)
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
     if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
-        render_bootstrap_config(device)
+        render_bootstrap_config(poc, device)
         upload_bootstrap_config(device)
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if device.ha.mode == FortiGate_HA.Modes.FGCP and device.ha.role == FortiGate_HA.Roles.SECONDARY:

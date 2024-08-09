@@ -6,7 +6,7 @@ import copy
 
 import fpoc
 from fpoc import FortiGate, LXC
-from fpoc.FortiPoCSDWAN import FortiPoCSDWAN
+from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN
 from fpoc.typing import TypePoC
 import typing
 
@@ -23,7 +23,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     context = {
         # From HTML form
-        'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_priority', 'remote_sla_hc', 'bgp_community',
+        'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_metrics', 'bgp_community', 'remote_sla_priority', 'remote_sla_status'
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
         'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-251] VRF for Internet and MPLS links
@@ -38,7 +38,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     }
 
     # Create the poc
-    poc = FortiPoCSDWAN(request)
+    if 'fortipoc' in request.path:  # poc is running in FortiPoC
+        poc = FortiPoCSDWAN(request)
+    else:  # poc is running in Hardware Lab
+        poc = FortiLabSDWAN(request)
 
     # Define the poc_id based on the options which were selected
     poc_id = 11
@@ -58,6 +61,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         poc_id = None
         errors.append("Not yet implemented: Hub-side Steering BGP priority from priority in per-overlay Branch SD-WAN probes")
 
+    if context['bidir_sdwan_bgp_priority'] == 'remote_sla_status':
+        poc_id = None
+        errors.append("Not yet implemented: Hub-side Steering BGP priority from SLA status in per-overlay Branch SD-WAN probes")
+
 
     #
     # BGP on loopback - sanity checks
@@ -65,7 +72,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     if context['bgp_design'] == 'on_loopback':
 
         if context['bidir_sdwan_bgp_priority'] == 'bgp_community':
-            context['bidir_sdwan_bgp_priority'] = 'remote_sla_hc'  # bgp_community only works with BGP per overlay
+            context['bidir_sdwan_bgp_priority'] = 'remote_sla_metrics'  # bgp_community only works with BGP per overlay
             messages.append("Bi-directional SD-WAN was requested: <b>method was forced to 'remote-sla'</b> which is the only "
                            "supported method with bgp-on-loopback")
 
@@ -125,9 +132,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
             messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is <b>forced to 'False'</b>")
 
-        if context['bidir_sdwan_bgp_priority'] == 'remote_sla_hc':
+        if context['bidir_sdwan_bgp_priority'] == 'remote_sla_metrics':
             context['overlay'] = 'static_ip'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            messages.append("Bidirectional SDWAN with 'remote_sla_HC' is requested: <b>overlay is therefore forced to 'static'</b> since "
+            messages.append("Bidirectional SDWAN with 'remote_sla_metrics' is requested: <b>overlay is therefore forced to 'static'</b> since "
                            "remote-sla-HC with bgp-per-overlay can only work with static-overlay IP@")
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
@@ -197,36 +204,36 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet1.subnet + '.1',  # 100.64.11.1
-                    'inet2': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet2.subnet + '.1',  # 100.64.12.1
-                    'mpls': FortiPoCSDWAN.devices['WEST-DC1'].wan.mpls1.subnet + '.1',  # 10.0.14.1
+                    'inet1': poc.devices['WEST-DC1'].wan.inet1.subnet + '.1',  # 100.64.11.1
+                    'inet2': poc.devices['WEST-DC1'].wan.inet2.subnet + '.1',  # 100.64.12.1
+                    'mpls': poc.devices['WEST-DC1'].wan.mpls1.subnet + '.1',  # 10.0.14.1
                     'lan': LAN['WEST-DC1'],
                     'loopback': dc_loopbacks['WEST-DC1']
                 }
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet1.subnet + '.2',  # 100.64.21.2
-                    'inet2': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet2.subnet + '.2',  # 100.64.22.2
-                    'mpls': FortiPoCSDWAN.devices['WEST-DC2'].wan.mpls1.subnet + '.2',  # 10.0.24.2
+                    'inet1': poc.devices['WEST-DC2'].wan.inet1.subnet + '.2',  # 100.64.21.2
+                    'inet2': poc.devices['WEST-DC2'].wan.inet2.subnet + '.2',  # 100.64.22.2
+                    'mpls': poc.devices['WEST-DC2'].wan.mpls1.subnet + '.2',  # 10.0.24.2
                     'lan': LAN['WEST-DC2'],
                     'loopback': dc_loopbacks['WEST-DC2']
                 }
 
     east_dc1_ = {
                     'id': 1,
-                    'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1.subnet + '.3',  # 100.64.121.3
-                    'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.3',  # 100.64.122.3
-                    'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.3',  # 10.0.124.3
+                    'inet1': poc.devices['EAST-DC'].wan.inet1.subnet + '.3',  # 100.64.121.3
+                    'inet2': poc.devices['EAST-DC'].wan.inet2.subnet + '.3',  # 100.64.122.3
+                    'mpls': poc.devices['EAST-DC'].wan.mpls1.subnet + '.3',  # 10.0.124.3
                     'lan': LAN['EAST-DC1'],
                     'loopback': dc_loopbacks['EAST-DC1']
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 2,
-                    'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1.subnet + '.4',  # 100.64.121.4
-                    'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.4',  # 100.64.122.4
-                    'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.4',  # 10.0.124.4
+                    'inet1': poc.devices['EAST-DC'].wan.inet1.subnet + '.4',  # 100.64.121.4
+                    'inet2': poc.devices['EAST-DC'].wan.inet2.subnet + '.4',  # 100.64.122.4
+                    'mpls': poc.devices['EAST-DC'].wan.mpls1.subnet + '.4',  # 10.0.124.4
                     'lan': '0.0.0.0/0',
                     'loopback': dc_loopbacks['EAST-DC2']
                 }

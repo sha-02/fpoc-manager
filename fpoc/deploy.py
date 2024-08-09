@@ -18,7 +18,7 @@ from django.http import HttpResponse
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS, FortiManager
+from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS
 from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
 
 
@@ -50,12 +50,12 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': inspect(poc.request).message})
 
-    if '127.0.0.1' in poc.request.get_host() and poc.request.POST['pocInstance']=='0.0.0.0' \
+    if '127.0.0.1' in poc.request.get_host() and poc.request.POST.get('pocInstance')=='0.0.0.0' \
             and poc.request.POST['fpocIP'] == '' \
             and bool(poc.request.POST.get('previewOnly', False)) == False:
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error',
-                       'message': "Select a PoC instance from the list, 'inside_fpoc' is not a valid choice from 127.0.0.1"})
+                       'message': "Select a PoC instance from the list, 'internal' is not a valid choice from 127.0.0.1"})
 
     # Create the list of devices which must be used for this PoC
     # devices = copy.deepcopy(devices)
@@ -75,56 +75,6 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
     poc.members(devices=devices)
 
     status_devices = start2(poc)
-
-    #  For FortiManager provisioning templates: generate the Jinja dict to import into FMG
-    #
-    # fortimanager = ''
-    # if request.POST.get('FMG'):
-    #     # Only keep FortiGates, skip other devices (LXC, VyOS, ...)
-    #     status_fortigates = [device for device in status_devices if device['context'].get('fos_version') is not None]
-    #
-    #     # Create a dictionary of the form:  { 'fgt1_name': 'fgt1_context_dict', 'fgt2_name': 'fgt2_context_dict', ...}
-    #     fortigates = dict()
-    #     for device in status_fortigates:
-    #         device['context']['wan'] = device['context']['wan'].dictify()
-    #         fortigates[device['name']] = copy.deepcopy(device['context'])
-    #         for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
-    #             del fortigates[device['name']][k]
-
-        # ++ Previous approach ++
-        # rendered obsolete by using a dictify method for 'Interface' and 'WAN' objects
-        # and by not exposing the HA object to FMG
-        #
-        # Then serialize the contexts in JSON so that they can be used as a Jinja variable
-        # Problem with context objects like 'HA' and 'Interface' is that they cannot be used as Jinja variable
-        # context is first serialize as a JSON string with jsonpickle (which nicely handles complex objects serialization)
-        # then it is reloaded as a dict. After reload, objects like 'HA' or 'Interface' are no longer objects since they
-        # were changed to regular key:value pairs by jsonpickle during the serialization process.
-        # One must use json.loads and not jsonpickle.decode to reload the JSON string into a dict otherwise jsonpickle
-        # cleverly rebuilds the original 'HA'/'Interface' objects !
-        # We need to pass a context dict to Jinja (in order to loop through the items), that's why the serialized context
-        # must be deserialized
-
-        # import jsonpickle, json
-        # fortigates = dict()
-        # for device in status_fortigates:
-        #     fortigates[device['name']] = json.loads(jsonpickle.encode(device['context']))
-        #     for k in ['fmg_ip', 'fos_version', 'HA', 'mgmt_fpoc']:  # list of context keys which are not needed for FMG
-        #         del fortigates[device['name']][k]
-
-        # Render the Jinja dict to be imported in FortiManager
-        # fortimanager = loader.render_to_string(f'{APPNAME}/fortimanager_provisioning.html',
-        #                                        {'fortigates': fortigates}, using='jinja2')
-
-    # Render the deployment status using Django template engine
-    # messages = poc.request.fpoc['messages'] if hasattr(poc.request, 'fpoc') else ["<no message>"]
-
-    # return render(request, f'{APPNAME}/deployment_status.html',
-    #               {'poc_id': poc_id, 'devices': status_devices, 'fortimanager': fortimanager, 'messages': messages})
-
-    # import pprint
-    # for dev in status_devices:
-    #     pprint.pprint(dev['context'])
 
     return render(poc.request, f'fpoc/deployment_status.html',
                   {'poc_id': poc.id, 'devices': status_devices, 'messages': poc.messages})
@@ -158,28 +108,28 @@ def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
     """
     returns URL to access the device via the FortiPoC (HTTPS for FGT/FMG, SSH for LXC/VyOS)
     """
-    ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+    if 'fortipoc' in poc.request.path:
+        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+        if isinstance(device, FortiGate):
+            return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
+        if isinstance(device, LXC) or isinstance(device, VyOS):
+            return 'SSH', f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/ssh'
 
-    if isinstance(device, FortiGate) or isinstance(device, FortiManager):
-        return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
-    if isinstance(device, LXC) or isinstance(device, VyOS):
-        return 'SSH', f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/ssh'
-
-    return 'HTTPS', f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
+    return 'HTTPS', f'https://{device.mgmt.ip}:{device.https_port}'
 
 
 def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     """
     returns URL to access the device via its FortiPoC console
     """
-    ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+    if 'fortipoc' in poc.request.path:
+        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+        if isinstance(device, FortiGate) or isinstance(device, VyOS):
+            return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/cons'
+        if isinstance(device, LXC):
+            return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/lxcbash'
 
-    if isinstance(device, FortiGate) or isinstance(device, FortiManager) or isinstance(device, VyOS):
-        return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/cons'
-    if isinstance(device, LXC):
-        return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/lxcbash'
-
-    return f'https://0.0.0.0:0'  # dummy URL (should not reach this code)
+    return ''  # no console, empty string returned
 
 
 def deploy_configs(poc: TypePoC, multithread=True):
@@ -287,7 +237,5 @@ def deploy(poc: TypePoC, device: TypeDevice):
         lxc.deploy(poc, device)
     elif isinstance(device, VyOS):
         vyos.deploy(poc, device)
-    elif isinstance(device, FortiManager):
-        pass    # Nothing to deploy on FMG
     else:
         raise StopProcessingDevice(f'{device.name} : the type of this device is not supported for deployment')

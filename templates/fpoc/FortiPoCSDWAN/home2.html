@@ -2,7 +2,11 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}FortiPOC SDWAN/ADVPNv2.0{% endblock title %}
+{% block title %}SDWAN/ADVPNv2.0{% endblock title %}
+
+{% block home %} {# Override the 'home' block defined in _base.html #}
+{% include "./site_menu.html" %}
+{% endblock %}
 
 {% block content %}
 
@@ -10,8 +14,12 @@
 function collectFortiPoCElements(formID)
 {
   // Assign all the global FortiPoC Elements to the form being submitted
-  document.getElementById('pocInstance').setAttribute('form', formID);
-  document.getElementById('fpocIP').setAttribute('form', formID);
+
+  {% if fortipoc_instances %}
+    document.getElementById('pocInstance').setAttribute('form', formID);
+    document.getElementById('fpocIP').setAttribute('form', formID);
+  {% endif %}
+
   document.getElementById('previewOnly').setAttribute('form', formID);
   document.getElementById('targetedFOSversion').setAttribute('form', formID);
 }
@@ -58,7 +66,7 @@ $(document).ready(function(){
 <div class="accordion" id="accordionPoC">
 
   <!-- ========================================================================================================= -->
-  <!-- FortiPoC SDWAN + ADVPN -->
+  <!-- SDWAN + ADVPNv2 -->
   <!-- ========================================================================================================= -->
   <div class="card">
   <div class="card-header" id="heading-0">
@@ -82,35 +90,39 @@ $(document).ready(function(){
                 {% for fgt in fortigates %}
                   <br><input type="checkbox" name="{{fgt}}" checked> {{fgt}}
                 {% endfor %}
-                <hr>
-                WAN underlays <input type="checkbox" name="WAN_underlays">
-                <br>HA <select name="HA">
-                    <option value="standalone" selected>standalone</option>
-                    <option value="FGCP">FGCP</option>
-                  </select>
-                <br>central-management <input type="checkbox" name="FMG">
               </div>
-              <div class="col">
-                <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)">
-                <b>LXC</b>
-                {% for lxc in lxces %}
-                  <br><input type="checkbox" name="{{lxc}}"> {{lxc}}
-                {% endfor %}
-              </div>
-              <div class="col">
-                <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)">
-                <b>VyOS</b>
-                {% for vyos in vyoses %}
-                  <br><input type="checkbox" name="{{vyos}}"> {{vyos}}
-                {% endfor %}
-              </div>
+              {% if lxces %}
+                <div class="col">
+                  <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)">
+                  <b>LXC</b>
+                  {% for lxc in lxces %}
+                      <br><input type="checkbox" name="{{lxc}}"> {{lxc}}
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if vyoses %}
+                <div class="col">
+                  <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)">
+                  <b>VyOS</b>
+                  {% for vyos in vyoses %}
+                    <br><input type="checkbox" name="{{vyos}}"> {{vyos}}
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
           </div>
         </fieldset>
 
-        <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices" formaction="{% url 'sdwan:poweron' %}">Power-On Devices</button>
+        <hr><input type="checkbox" name="WAN_underlays"> WAN underlays
+        HA <select name="HA">
+            <option value="standalone" selected>standalone</option>
+            <option value="FGCP">FGCP</option>
+        </select>
+
+        {% if fortipoc_instances %}<button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices" formaction="{% url 'sdwan:poweron' %}">Power-On Devices</button>{% endif %}
         <button type="submit" class="btn btn-warning btn-sm" title="Upgrade/Downgrade FortiGates" formaction="{% url 'sdwan:upgrade' %}">Upgrade FortiGates</button>
-        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'sdwan:bootstrap' %}" >Deploy Bootstrap Config to FortiGates</button>
+<!--        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'sdwan:bootstrap' %}" >Deploy Bootstrap Config to FortiGates</button>-->
+        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="bootstrap/" >Deploy Bootstrap Config to FortiGates</button>
         <br><br>
         <fieldset>
           BGP design <select name="bgp_design">
@@ -125,9 +137,10 @@ $(document).ready(function(){
           <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
           <br>
           Hub-side Steering BGP priority <select name="bidir_sdwan_bgp_priority">
-            <option value='remote_sla_hc' selected>from heath-check status in per-overlay Branch SD-WAN probes</option>
+            <option value='remote_sla_metrics' selected>from SLA metrics in per-overlay Branch SD-WAN probes</option>
             <option value='bgp_community'>from BGP community in per-overlay Branch BGP prefix</option>
-            <option value='remote_sla_priority' >from priority in per-overlay Branch SD-WAN probes</option>
+            <option value='remote_sla_priority'>from priority in per-overlay Branch SD-WAN probes (7.6+)</option>
+            <option value='remote_sla_status'>from SLA status in per-overlay Branch SD-WAN probes (7.6+)</option>
           </select>
           <br>
 <!--          Remote Internet Access <select name="remote_internet">-->
@@ -161,6 +174,9 @@ $(document).ready(function(){
           <input type="hidden" name="vrf_blue" maxlength="3" size="3" value="13">
           <input type="hidden" name="vrf_yellow" maxlength="3" size="3" value="11">
           <input type="hidden" name="vrf_red" maxlength="3" size="3" value="12">
+
+          <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
+
           CE VRF RIA <select name="vrf_ria">
           <option value='nat_origin' selected>origin IP can be NATed</option>
           <option value='preserve_origin'>origin IP must be preserved, no NAT to the Hub</option>
@@ -169,7 +185,8 @@ $(document).ready(function(){
           <br><input type="checkbox" name="multicast" value=0 title="(only BLUE VRF if VRF segmentation)"> Multicast routing
         </fieldset>
         <br>
-        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion2' %}" formaction="{% url 'sdwan:dualdc_dualregion2' %}" >Start</button>
+<!--        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion2' %}" formaction="{% url 'sdwan:dualdc_dualregion2' %}" >Start</button>-->
+        <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion2" formaction="dualdc_dualregion2/" >Start</button>
       </form>
     </div>
   </div>

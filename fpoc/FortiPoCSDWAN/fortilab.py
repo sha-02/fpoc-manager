@@ -1,14 +1,18 @@
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc import FortiPoC, FortiGate, LXC, VyOS, WAN, Interface, Network
+from fpoc import FortiLab, FortiGate, WAN, Interface, Network
 
 
-class FortiPoCSDWAN(FortiPoC):
+class FortiLabSDWAN(FortiLab):
     """
     """
     template_folder = 'FortiPoCSDWAN'
+    mgmt_gw = '10.210.1.254'      # Gateway for OOB mgmt network
+    mgmt_dns = '96.45.45.45'     # DNS from the OOB mgmt
     mpls_summary = '10.71.0.0/16'
     devices = {
-        'WEST-DC1': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
+        # SDW-1001F-A
+        'WEST-DC1': FortiGate(name='WEST-DC1', name_fpoc='SDW-1001F-A', model='FGT_1001F', password='fortinet',
+                            offset=0, mgmt=Interface('mgmt', 0, '10.210.0.50/23'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '198.51.100'),
@@ -46,7 +50,9 @@ class FortiPoCSDWAN(FortiPoC):
         #                            mpls2=Interface('port2', 115, '10.71.115')
         #                            )),
 
-        'WEST-DC2': FortiGate(offset=2, mgmt=Interface('port10', 0, '172.16.31.21/24'),
+        # SDW-1001F-B
+        'WEST-DC2': FortiGate(name='WEST-DC2', name_fpoc='SDW-1001F-B', model='FGT_1001F', password='fortinet',
+                            offset=2, mgmt=Interface('mgmt', 0, '10.210.0.59/23'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '203.0.113'),
@@ -65,7 +71,9 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 25, '10.71.25')
                             )),
 
-        'EAST-DC': FortiGate(offset=3, mgmt=Interface('port10', 0, '172.16.31.22/24'),
+        # SDW-3301E-A
+        'EAST-DC': FortiGate(name='EAST-DC', name_fpoc='SDW-3301E-A', model='FGT_3301E', password='fortinet',
+                            offset=3, mgmt=Interface('mgmt1', 0, '10.210.0.63/23'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '203.0.113'),
@@ -84,7 +92,9 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 125, '10.71.125')
                             )),
 
-        'WEST-BR1': FortiGate(offset=4, mgmt=Interface('port10', 0, '172.16.31.31/24'),
+        # SDW-101F-A
+        'WEST-BR1': FortiGate(name='WEST-BR1', name_fpoc='SDW-101F-A', model='FGT_101F', password='fortinet',
+                            offset=4, mgmt=Interface('port10', 0, '10.210.0.23/23'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '192.0.2'),
@@ -122,7 +132,9 @@ class FortiPoCSDWAN(FortiPoC):
         #                            mpls2=Interface('port2', 135, '10.71.135')
         #                            )),
 
-        'WEST-BR2': FortiGate(offset=6, mgmt=Interface('port10', 0, '172.16.31.41/24'),
+        # SDW-101F-B
+        'WEST-BR2': FortiGate(name='WEST-BR2', name_fpoc='SDW-101F-B', model='FGT_101F', password='fortinet',
+                            offset=6, mgmt=Interface('mgmt', 0, '1.1.1.1/23'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '100.64.40'),
@@ -141,7 +153,9 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 45, '10.71.45')
                             )),
 
-        'EAST-BR': FortiGate(offset=7, mgmt=Interface('port10', 0, '172.16.31.42/24'),
+        # SDW-3301E-B
+        'EAST-BR': FortiGate(name='EAST-BR', name_fpoc='SDW-3301E-B', model='FGT_3301E', password='fortinet',
+                            offset=7, mgmt=Interface('mgmt1', 0, '10.210.0.67/23'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '100.64.40'),
@@ -160,29 +174,21 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 145, '10.71.145')
                             )),
 
-        # 'ISFW-A': FortiGate(offset=8, mgmt=Interface('port10', 0, '172.16.31.13/24')),
-        # 'Internet': VyOS(offset=9, mgmt=Interface('eth9', 0, '172.16.31.251/24')),
-        # 'MPLS': VyOS(offset=10, mgmt=Interface('eth9', 0, '172.16.31.252/24')),
-        'PC-WEST-DC1': LXC(offset=11, mgmt=Interface('eth9', 0, '172.16.31.111/24')),
+        # 'PC-WEST-DC1': LXC(offset=11, mgmt=Interface('eth9', 0, '172.16.31.111/24')),
         # 'PC_A2': LXC(offset=12, mgmt=Interface('eth9', 0, '172.16.31.112/24')),
-        'PC-WEST-DC2': LXC(offset=13, mgmt=Interface('eth9', 0, '172.16.31.121/24')),
-        'PC-EAST-DC': LXC(offset=14, mgmt=Interface('eth9', 0, '172.16.31.122/24')),
-        'PC-WEST-BR1': LXC(offset=15, mgmt=Interface('eth9', 0, '172.16.31.131/24')),
+        # 'PC-WEST-DC2': LXC(offset=13, mgmt=Interface('eth9', 0, '172.16.31.121/24')),
+        # 'PC-EAST-DC': LXC(offset=14, mgmt=Interface('eth9', 0, '172.16.31.122/24')),
+        # 'PC-WEST-BR1': LXC(offset=15, mgmt=Interface('eth9', 0, '172.16.31.131/24')),
         # 'PC_C2': LXC(offset=16, mgmt=Interface('eth9', 0, '172.16.31.132/24')),
-        'PC-WEST-BR2': LXC(offset=17, mgmt=Interface('eth9', 0, '172.16.31.141/24')),
-        'PC-EAST-BR': LXC(offset=18, mgmt=Interface('eth9', 0, '172.16.31.142/24')),
-        # 'RTR-NAT_A': LXC(offset=19, mgmt=Interface('eth9', 0, '172.16.31.10/24')),
-        # 'RTR-NAT_B': LXC(offset=20, mgmt=Interface('eth9', 0, '172.16.31.20/24')),
-        # 'RTR-NAT_C': LXC(offset=21, mgmt=Interface('eth9', 0, '172.16.31.30/24')),
-        # 'RTR-NAT_D': LXC(offset=22, mgmt=Interface('eth9', 0, '172.16.31.40/24')),
-        'INTERNET-SERVER': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
-        # 'WAN_Controller': LXC(offset=24, mgmt=Interface('eth9', 0, '172.16.31.250/24')),
+        # 'PC-WEST-BR2': LXC(offset=17, mgmt=Interface('eth9', 0, '172.16.31.141/24')),
+        # 'PC-EAST-BR': LXC(offset=18, mgmt=Interface('eth9', 0, '172.16.31.142/24')),
+        # 'INTERNET-SERVER': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Go up the parent chain to store the WSGI request, merge class-level devices with instance-level devices
         # and configure device access info (from within fortipoc or from fortipoc public IP)
-        super(FortiPoCSDWAN, self).__init__(request, poc_id)
+        super(FortiLabSDWAN, self).__init__(request, poc_id)
 
         # Add MPLS summary subnet to each FortiGate
         for device in self.devices.values():

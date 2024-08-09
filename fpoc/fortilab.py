@@ -4,7 +4,12 @@ import copy
 
 
 class FortiLab:
-    devices: dict = {}      # The class-level dict containing all possible devices which can be used in this poc
+    devices: dict = {}  # The class-level dict containing all possible devices which can be used in this poc
+    mgmt_gw = None      # Gateway for OOB mgmt network
+    mgmt_dns = None     # DNS from the OOB mgmt
+    mgmt_vrf = 0        # VRF for the OOB mgmt
+    template_folder = None  # Folder hosting the jinja templates
+
 
     def __iter__(self):
         """"
@@ -72,6 +77,11 @@ class FortiLab:
                 for k, v in device.__dict__.items():
                     if v is not None:
                         self.devices[devname].__dict__[k] = v
+
+        # set the device IP to its OOB MGMT IP
+        for fpoc_devname, device in self.devices.items():
+            device.ip = device.mgmt.ip
+
 
     @classmethod
     def devices_of_type(cls, device_class) -> dict:

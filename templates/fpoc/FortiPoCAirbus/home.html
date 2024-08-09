@@ -152,6 +152,9 @@ $(document).ready(function(){
             port5/SEG0 VRF (CE)<input type="text" name="vrf_seg0" maxlength="3" size="3" value="3">
 
             <br><input type="checkbox" name="multicast" value=0> Multicast routing
+
+            <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
+
           </fieldset>
         <br>
         <button type="submit" class="btn btn-info btn-sm" title="{% url 'airbus:airbus' %}" formaction="{% url 'airbus:airbus' %}" >Start</button>

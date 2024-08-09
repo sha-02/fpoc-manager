@@ -1,6 +1,7 @@
 from django.urls import path, reverse
 
 from . import views, FortiPoCSDWAN, sdwan1, sdwan2
+from config.urls import sites
 import fpoc
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
@@ -9,7 +10,8 @@ import fpoc
 app_name = 'sdwan'
 
 urlpatterns = [
-    path('', views.HomePageView.as_view(), name='home'),
+    path('', views.HomePageView.as_view(), {'sites': sites}, name='home'),
+
     path('about/', views.AboutPageView.as_view(), name='about'),
     # path('test/', views.display_request_parameters, name='display_request_parameters'),
 
@@ -18,9 +20,14 @@ urlpatterns = [
     # Which means that the exact same class instance is passed to the function each time
     # I must therefore create the class instance inside the function itself by passing the class name here
     # Creating the instance in this file (before the urlpatterns) does not work either
-    path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCSDWAN}, name='poweron'),
-    path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCSDWAN}, name='upgrade'),
-    path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCSDWAN}, name='bootstrap'),
+    # path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCSDWAN}, name='poweron'),
+    # path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCSDWAN}, name='upgrade'),
+    # path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCSDWAN}, name='bootstrap'),
+
+    # New strategy for common views: the class required for the view is passed via the form
+    path('poweron/', fpoc.views.poweron, name='poweron'),
+    path('upgrade/', fpoc.views.upgrade, name='upgrade'),
+    path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
 
     path('dualdc_dualregion/', sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10
     path('dualdc_dualregion2/', sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11

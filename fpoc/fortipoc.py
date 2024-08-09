@@ -6,7 +6,10 @@ from fpoc import FortiLab
 class FortiPoC(FortiLab):
     BASE_PORT_SSH = 11000  # SSH ports for FortiPoC devices are 10100 + poc-devid: 10101, 10102, 10103, ...
     BASE_PORT_HTTPS = 14000  # HTTPS ports for FortiPoC devices are 10400 + poc-devid: 10401, 10402, 10403, ...
-    mgmt_fpoc_ipmask = '172.16.31.254/24'  # mgmt IP@ of FortiPoC in its OOB management subnet
+    # mgmt_fpoc_ipmask = '172.16.31.254/24'  # mgmt IP@ of FortiPoC in its OOB management subnet
+    mgmt_gw = '172.16.31.254'      # Gateway for OOB mgmt network (override FortiLab parent class attribute)
+    mgmt_dns = '172.16.31.254'     # DNS from the OOB mgmt (override FortiLab parent class attribute)
+    mgmt_vrf = 10                  # VRF for the OOB mgmt (override FortiLab parent class attribute)
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Call parent class to store the WSGI request and merge the class-level devices with the instance-level devices
@@ -16,7 +19,7 @@ class FortiPoC(FortiLab):
         fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('pocInstance')
         if fpoc_ip == '0.0.0.0':  # fpoc-manager is running inside the FortiPoC
             self.manager_inside_fpoc = True
-            self.ip = '172.16.31.254'  # device is accessed by fpoc-manager from within the FortiPoC OOB inside IP
+            self.ip = self.mgmt_gw  # device is accessed by fpoc-manager from within the FortiPoC OOB inside IP
         else:  # fpoc-manager is running outside the FortiPoC
             self.manager_inside_fpoc = False
             self.ip = fpoc_ip  # device is accessed by fpoc-manager via the FortiPoC outside IP
@@ -34,7 +37,7 @@ class FortiPoC(FortiLab):
         for fpoc_devname, device in self.devices.items():
             device.name_fpoc = fpoc_devname
             device.name = device.name or device.name_fpoc  # init to 'name_fpoc' if 'name' is None
-            device.mgmt_fpoc_ipmask = self.__class__.mgmt_fpoc_ipmask
+            # device.mgmt_fpoc_ipmask = self.__class__.mgmt_fpoc_ipmask
             if self.manager_inside_fpoc:  # fpoc-manager is running inside the FortiPoC
                 # device is accessed via its mgmt-ip inside the FortiPoC OOB
                 device.ip = device.mgmt.ip  # e.g. 172.16.31.1

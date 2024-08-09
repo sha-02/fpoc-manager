@@ -3,8 +3,8 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc.FortiPoCSDWAN import FortiPoCSDWAN
-from fpoc import FortiGate, LXC, VyOS, poc_instances
+from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN
+from fpoc import FortiGate, LXC, VyOS, fortipoc_instances
 
 APPNAME = "fpoc/FortiPoCSDWAN"
 
@@ -22,12 +22,34 @@ class HomePageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
-        context['fortigates'] = FortiPoCSDWAN.devices_of_type(FortiGate).keys()
-        context['lxces'] = FortiPoCSDWAN.devices_of_type(LXC).keys()
-        context['vyoses'] = FortiPoCSDWAN.devices_of_type(VyOS).keys()
-        context['poc_instances'] = poc_instances()
+
+        # Build the home page with a selection list of all the sites URL which starts with "SDWAN/"
+        sdwan_sites = { k: v for k, v in kwargs['sites'].items() if k.startswith('SDWAN/') }
+
+        # Set the current site to 'selected' after having unselected all other sites
+        for site in sdwan_sites.values():
+            site['selected'] = False
+        sdwan_sites[self.request.path[1:]]['selected'] = True
+
+        context['sdwan_sites'] = sdwan_sites
+
+        # Add FortiPoC instances to context if applicable
+        context['fortipoc_instances'] = fortipoc_instances() if 'fortipoc' in self.request.path else False
+
         minmum_fortios = '7.4.4' if 'ADVPNv2' in self.request.path else '7.0.0'
         context['firmware'] = fortios_firmware(minmum_fortios)
+
+        # List of devices for the PoC
+        if 'fortipoc' in self.request.path:
+            context['Class_PoC'] = 'FortiPoCSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+            context['fortigates'] = FortiPoCSDWAN.devices_of_type(FortiGate).keys()
+            context['lxces'] = FortiPoCSDWAN.devices_of_type(LXC).keys()
+            context['vyoses'] = FortiPoCSDWAN.devices_of_type(VyOS).keys()
+
+        if 'hardware' in self.request.path:
+            context['Class_PoC'] = 'FortiLabSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+            context['fortigates'] = FortiLabSDWAN.devices_of_type(FortiGate).keys()
+
         return context
 
 

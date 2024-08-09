@@ -88,7 +88,7 @@ $(document).ready(function(){
                     <option value="standalone" selected>standalone</option>
                     <option value="FGCP">FGCP</option>
                   </select>
-                <br>central-management <input type="checkbox" name="FMG">
+<!--                <br>central-management <input type="checkbox" name="FMG">-->
               </div>
               <div class="col">
                 <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)" checked>
@@ -107,6 +107,9 @@ $(document).ready(function(){
             </div>
           </div>
         </fieldset>
+
+        <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
+
         <br>
         <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices" formaction="{% url 'fpoc:poweron' %}">Power-On Devices</button>
         <button type="submit" class="btn btn-warning btn-sm" title="Upgrade/Downgrade FortiGates" formaction="{% url 'fpoc:upgrade' %}">Upgrade FortiGates</button>

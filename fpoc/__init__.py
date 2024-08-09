@@ -1,6 +1,6 @@
 from .fortilab import *
 from .fortipoc import *
-from .poc_instances import *
+from .fortipoc_instances import *
 from .devices import *
 from .typing import *
 from .exceptions import *

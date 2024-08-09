@@ -18,9 +18,13 @@ urlpatterns = [
     # Which means that the exact same class instance is passed to the function each time
     # I must therefore create the class instance inside the function itself by passing the class name here
     # Creating the instance in this file (before the urlpatterns) does not work either
-    path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCAirbus}, name='poweron'),
-    path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCAirbus}, name='upgrade'),
-    path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCAirbus}, name='bootstrap'),
+    # path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCAirbus}, name='poweron'),
+    # path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCAirbus}, name='upgrade'),
+    # path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCAirbus}, name='bootstrap'),
+
+    path('poweron/', fpoc.views.poweron, name='poweron'),
+    path('upgrade/', fpoc.views.upgrade, name='upgrade'),
+    path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
 
     path('bgp_loopback/', pocs.airbus, name='airbus'),
 ]

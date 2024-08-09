@@ -18,9 +18,14 @@ urlpatterns = [
     # Which means that the exact same class instance is passed to the function each time
     # I must therefore create the class instance inside the function itself by passing the class name here
     # Creating the instance in this file (before the urlpatterns) does not work either
-    path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCFoundation1}, name='poweron'),
-    path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCFoundation1}, name='upgrade'),
-    path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCFoundation1}, name='bootstrap'),
+    # path('poweron/', fpoc.views.poweron, {'Class_PoC': FortiPoCFoundation1}, name='poweron'),
+    # path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FortiPoCFoundation1}, name='upgrade'),
+    # path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FortiPoCFoundation1}, name='bootstrap'),
+
+    # New strategy for common views: the class required for the view is passed via the form
+    path('poweron/', fpoc.views.poweron, name='poweron'),
+    path('upgrade/', fpoc.views.upgrade, name='upgrade'),
+    path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
 
     path('vpn/dialup/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('vpn/site2site/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),

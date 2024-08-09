@@ -1,5 +1,5 @@
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc import FortiPoC, FortiGate, LXC, VyOS, FortiManager, WAN, Interface, Network
+from fpoc import FortiPoC, FortiGate, LXC, VyOS, WAN, Interface, Network
 
 
 class FortiPoCFoundation1(FortiPoC):
@@ -155,8 +155,7 @@ class FortiPoCFoundation1(FortiPoC):
         'RTR-NAT_C': LXC(offset=21, mgmt=Interface('eth9', 0, '172.16.31.30/24')),
         'RTR-NAT_D': LXC(offset=22, mgmt=Interface('eth9', 0, '172.16.31.40/24')),
         'SRV_INET': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
-        'WAN_Controller': LXC(offset=24, mgmt=Interface('eth9', 0, '172.16.31.250/24')),
-        'FMG': FortiManager(offset=25, mgmt=Interface('port1', 0, '172.16.31.200/24')),
+        'WAN_Controller': LXC(offset=24, mgmt=Interface('eth9', 0, '172.16.31.250/24'))
     }
 
     # def __init__(self, request: WSGIRequest, poc_id: int = 0, devices: dict = None, fpoc_devnames: list = None):

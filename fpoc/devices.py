@@ -41,20 +41,20 @@ class Interface:
     def ipmask(self) -> str:
         return self._address.with_prefixlen  # e.g. '172.16.31.1/24'
 
-    def dictify(self):
-        """
-        Make a dictionary out of this Object
-        This is needed for FMG CLI script template
-        """
-        return {
-            'port': self.port,
-            'interface': self.port,
-            'vlanid': self.vlanid,
-            'subnet': self.subnet,
-            'subnetmask': self.network,
-            'ip': self.ip,
-            'ipmask': self.ipmask
-        }
+    # def dictify(self):
+    #     """
+    #     Make a dictionary out of this Object
+    #     This is needed for FMG CLI script template
+    #     """
+    #     return {
+    #         'port': self.port,
+    #         'interface': self.port,
+    #         'vlanid': self.vlanid,
+    #         'subnet': self.subnet,
+    #         'subnetmask': self.network,
+    #         'ip': self.ip,
+    #         'ipmask': self.ipmask
+    #     }
 
 
 class Network:
@@ -93,12 +93,12 @@ class WAN:
         """
         return iter(self.__dict__.items())
 
-    def dictify(self):
-        """
-        Make a dictionary out of this Object
-        This is needed for FMG CLI script template
-        """
-        return { wan_name: interface.dictify() for wan_name, interface in self }
+    # def dictify(self):
+    #     """
+    #     Make a dictionary out of this Object
+    #     This is needed for FMG CLI script template
+    #     """
+    #     return { wan_name: interface.dictify() for wan_name, interface in self }
 
 
 @dataclass
@@ -109,8 +109,8 @@ class Device:
     ssh_port: int = 22  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
     https_port: int = 443  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
 
-    mgmt: Interface = None  # mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
-    mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the mgmt subnet inside FortiPoC (eg, '172.16.31.254/24')
+    mgmt: Interface = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
+    # mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the mgmt subnet inside FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name configured on the device
     name_fpoc: str = None  # Name of the device in the FortiPoC
@@ -130,10 +130,10 @@ class Device:
         self.template_group = self.template_group or self.name  # initialize if it is None
         self.template_context = self.template_context or {}  # initialize if it is None
 
-    @property
-    def mgmt_fpoc_ip(self):
-        # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
-        return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed
+    # @property
+    # def mgmt_fpoc_ip(self):
+    #     # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
+    #     return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed
 
 
 @dataclass
@@ -215,11 +215,3 @@ class VyOS(Device):
         self.username = self.username or 'vyos'  # initialize if it is None
         self.password = self.password or 'vyos'  # initialize if it is None
         self.template_filename = self.template_filename or 'vyos.conf'  # initialize if it is None
-
-
-@dataclass
-class FortiManager(Device):
-    def __post_init__(self):  # Apply default values
-        super(FortiManager, self).__post_init__()  # Call parent __post_init__
-        self.username = self.username or 'admin'  # initialize if it is None
-        self.password = self.password or 'nsefortinet'  # initialize if it is None

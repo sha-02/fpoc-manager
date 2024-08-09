@@ -5,7 +5,7 @@ from django.http import HttpResponse
 import copy
 
 import fpoc
-from fpoc import FortiGate, LXC, FortiManager
+from fpoc import FortiGate, LXC
 from fpoc.FortiPoCAirbus import FortiPoCAirbus
 from fpoc.typing import TypePoC
 import typing
@@ -516,7 +516,6 @@ def airbus(request: WSGIRequest) -> HttpResponse:
         'Greenlog': greenlog,
         'Yellow': yellow,
         'RedAndYellow': redandyellow,
-        'FMG': FortiManager(name='FMG'),
 
         'PC-PARIS-DC': LXC(name='PC-PARIS-DC', template_context=lxc_context('PARIS-DC', segments_devices, context)),
         'PC-Toulouse': LXC(name='PC-Toulouse', template_context=lxc_context('Toulouse', segments_devices, context)),

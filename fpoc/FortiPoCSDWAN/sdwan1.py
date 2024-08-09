@@ -501,7 +501,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-BR1': west_br1,
         'WEST-BR2': west_br2,
         'EAST-BR': east_br,
-        # 'FMG': FortiManager(name='FMG'),
 
         'PC-WEST-DC1': LXC(name="PC-WEST-DC1", template_context=lxc_context('WEST-DC1', segments_devices, context),
                            template_filename=lxc_config),
