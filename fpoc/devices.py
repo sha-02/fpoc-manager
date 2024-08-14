@@ -1,18 +1,26 @@
 from dataclasses import dataclass
 import ipaddress
 from enum import Enum
-
+from fpoc.exceptions import StopProcessingDevice
 
 class Interface:
     # port: str  # e.g. 'port1'
     # vlanid: int  # e.g, 11
     # _address: ipaddress
 
-    def __init__(self, port:str, vlanid: int, address: str):
+    def __init__(self, port:str, vlanid: int, address: str, name: str = 'DEFAULT_NAME'):
         self.port = port
         self.vlanid = vlanid
 
-        if len(address.split('.')) == 3:  # address is a network of the form '198.51.100'
+        self._name = name if vlanid else port
+            # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
+            # for non-VLAN interface: '_name' and 'port' both reference the physical interface
+        self.dhcp = False
+
+        if address == 'dhcp':
+            self.dhcp = True
+            self._address = '0.0.0.0/0'
+        elif len(address.split('.')) == 3:  # address is a network of the form '198.51.100'
             # kept for backward compatibility with previous code
             self._address = ipaddress.ip_interface(address + '.0/24')
         elif '/' in address:  # address is an IP@ or a subnet of the form '198.51.100.0/24' or '198.51.100.1/24'
@@ -20,6 +28,10 @@ class Interface:
 
     def __repr__(self):
         return f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={str(self._address)})'
+
+    @property
+    def name(self) -> str:  # vlan name or physical interface name
+        return self._name
 
     @property
     def interface(self) -> str:  # alias for 'port'
