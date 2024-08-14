@@ -6,7 +6,7 @@ import copy
 
 import fpoc
 from fpoc import FortiGate, LXC
-from fpoc.FortiPoCSDWAN import FortiPoCSDWAN
+from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN
 from fpoc.typing import TypePoC
 import typing
 
@@ -102,7 +102,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     }
 
     # Create the poc
-    poc = FortiPoCSDWAN(request)
+    if 'fortipoc' in request.path:  # poc is running in FortiPoC
+        poc = FortiPoCSDWAN(request)
+    else:  # poc is running in Hardware Lab
+        poc = FortiLabSDWAN(request)
 
     # Define the poc_id based on the options which were selected
 
