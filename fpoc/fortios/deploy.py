@@ -214,6 +214,7 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
     device.template_context['mgmt_dns'] = poc.mgmt_dns
     device.template_context['mgmt_vrf'] = poc.mgmt_vrf
     device.template_context['apiadmin'] = device.apiadmin
+    device.template_context['password'] = device.password
     device.template_context['HA'] = device.ha
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings

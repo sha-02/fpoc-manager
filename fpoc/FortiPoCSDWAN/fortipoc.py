@@ -8,7 +8,8 @@ class FortiPoCSDWAN(FortiPoC):
     template_folder = 'FortiPoCSDWAN'
     mpls_summary = '10.71.0.0/16'
     devices = {
-        'WEST-DC1': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
+        'WEST-DC1': FortiGate(offset=0, model="FGT_VM64_KVM", password="nsefortinet",
+                            mgmt=Interface('port10', 0, '172.16.31.11/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '198.51.100'),
@@ -27,7 +28,8 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 15, '10.71.15')
                             )),
 
-        # 'FGT-A_sec': FortiGate(offset=1, mgmt=Interface('port10', 0, '172.16.31.12/24'),
+        # 'FGT-A_sec': FortiGate(offset=1, model="FGT_VM64_KVM", password="nsefortinet",
+        #                        mgmt=Interface('port10', 0, '172.16.31.12/24'),
         #                        Interface('port5', 0, ''),
         #                        wan=WAN(
         #                            inet=Interface('port1', 0, '198.51.100'),
@@ -46,7 +48,8 @@ class FortiPoCSDWAN(FortiPoC):
         #                            mpls2=Interface('port2', 115, '10.71.115')
         #                            )),
 
-        'WEST-DC2': FortiGate(offset=2, mgmt=Interface('port10', 0, '172.16.31.21/24'),
+        'WEST-DC2': FortiGate(offset=2, model="FGT_VM64_KVM", password="nsefortinet",
+                            mgmt=Interface('port10', 0, '172.16.31.21/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '203.0.113'),
@@ -65,7 +68,8 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 25, '10.71.25')
                             )),
 
-        'EAST-DC': FortiGate(offset=3, mgmt=Interface('port10', 0, '172.16.31.22/24'),
+        'EAST-DC': FortiGate(offset=3, model="FGT_VM64_KVM", password="nsefortinet",
+                            mgmt=Interface('port10', 0, '172.16.31.22/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '203.0.113'),
@@ -84,7 +88,8 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 125, '10.71.125')
                             )),
 
-        'WEST-BR1': FortiGate(offset=4, mgmt=Interface('port10', 0, '172.16.31.31/24'),
+        'WEST-BR1': FortiGate(offset=4, model="FGT_VM64_KVM", password="nsefortinet",
+                            mgmt=Interface('port10', 0, '172.16.31.31/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '192.0.2'),
@@ -103,7 +108,8 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 35, '10.71.35')
                             )),
 
-        # 'FGT-C_sec': FortiGate(offset=5, mgmt=Interface('port10', 0, '172.16.31.32/24'),
+        # 'FGT-C_sec': FortiGate(offset=5, model="FGT_VM64_KVM", password="nsefortinet",
+        #                          mgmt=Interface('port10', 0, '172.16.31.32/24'),
         #                        Interface('port5', 0, ''),
         #                        wan=WAN(
         #                            inet=Interface('port1', 0, '192.0.2'),
@@ -122,7 +128,8 @@ class FortiPoCSDWAN(FortiPoC):
         #                            mpls2=Interface('port2', 135, '10.71.135')
         #                            )),
 
-        'WEST-BR2': FortiGate(offset=6, mgmt=Interface('port10', 0, '172.16.31.41/24'),
+        'WEST-BR2': FortiGate(offset=6, model="FGT_VM64_KVM", password="nsefortinet",
+                            mgmt=Interface('port10', 0, '172.16.31.41/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '100.64.40'),
@@ -141,7 +148,8 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls2=Interface('port2', 45, '10.71.45')
                             )),
 
-        'EAST-BR': FortiGate(offset=7, mgmt=Interface('port10', 0, '172.16.31.42/24'),
+        'EAST-BR': FortiGate(offset=7, model="FGT_VM64_KVM", password="nsefortinet",
+                            mgmt=Interface('port10', 0, '172.16.31.42/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port1', 0, '100.64.40'),

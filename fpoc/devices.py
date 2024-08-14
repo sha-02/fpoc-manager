@@ -161,7 +161,8 @@ class FortiGate_HA:
 
 @dataclass
 class FortiGate(Device):
-    model: str = "FGT_VM64_KVM"   # FGT model as displayed in the firmware filename
+    # model: str = "FGT_VM64_KVM"   # FGT model as displayed in the firmware filename
+    model: str = None # FGT model as displayed in the firmware filename
     apiv2auth: bool = True  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
     apiadmin: str = 'adminapi'  # username for the API admin
     apikey: str = None  # API key for the API admin
@@ -176,7 +177,7 @@ class FortiGate(Device):
         #
         # initialize attributes inherited from parent class
         self.username = self.username or 'admin'  # initialize if it is None
-        self.password = self.password or 'nsefortinet'  # initialize if it is None
+        # self.password = self.password or 'nsefortinet'  # initialize if it is None
         self.template_filename = self.template_filename or '_FGT.conf'  # initialize if it is None
         self.template_context['name'] = self.name
         #
