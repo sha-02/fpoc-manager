@@ -70,20 +70,20 @@ class Network:
 
 @dataclass
 class WAN:
-    inet: Interface
-    inet_snat: Interface
-    inet_dnat: Interface
-    inet1: Interface
-    inet1_snat: Interface
-    inet1_dnat: Interface
-    inet2: Interface
-    inet2_snat: Interface
-    inet2_dnat: Interface
-    inet3: Interface
-    inet3_snat: Interface
-    inet3_dnat: Interface
-    mpls1: Interface
-    mpls2: Interface
+    inet: Interface = None
+    inet_snat: Interface = None
+    inet_dnat: Interface = None
+    inet1: Interface = None
+    inet1_snat: Interface = None
+    inet1_dnat: Interface = None
+    inet2: Interface = None
+    inet2_snat: Interface = None
+    inet2_dnat: Interface = None
+    inet3: Interface = None
+    inet3_snat: Interface = None
+    inet3_dnat: Interface = None
+    mpls1: Interface = None
+    mpls2: Interface = None
     mpls_summary: Network = None    # Summary for MPLS underlay (e.g. '10.71.0.0/16')
 
     def __iter__(self):
