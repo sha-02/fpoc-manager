@@ -23,7 +23,7 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
 
-        # Build the home page with a selection list of all the sites URL which starts with "SDWAN/"
+        # Build the home page with a selection of all the sites URL which starts with "SDWAN/"
         sdwan_sites = { k: v for k, v in kwargs['sites'].items() if k.startswith('SDWAN/') }
 
         # Set the current site to 'selected' after having unselected all other sites
@@ -33,7 +33,7 @@ class HomePageView(TemplateView):
 
         context['sdwan_sites'] = sdwan_sites
 
-        # Add FortiPoC instances to context if applicable
+        # Add FortiPoC instances (eg, almodo10,...) to context if applicable
         context['fortipoc_instances'] = fortipoc_instances() if 'fortipoc' in self.request.path else False
 
         minmum_fortios = '7.4.4' if 'ADVPNv2' in self.request.path else '7.0.0'
