@@ -8,7 +8,7 @@ class Interface:
     # vlanid: int  # e.g, 11
     # _address: ipaddress
 
-    def __init__(self, port:str, vlanid: int, address: str, name: str = 'DEFAULT_NAME'):
+    def __init__(self, port:str, vlanid: int, address: str, name: str = 'UNSPECIFIED_VLAN_NAME'):
         self.port = port
         self.vlanid = vlanid
 

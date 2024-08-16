@@ -5,6 +5,7 @@ from fpoc import FortiPoC, FortiGate, LXC, VyOS, WAN, Interface, Network
 class FortiPoCFoundation1(FortiPoC):
     """
     """
+    template_folder = 'FortiPoCFoundation1'
     mpls_summary = '10.71.0.0/16'
     devices = {
         'FGT-A': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),

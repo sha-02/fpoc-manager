@@ -22,33 +22,46 @@ from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS
 from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
 
 
-Status = namedtuple('Status', 'is_valid is_invalid message')
+# Status = namedtuple('Status', 'is_valid is_invalid errors')
 
 
-def inspect(request: WSGIRequest) -> Status:
+# def inspect(poc: TypePoC) -> Status:
+def inspect(poc: TypePoC) -> list:
     """
     """
     import ipaddress
+    errors = []   # List of error messages to return
 
-    for ipaddr in (request.POST.get('fpocIP'),):
+    for ipaddr in (poc.request.POST.get('fpocIP'),):
         if ipaddr:
             # Ensure a valid IP address is provided
             try:
                 ipaddress.ip_address(ipaddr)  # throws an exception if the IP address is not valid
             except:
-                return Status(False, True, f"This is not a valid IP address: {ipaddr}")
+                # return Status(False, True, f"This is not a valid IP address: {ipaddr}")
+                errors.append(f"This is not a valid IP address: {ipaddr}")
 
-    if request.POST.get('previewOnly') and not request.POST.get('targetedFOSversion'):
-        return Status(False, True, 'FOS version must be specified when preview-only is selected')
+    if poc.request.POST.get('previewOnly') and not poc.request.POST.get('targetedFOSversion'):
+        # return Status(False, True, 'FOS version must be specified when preview-only is selected')
+        errors.append('FOS version must be specified when preview-only is selected')
 
-    return Status(True, False, 'request is valid')
+    if poc.template_folder is None:
+        errors.append(f"'template_folder' is not defined in Class '{poc.__class__.__name__}'")
+
+    # if errors:
+    #     return Status(False, True, errors)
+    # else:
+    #     return Status(True, False, errors)
+    return errors
 
 
 # def start(request: WSGIRequest, poc_id: int, devices: dict, class_ ) -> HttpResponse:
 def start(poc: TypePoC, devices: dict) -> HttpResponse:
-    if inspect(poc.request).is_invalid:
+
+    errors = inspect(poc)
+    if errors:
         return render(poc.request, f'fpoc/message.html',
-                      {'title': 'Error', 'header': 'Error', 'message': inspect(poc.request).message})
+                      {'title': 'Error', 'header': 'Error', 'message': errors})
 
     if '127.0.0.1' in poc.request.get_host() and poc.request.POST.get('pocInstance')=='0.0.0.0' \
             and poc.request.POST['fpocIP'] == '' \

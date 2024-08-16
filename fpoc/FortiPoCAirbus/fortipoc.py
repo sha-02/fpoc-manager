@@ -5,6 +5,7 @@ from fpoc import FortiPoC, FortiGate, LXC, VyOS, WAN, Interface, Network
 class FortiPoCAirbus(FortiPoC):
     """
     """
+    template_folder = 'FortiPoCAirbus'
     mpls_summary = '10.71.0.0/16'
     devices = {
         'PARIS-DC': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
