@@ -154,7 +154,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # LAN underlays
     #
 
-    fgt_ips = {
+    fgt_lan_ips = {
         'WEST-DC1': '10.1.0.1/24',
         'WEST-DC2': '10.2.0.1/24',
         'WEST-BR1': '10.0.1.1/24',
@@ -165,7 +165,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     # From the FGT interface IP, construct a LAN dictionary containing port, ip, dotted mask, prefix length, subnet
     LAN = {}
-    for devname, ipprefix in fgt_ips.items():
+    for devname, ipprefix in fgt_lan_ips.items():
         LAN[devname] = {
             'port': poc.devices[devname].lan.port,  # eg, port5
             'ipprefix': ipprefix,   # eg, 10.1.0.1/24
@@ -204,36 +204,36 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['WEST-DC1'].wan.inet1.subnet + '.1',  # 100.64.11.1
-                    'inet2': poc.devices['WEST-DC1'].wan.inet2.subnet + '.1',  # 100.64.12.1
-                    'mpls': poc.devices['WEST-DC1'].wan.mpls1.subnet + '.1',  # 10.0.14.1
+                    'inet1': poc.devices['WEST-DC1'].wan.inet1,
+                    'inet2': poc.devices['WEST-DC1'].wan.inet2,
+                    'mpls': poc.devices['WEST-DC1'].wan.mpls1,
                     'lan': LAN['WEST-DC1'],
                     'loopback': dc_loopbacks['WEST-DC1']
                 }
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': poc.devices['WEST-DC2'].wan.inet1.subnet + '.2',  # 100.64.21.2
-                    'inet2': poc.devices['WEST-DC2'].wan.inet2.subnet + '.2',  # 100.64.22.2
-                    'mpls': poc.devices['WEST-DC2'].wan.mpls1.subnet + '.2',  # 10.0.24.2
+                    'inet1': poc.devices['WEST-DC2'].wan.inet1,
+                    'inet2': poc.devices['WEST-DC2'].wan.inet2,
+                    'mpls': poc.devices['WEST-DC2'].wan.mpls1,
                     'lan': LAN['WEST-DC2'],
                     'loopback': dc_loopbacks['WEST-DC2']
                 }
 
     east_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['EAST-DC'].wan.inet1.subnet + '.3',  # 100.64.121.3
-                    'inet2': poc.devices['EAST-DC'].wan.inet2.subnet + '.3',  # 100.64.122.3
-                    'mpls': poc.devices['EAST-DC'].wan.mpls1.subnet + '.3',  # 10.0.124.3
+                    'inet1': poc.devices['EAST-DC'].wan.inet1,
+                    'inet2': poc.devices['EAST-DC'].wan.inet2,
+                    'mpls': poc.devices['EAST-DC'].wan.mpls1,
                     'lan': LAN['EAST-DC1'],
                     'loopback': dc_loopbacks['EAST-DC1']
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 2,
-                    'inet1': poc.devices['EAST-DC'].wan.inet1.subnet + '.4',  # 100.64.121.4
-                    'inet2': poc.devices['EAST-DC'].wan.inet2.subnet + '.4',  # 100.64.122.4
-                    'mpls': poc.devices['EAST-DC'].wan.mpls1.subnet + '.4',  # 10.0.124.4
+                    'inet1': poc.devices['EAST-DC'].wan.inet1,
+                    'inet2': poc.devices['EAST-DC'].wan.inet2,
+                    'mpls': poc.devices['EAST-DC'].wan.mpls1,
                     'lan': '0.0.0.0/0',
                     'loopback': dc_loopbacks['EAST-DC2']
                 }

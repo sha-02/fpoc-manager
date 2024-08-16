@@ -382,36 +382,36 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet1.subnet + '.1',  # 100.64.11.1
-                    'inet2': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet2.subnet + '.1',  # 100.64.12.1
-                    'mpls': FortiPoCSDWAN.devices['WEST-DC1'].wan.mpls1.subnet + '.1',  # 10.0.14.1
+                    'inet1': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet1,
+                    'inet2': FortiPoCSDWAN.devices['WEST-DC1'].wan.inet2,
+                    'mpls': FortiPoCSDWAN.devices['WEST-DC1'].wan.mpls1,
                     'lan': segments_devices['WEST-DC1']['LAN']['ip'],
                     'loopback': dc_loopbacks['WEST-DC1']
                 }
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet1.subnet + '.2',  # 100.64.21.2
-                    'inet2': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet2.subnet + '.2',  # 100.64.22.2
-                    'mpls': FortiPoCSDWAN.devices['WEST-DC2'].wan.mpls1.subnet + '.2',  # 10.0.24.2
+                    'inet1': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet1,
+                    'inet2': FortiPoCSDWAN.devices['WEST-DC2'].wan.inet2,
+                    'mpls': FortiPoCSDWAN.devices['WEST-DC2'].wan.mpls1,
                     'lan': segments_devices['WEST-DC2']['LAN']['ip'],
                     'loopback': dc_loopbacks['WEST-DC2']
                 }
 
     east_dc1_ = {
                     'id': 3,
-                    'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1.subnet + '.3',  # 100.64.121.3
-                    'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.3',  # 100.64.122.3
-                    'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.3',  # 10.0.124.3
+                    'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1,
+                    'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2,
+                    'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1,
                     'lan': segments_devices[east_dc_['name']]['LAN']['ip'],
                     'loopback': dc_loopbacks['EAST-DC1']
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 4,
-                    'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1.subnet + '.4',  # 100.64.121.4
-                    'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2.subnet + '.4',  # 100.64.122.4
-                    'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1.subnet + '.4',  # 10.0.124.4
+                    'inet1': FortiPoCSDWAN.devices['EAST-DC'].wan.inet1,
+                    'inet2': FortiPoCSDWAN.devices['EAST-DC'].wan.inet2,
+                    'mpls': FortiPoCSDWAN.devices['EAST-DC'].wan.mpls1,
                     'lan': '0.0.0.0',
                     'loopback': dc_loopbacks['EAST-DC2']
                 }
