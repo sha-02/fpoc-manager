@@ -6,10 +6,11 @@ class FortiPoCSDWAN(FortiPoC):
     """
     """
     template_folder = 'FortiPoCSDWAN'
-    mpls_summary = '10.71.0.0/16'
+    mpls_summary = '10.71.0.0/16'  # mpls_summary assigned to the WAN of each FGT of this PoC
+    password = 'nsefortinet'  # password assigned to each FGT of this PoC
+
     devices = {
-        'WEST-DC1': FortiGate(offset=0, model="FGT_VM64_KVM", password="nsefortinet",
-                            mgmt=Interface('port10', 0, '172.16.31.11/24'),
+        'WEST-DC1': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 11, '100.64.11.1/24', 'Internet_1'),
@@ -17,8 +18,7 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls1=Interface('port2', 14, '10.71.14.1/24', 'MPLS'),
                             )),
 
-        'WEST-DC2': FortiGate(offset=2, model="FGT_VM64_KVM", password="nsefortinet",
-                            mgmt=Interface('port10', 0, '172.16.31.21/24'),
+        'WEST-DC2': FortiGate(offset=2, mgmt=Interface('port10', 0, '172.16.31.21/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 21, '100.64.21.2/24', 'Internet_1'),
@@ -26,8 +26,7 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls1=Interface('port2', 24, '10.71.24.2/24', 'MPLS'),
                             )),
 
-        'EAST-DC': FortiGate(offset=3, model="FGT_VM64_KVM", password="nsefortinet",
-                            mgmt=Interface('port10', 0, '172.16.31.22/24'),
+        'EAST-DC': FortiGate(offset=3, mgmt=Interface('port10', 0, '172.16.31.22/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 121, '100.64.121.3/24', 'Internet_1'),
@@ -35,8 +34,7 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls1=Interface('port2', 124, '10.71.124.3/24', 'MPLS'),
                             )),
 
-        'WEST-BR1': FortiGate(offset=4, model="FGT_VM64_KVM", password="nsefortinet",
-                            mgmt=Interface('port10', 0, '172.16.31.31/24'),
+        'WEST-BR1': FortiGate(offset=4, mgmt=Interface('port10', 0, '172.16.31.31/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 31, 'dhcp', 'Internet_1'),
@@ -44,8 +42,7 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls1=Interface('port2', 34, '10.71.34.1/24', 'MPLS'),
                             )),
 
-        'WEST-BR2': FortiGate(offset=6, model="FGT_VM64_KVM", password="nsefortinet",
-                            mgmt=Interface('port10', 0, '172.16.31.41/24'),
+        'WEST-BR2': FortiGate(offset=6, mgmt=Interface('port10', 0, '172.16.31.41/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 41, 'dhcp', 'Internet_1'),
@@ -53,8 +50,7 @@ class FortiPoCSDWAN(FortiPoC):
                                 mpls1=Interface('port2', 44, '10.71.44.2/24', 'MPLS'),
                             )),
 
-        'EAST-BR': FortiGate(offset=7, model="FGT_VM64_KVM", password="nsefortinet",
-                            mgmt=Interface('port10', 0, '172.16.31.42/24'),
+        'EAST-BR': FortiGate(offset=7, mgmt=Interface('port10', 0, '172.16.31.42/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 141, 'dhcp', 'Internet_1'),
@@ -86,7 +82,9 @@ class FortiPoCSDWAN(FortiPoC):
         # and configure device access info (from within fortipoc or from fortipoc public IP)
         super(FortiPoCSDWAN, self).__init__(request, poc_id)
 
-        # Add MPLS summary subnet to each FortiGate
+        # Add password and MPLS summary subnet to each FortiGate
         for device in self.devices.values():
-            if isinstance(device, FortiGate) and device.wan is not None:
-                device.wan.mpls_summary = Network(self.__class__.mpls_summary)
+            if isinstance(device, FortiGate):
+                device.password = self.password
+                if device.wan is not None:
+                    device.wan.mpls_summary = Network(self.mpls_summary)
