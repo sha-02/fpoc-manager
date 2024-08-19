@@ -196,6 +196,11 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
                 time.sleep(ex.sleep)
             print(f'{device.name} : Processing device once again')  # before reprocessing the device
 
+        except ConnectionResetError:
+            print(f'{device.name} : Connection was reset by peer. It\'s probably rebooting. Waiting for {device.reboot_delay} seconds...')
+            time.sleep(device.reboot_delay)
+            print(f'{device.name} : Processing device once again')  # before reprocessing the device
+
         except AbortDeployment:
             print('Aborting deployment !')
             return None

@@ -139,6 +139,7 @@ class Device:
     commands: list = None  # List of CLI commands to be executed on the device
 
     deployment_status: str = None  # e.g. 'completed' or 'skipped'
+    reboot_delay: int = 120     # number of seconds to wait for the device to perform a full reboot
 
     def __post_init__(self):  # Apply default values
         self.template_group = self.template_group or self.name  # initialize if it is None
@@ -153,7 +154,10 @@ class Device:
         # Update (Override) this device instance with all attributes from the 'device' passed as argument
         for k, v in device.__dict__.items():
             if v is not None:
-                self.__dict__[k] = v
+                if k == 'reboot_delay': # for reboot_delay, keep the biggest value of the two devices
+                    self.reboot_delay = max(self.reboot_delay, v)
+                else:
+                    self.__dict__[k] = v    # update the local instance attribute with the 'device' attribute
 
 
 @dataclass

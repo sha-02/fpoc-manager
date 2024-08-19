@@ -60,7 +60,7 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
         print(f"{device.name} : Hostname changed")
         update_fortios_version(device, fos_version_target, lock)
         device.apikey = None  # Reset the API key
-        raise ReProcessDevice(sleep=90)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
+        raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
     print('')  # because of the print("... is running FOS ...", end='')
 
@@ -336,7 +336,7 @@ def deploy(poc: TypePoC, device: FortiGate):
             raise CompletedDeviceProcessing
         else:
             device.apikey = None  # reset cached API key since there is no API key in the bootstrap config
-            raise ReProcessDevice(sleep=120)  # Leave enough time for the FGT to load the config and reboot
+            raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to load the config and reboot
 
     # Save this CLI configuration to disk
     save_config(poc.__class__.__name__, device, poc.id)

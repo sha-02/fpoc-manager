@@ -168,7 +168,7 @@ def upload_firmware(device: FortiGate, firmware: str):
     response = requests.request("POST", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
                                 verify=False)
 
-    if response.status_code != 200:
+    if response.status_code != 200 or json.loads(response.text).get('results').get('status') == 'error':
         # API access failed => skip this device
         raise StopProcessingDevice(f'{device.name} : failure during update of firmware'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
