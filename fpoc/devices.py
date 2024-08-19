@@ -1,7 +1,9 @@
+from __future__ import annotations  # Allows to reference a class as a type hint during the declaration of the class itself
 from dataclasses import dataclass
 import ipaddress
 from enum import Enum
 from fpoc.exceptions import StopProcessingDevice
+
 
 class Interface:
     # port: str  # e.g. 'port1'
@@ -146,6 +148,12 @@ class Device:
     # def mgmt_fpoc_ip(self):
     #     # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
     #     return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed
+
+    def update(self, device: Device):
+        # Update (Override) this device instance with all attributes from the 'device' passed as argument
+        for k, v in device.__dict__.items():
+            if v is not None:
+                self.__dict__[k] = v
 
 
 @dataclass

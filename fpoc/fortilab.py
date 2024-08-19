@@ -74,9 +74,10 @@ class FortiLab:
                 # Retrieve all the device's attributes from the Class
                 self.devices[devname] = copy.deepcopy(self.__class__.devices[devname])  # Shallow copy may not be enough
                 # Update (Override) with all attributes from the device passed as argument
-                for k, v in device.__dict__.items():
-                    if v is not None:
-                        self.devices[devname].__dict__[k] = v
+                # for k, v in device.__dict__.items():
+                #     if v is not None:
+                #         self.devices[devname].__dict__[k] = v
+                self.devices[devname].update(device)
 
         # set the device IP to its OOB MGMT IP
         for fpoc_devname, device in self.devices.items():
