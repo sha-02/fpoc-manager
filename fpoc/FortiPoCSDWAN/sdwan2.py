@@ -5,7 +5,7 @@ from django.http import HttpResponse
 import copy
 
 import fpoc
-from fpoc import FortiGate, LXC
+from fpoc.devices import Interface, FortiGate, LXC
 from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN
 from fpoc.typing import TypePoC
 import typing
@@ -154,30 +154,39 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # LAN underlays
     #
 
-    fgt_lan_ips = {
-        'WEST-DC1': '10.1.0.1/24',
-        'WEST-DC2': '10.2.0.1/24',
-        'WEST-BR1': '10.0.1.1/24',
-        'WEST-BR2': '10.0.2.1/24',
-        'EAST-DC': '10.4.0.1/24', # DC and not DC1 because it is looked up against FortiPoCSDWAN
-        'EAST-BR': '10.4.1.1/24', # DC and not DC1 because it is looked up against FortiPoCSDWAN
+    # fgt_lan_ips = {
+    #     'WEST-DC1': '10.1.0.1/24',
+    #     'WEST-DC2': '10.2.0.1/24',
+    #     'WEST-BR1': '10.0.1.1/24',
+    #     'WEST-BR2': '10.0.2.1/24',
+    #     'EAST-DC': '10.4.0.1/24', # DC and not DC1 because it is looked up against FortiPoCSDWAN
+    #     'EAST-BR': '10.4.1.1/24', # DC and not DC1 because it is looked up against FortiPoCSDWAN
+    # }
+    #
+    # # From the FGT interface IP, construct a LAN dictionary containing port, ip, dotted mask, prefix length, subnet
+    # LAN = {}
+    # for devname, ipprefix in fgt_lan_ips.items():
+    #     LAN[devname] = {
+    #         'port': poc.devices[devname].lan.port,  # eg, port5
+    #         'ipprefix': ipprefix,   # eg, 10.1.0.1/24
+    #         'ip' : str(ipaddress.ip_interface(ipprefix).ip),    # eg, 10.1.0.1
+    #         'subnet' : str(ipaddress.ip_interface(ipprefix).network.network_address),   # eg, 10.1.0.0
+    #         'mask': str(ipaddress.ip_interface(ipprefix).netmask),  # eg, 255.255.255.0
+    #         'prefixlen': str(ipaddress.ip_interface(ipprefix).network.prefixlen),   # eg, 24
+    #     }
+    #
+    # # "Replace" EAST-DC/EAST-BR by EAST-DC1/EAST-BR1
+    # LAN['EAST-DC1'] = LAN['EAST-DC']; del(LAN['EAST-DC'])
+    # LAN['EAST-BR1'] = LAN['EAST-BR']; del(LAN['EAST-BR'])
+
+    LAN = {
+        'WEST-DC1': Interface(address='10.1.0.1/24'),
+        'WEST-DC2': Interface(address='10.2.0.1/24'),
+        'WEST-BR1': Interface(address='10.0.1.1/24'),
+        'WEST-BR2': Interface(address='10.0.2.1/24'),
+        'EAST-DC1': Interface(address='10.4.0.1/24'), # DC and not DC1 because it is looked up against FortiPoCSDWAN
+        'EAST-BR1': Interface(address='10.4.1.1/24'), # DC and not DC1 because it is looked up against FortiPoCSDWAN
     }
-
-    # From the FGT interface IP, construct a LAN dictionary containing port, ip, dotted mask, prefix length, subnet
-    LAN = {}
-    for devname, ipprefix in fgt_lan_ips.items():
-        LAN[devname] = {
-            'port': poc.devices[devname].lan.port,  # eg, port5
-            'ipprefix': ipprefix,   # eg, 10.1.0.1/24
-            'ip' : str(ipaddress.ip_interface(ipprefix).ip),    # eg, 10.1.0.1
-            'subnet' : str(ipaddress.ip_interface(ipprefix).network.network_address),   # eg, 10.1.0.0
-            'mask': str(ipaddress.ip_interface(ipprefix).netmask),  # eg, 255.255.255.0
-            'prefixlen': str(ipaddress.ip_interface(ipprefix).network.prefixlen),   # eg, 24
-        }
-
-    # "Replace" EAST-DC/EAST-BR by EAST-DC1/EAST-BR1
-    LAN['EAST-DC1'] = LAN['EAST-DC']; del(LAN['EAST-DC'])
-    LAN['EAST-BR1'] = LAN['EAST-BR']; del(LAN['EAST-BR'])
 
     # DataCenters info used:
     # - by DCs:
@@ -268,39 +277,45 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # FortiGate Devices
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
+                         lan=LAN['WEST-DC1'],
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
                                            'loopback': dc_loopbacks['WEST-DC1'],
-                                           'lan':LAN['WEST-DC1'],
+                                           # 'lan':LAN['WEST-DC1'],
                                            'datacenter': datacenters,
                                            **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
+                         lan=LAN['WEST-DC2'],
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
                                            'loopback': dc_loopbacks['WEST-DC2'],
-                                           'lan': LAN['WEST-DC2'],
+                                           # 'lan': LAN['WEST-DC2'],
                                            'datacenter': datacenters,
                                            **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
+                         lan=LAN['WEST-BR1'],
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
                                            'loopback': '10.200.1.1',
-                                           'lan': LAN['WEST-BR1'],
+                                           # 'lan': LAN['WEST-BR1'],
                                            'datacenter': datacenters['west'],
                                            **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
+                         lan=LAN['WEST-BR2'],
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
                                            'loopback': '10.200.1.2',
-                                           'lan': LAN['WEST-BR2'],
+                                           # 'lan': LAN['WEST-BR2'],
                                            'datacenter': datacenters['west'],
                                            **context})
     east_dc1 = FortiGate(name='EAST-DC1', template_group='DATACENTERS',
+                        lan=LAN['EAST-DC1'],
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': 1, 'gps': (52.2296756, 21.0122287),
                                           'loopback': dc_loopbacks['EAST-DC1'],
-                                          'lan': LAN['EAST-DC1'],
+                                          # 'lan': LAN['EAST-DC1'],
                                            'datacenter': datacenters,
                                            **context})
     east_br1 = FortiGate(name='EAST-BR1', template_group='BRANCHES',
+                        lan=LAN['EAST-BR1'],
                         template_context={'region': 'East', 'region_id': 2, 'branch_id': 1, 'gps': (47.497912, 19.040235),
                                           'loopback': '10.200.2.1',
-                                          'lan': LAN['EAST-BR1'],
+                                          # 'lan': LAN['EAST-BR1'],
                                            'datacenter': datacenters['east'],
                                            **context})
 
@@ -308,12 +323,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Host Devices used to build the /etc/hosts file
 
     hosts = {
-        'PC-WEST-DC1': {'rank': 7, 'gateway': LAN['WEST-DC1']['ipprefix']},
-        'PC-WEST-DC2': {'rank': 7, 'gateway': LAN['WEST-DC2']['ipprefix']},
-        'PC-EAST-DC1': {'rank': 7, 'gateway': LAN['EAST-DC1']['ipprefix']},
-        'PC-WEST-BR1': {'rank': 101, 'gateway': LAN['WEST-BR1']['ipprefix']},
-        'PC-WEST-BR2': {'rank': 101, 'gateway': LAN['WEST-BR2']['ipprefix']},
-        'PC-EAST-BR1': {'rank': 101, 'gateway': LAN['EAST-BR1']['ipprefix']},
+        'PC-WEST-DC1': {'rank': 7, 'gateway': LAN['WEST-DC1'].ipprefix},
+        'PC-WEST-DC2': {'rank': 7, 'gateway': LAN['WEST-DC2'].ipprefix},
+        'PC-EAST-DC1': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
+        'PC-WEST-BR1': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
+        'PC-WEST-BR2': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
+        'PC-EAST-BR1': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
     }
 
     devices = {

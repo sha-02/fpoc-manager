@@ -5,7 +5,7 @@ from django.http import HttpResponse
 import copy
 
 import fpoc
-from fpoc import FortiGate, LXC
+from fpoc.devices import Interface, FortiGate, LXC
 from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN
 from fpoc.typing import TypePoC
 import typing
@@ -37,7 +37,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             generic_name, devname = devname
         else:   # eg 'WEST-BR1'
             generic_name = devname
-        return {'port': poc.devices[generic_name].lan.port, **segments[devname]['LAN']}
+        lan={'port': poc.devices[generic_name].lan.port, **segments[devname]['LAN']}
+        if bool(request.POST.get('vrf_aware_overlay', False)):
+            return lan  # VRF overlay
+        else:
+            return Interface(address=str(ipaddress.ip_interface(lan['ip']+'/'+lan['mask'])))  # no VRF
 
     def vrf_segments(segments: dict, ctxt: dict):
         if not ctxt['vrf_aware_overlay']:
@@ -447,49 +451,55 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # 'inter_segments' describe the inter-vrf links used for DIA.
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
+                         lan=lan_segment('WEST-DC1', poc, segments_devices),
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
                                            'loopback': dc_loopbacks['WEST-DC1'],
-                                           'lan': lan_segment('WEST-DC1', poc, segments_devices),
+                                           # 'lan': lan_segment('WEST-DC1', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-DC1'],context),
                                            'inter_segments': inter_segments,
                                            'datacenter': datacenters,
                                            **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
+                         lan=lan_segment('WEST-DC2', poc, segments_devices),
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
                                            'loopback': dc_loopbacks['WEST-DC2'],
-                                           'lan': lan_segment('WEST-DC2', poc, segments_devices),
+                                           # 'lan': lan_segment('WEST-DC2', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-DC2'],context),
                                            'inter_segments': inter_segments,
                                            'datacenter': datacenters,
                                            **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
+                         lan=lan_segment('WEST-BR1', poc, segments_devices),
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
                                            'loopback': '10.200.1.1',
-                                           'lan': lan_segment('WEST-BR1', poc, segments_devices),
+                                           # 'lan': lan_segment('WEST-BR1', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-BR1'],context),
                                            'direct_internet_access': True, 'inter_segments': inter_segments,
                                            'datacenter': datacenters['west'],
                                            **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
+                         lan=lan_segment('WEST-BR2', poc, segments_devices),
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
                                            'loopback': '10.200.1.2',
-                                           'lan': lan_segment('WEST-BR2', poc, segments_devices),
+                                           # 'lan': lan_segment('WEST-BR2', poc, segments_devices),
                                            'vrf_segments': vrf_segments(segments_devices['WEST-BR2'],context),
                                            'direct_internet_access': True, 'inter_segments': inter_segments,
                                            'datacenter': datacenters['west'],
                                            **context})
     east_dc = FortiGate(name=east_dc_['name'], template_group='DATACENTERS',
+                        lan=lan_segment((east_dc_['generic_name'],east_dc_['name']), poc, segments_devices),
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': east_dc_['dc_id'], 'gps': (52.2296756, 21.0122287),
                                           'loopback': dc_loopbacks['EAST-DC1'],
-                                          'lan': lan_segment((east_dc_['generic_name'],east_dc_['name']), poc, segments_devices),
+                                          # 'lan': lan_segment((east_dc_['generic_name'],east_dc_['name']), poc, segments_devices),
                                           'vrf_segments': vrf_segments(segments_devices[east_dc_['name']], context),
                                           'inter_segments': inter_segments,
                                            'datacenter': datacenters,
                                            **context})
     east_br = FortiGate(name=east_br_['name'], template_group='BRANCHES',
+                        lan=lan_segment((east_br_['generic_name'],east_br_['name']), poc, segments_devices),
                         template_context={'region': 'East', 'region_id': 2, 'branch_id': east_br_['branch_id'], 'gps': (47.497912, 19.040235),
                                           'loopback': '10.200.2.1',
-                                          'lan': lan_segment((east_br_['generic_name'],east_br_['name']), poc, segments_devices),
+                                          # 'lan': lan_segment((east_br_['generic_name'],east_br_['name']), poc, segments_devices),
                                           'vrf_segments': vrf_segments(segments_devices[east_br_['name']], context),
                                           'direct_internet_access': False, 'inter_segments': {}, # inter_segments,
                                            'datacenter': datacenters['east'],
