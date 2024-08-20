@@ -1,6 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 
 from fpoc import FortiLab
+from fpoc.devices import FortiGate
 
 
 class FortiPoC(FortiLab):
@@ -23,6 +24,18 @@ class FortiPoC(FortiLab):
         else:  # fpoc-manager is running outside the FortiPoC
             self.manager_inside_fpoc = False
             self.ip = fpoc_ip  # device is accessed by fpoc-manager via the FortiPoC outside IP
+
+        # Configure default values for FortiGate VMs running inside a FortiPoC
+        # model is KVM64, speed is 'auto' for all lan and wan interfaces, reboot_delay is 120 seconds
+        for device in self.devices.values():
+            if isinstance(device, FortiGate):
+                device.model = "FGT_VM64_KVM"
+                device.reboot_delay = 120
+                if device.lan is not None:
+                    device.lan.speed = 'auto'
+                for intf_name, intf in device.wan:
+                    if intf is not None:
+                        intf.speed = 'auto'
 
     def members(self, devices: dict = None, devnames: list = None):
         """
