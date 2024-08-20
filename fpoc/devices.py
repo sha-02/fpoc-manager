@@ -216,7 +216,7 @@ class FortiGate_HA:
 
 @dataclass
 class FortiGate(Device):
-    # model: str = "FGT_VM64_KVM"   # FGT model as displayed in the firmware filename
+    alias: str = None   # alias name
     model: str = None # FGT model as displayed in the firmware filename
     apiv2auth: bool = True  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
     apiadmin: str = 'adminapi'  # username for the API admin

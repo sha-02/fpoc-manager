@@ -216,6 +216,7 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
     device.template_context['apiadmin'] = device.apiadmin
     device.template_context['password'] = device.password
     device.template_context['HA'] = device.ha
+    device.template_context['alias'] = device.alias
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf',
@@ -320,6 +321,7 @@ def deploy(poc: TypePoC, device: FortiGate):
     device.template_context['HA'] = device.ha
     device.template_context['wan'] = device.wan
     device.template_context['lan'] = device.lan
+    device.template_context['alias'] = device.alias
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     # device.config = loader.render_to_string(f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
