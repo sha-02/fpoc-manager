@@ -1,6 +1,7 @@
 import threading
 from django.core.handlers.wsgi import WSGIRequest
 import copy
+from fpoc.devices import FortiGate
 
 
 class FortiLab:
@@ -35,6 +36,12 @@ class FortiLab:
         self.minimum_FOS_version = 0  # Minimum FortiOS version required for the devices of this poc (eg, 7_004_002)
         self.messages = ["<no message>"]  # List of messages regarding this poc which are displayed to the user
         self.lock = threading.Lock()  # mutual exclusion (mutex) lock used for concurrency (e.g., download FOS firmware)
+
+        # Configure default SSH/HTTPS ports for FortiGates
+        for device in self.devices.values():
+            if isinstance(device, FortiGate):
+                device.https_port = 443
+                device.ssh_port = 22
 
     def members(self, devices: dict = None, devnames: list = None):
         """
