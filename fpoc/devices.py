@@ -10,26 +10,33 @@ class Interface:
     # vlanid: int  # e.g, 11
     # _address: ipaddress
 
-    def __init__(self, port:str, vlanid: int, address: str, name: str = 'UNSPECIFIED_VLAN_NAME'):
+    def __init__(self, port:str = None, vlanid: int = None, address: str = None, name: str = None, speed: str = None):
+        # All parameters must default to None due to the update() method used by FortiGate class
         self.port = port
         self.vlanid = vlanid
+        self.speed = speed
+        self.dhcp = None    # must default to None because of the update() method
 
         self._name = name if vlanid else port
             # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
             # for non-VLAN interface: '_name' and 'port' both reference the physical interface
-        self.dhcp = False
 
-        if address == 'dhcp':
+        if address is None:
+            self._address = None
+        elif address == 'dhcp':
             self.dhcp = True
-            self._address = '0.0.0.0/0'
+            self._address = ipaddress.ip_interface('1.2.3.4/32')
         elif len(address.split('.')) == 3:  # address is a network of the form '198.51.100'
             # kept for backward compatibility with previous code
             self._address = ipaddress.ip_interface(address + '.0/24')
+            self.dhcp = False
         elif '/' in address:  # address is an IP@ or a subnet of the form '198.51.100.0/24' or '198.51.100.1/24'
             self._address = ipaddress.ip_interface(address)
+            self.dhcp = False
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={str(self._address)})'
+        return (f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={str(self._address)}, '
+                f'name={self.name}, speed={self.speed})')
 
     @property
     def name(self) -> str:  # vlan name or physical interface name
@@ -53,7 +60,21 @@ class Interface:
 
     @property
     def ipmask(self) -> str:
+        return self._address.with_netmask.replace('/', ' ')  # e.g. '172.16.31.1 255.255.255.0'
+
+    @property
+    def ipprefix(self) -> str:
         return self._address.with_prefixlen  # e.g. '172.16.31.1/24'
+
+    @property
+    def mask(self) -> str:
+        return str(self._address.netmask)
+
+    def update(self, interface: Interface):
+        # Update (Override) this Interface instance with all not-None attributes from the 'interface' passed as argument
+        for k, v in interface.__dict__.items():
+            if v is not None:
+                self.__dict__[k] = v    # update Interface 'k' with Interface 'v'
 
     # def dictify(self):
     #     """
@@ -84,6 +105,7 @@ class Network:
 
 @dataclass
 class WAN:
+    # All attributes must default to None due to the update() method used by FortiGate class
     inet: Interface = None
     inet_snat: Interface = None
     inet_dnat: Interface = None
@@ -107,6 +129,14 @@ class WAN:
         """
         return iter(self.__dict__.items())
 
+    def update(self, wan: WAN):
+        # Update (Override) this WAN instance with all not-None attributes from the 'wan' passed as argument
+        for k, v in wan:  # 'self' is iterable due to redefinition of __iter__()
+            if v is not None and k is not None and isinstance(self.__dict__[k], Interface):
+                self.__dict__[k].update(v)    # update Interface 'k' with Interface 'v'
+            else:
+                self.__dict__[k] = v
+
     # def dictify(self):
     #     """
     #     Make a dictionary out of this Object
@@ -117,11 +147,12 @@ class WAN:
 
 @dataclass
 class Device:
+    # All attributes must default to None due to the update() method used by FortiGate class
     offset: int = None  # Offset of this device if inside a FortiPoC (used to derive SSH/HTTPS external port)
 
     ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/fortipoc IP)
-    ssh_port: int = 22  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
-    https_port: int = 443  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
+    ssh_port: int = None  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
+    https_port: int = None  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
 
     mgmt: Interface = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
     # mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the mgmt subnet inside FortiPoC (eg, '172.16.31.254/24')
@@ -139,7 +170,7 @@ class Device:
     commands: list = None  # List of CLI commands to be executed on the device
 
     deployment_status: str = None  # e.g. 'completed' or 'skipped'
-    reboot_delay: int = 120     # number of seconds to wait for the device to perform a full reboot
+    reboot_delay: int = None     # number of seconds to wait for the device to perform a full reboot
 
     def __post_init__(self):  # Apply default values
         self.template_group = self.template_group or self.name  # initialize if it is None
@@ -150,14 +181,14 @@ class Device:
     #     # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
     #     return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed
 
-    def update(self, device: Device):
-        # Update (Override) this device instance with all attributes from the 'device' passed as argument
-        for k, v in device.__dict__.items():
-            if v is not None:
-                if k == 'reboot_delay': # for reboot_delay, keep the biggest value of the two devices
-                    self.reboot_delay = max(self.reboot_delay, v)
-                else:
-                    self.__dict__[k] = v    # update the local instance attribute with the 'device' attribute
+    # def update(self, device: Device):
+    #     # Update (Override) this device instance with all not-None attributes from the 'device' passed as argument
+    #     for k, v in device.__dict__.items():
+    #         if v is not None:
+    #             if k == 'reboot_delay':  # for reboot_delay, keep the biggest value of the two devices
+    #                 self.reboot_delay = max(self.reboot_delay, v)
+    #             else:
+    #                 self.__dict__[k] = v    # update the local instance attribute with the 'device' attribute
 
 
 @dataclass
@@ -219,6 +250,24 @@ class FortiGate(Device):
     def FOS(self):
         # long integer of the fos_version, e.g. 6_000_013 for 6.0.13, used in django templates to compare FOS versions
         return self.__class__.FOS_int(self.fos_version)
+
+    def update(self, fortigate: FortiGate):
+        # Update (Override) this FortiGate instance with not-None attributes from another FortiGate passed as argument
+        for k, v in fortigate.__dict__.items():
+            if v is None:
+                continue
+            if k == 'lan':
+                if self.lan is not None:
+                    self.lan.update(fortigate.lan)
+                else:
+                    self.lan = fortigate.lan
+            elif k == 'wan' and self.wan is not None:
+                if self.wan is not None:
+                    self.wan.update(fortigate.wan)
+                else:
+                    self.wan = fortigate.wan
+            else:
+                self.__dict__[k] = v  # update the local FortiGate attribute with the 'fortigate' attribute
 
 
 @dataclass
