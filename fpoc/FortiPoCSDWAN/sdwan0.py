@@ -24,18 +24,18 @@ def singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
     #
     if request.POST.get('HA') == 'FGCP':
         for cluster in (('FGT-A', 'FGT-A_sec'), ('FGT-B', 'FGT-B_sec'), ('FGT-C', 'FGT-C_sec')):  # list of all clusters
-            devices[cluster[0]].ha.mode = devices[cluster[1]].ha.mode = FortiGate_HA.Modes.FGCP
-            devices[cluster[0]].ha.role = FortiGate_HA.Roles.PRIMARY
-            devices[cluster[1]].ha.role = FortiGate_HA.Roles.SECONDARY
-            devices[cluster[0]].ha.priority = 200
-            devices[cluster[1]].ha.priority = 100
-            devices[cluster[0]].ha.group_id = devices[cluster[1]].ha.group_id = 1
-            devices[cluster[0]].ha.group_name = devices[cluster[0]].name  # group_name defaults to the device name
-            devices[cluster[1]].ha.group_name = devices[cluster[1]].name
-            devices[cluster[0]].ha.hbdev = devices[cluster[1]].ha.hbdev = [('port6', 0)]  # heartbeat interfaces
-            devices[cluster[0]].ha.sessyncdev = devices[cluster[1]].ha.sessyncdev = [
+            devices[cluster[0]].HA.mode = devices[cluster[1]].HA.mode = FortiGate_HA.Modes.FGCP
+            devices[cluster[0]].HA.role = FortiGate_HA.Roles.PRIMARY
+            devices[cluster[1]].HA.role = FortiGate_HA.Roles.SECONDARY
+            devices[cluster[0]].HA.priority = 200
+            devices[cluster[1]].HA.priority = 100
+            devices[cluster[0]].HA.group_id = devices[cluster[1]].HA.group_id = 1
+            devices[cluster[0]].HA.group_name = devices[cluster[0]].name  # group_name defaults to the device name
+            devices[cluster[1]].HA.group_name = devices[cluster[1]].name
+            devices[cluster[0]].HA.hbdev = devices[cluster[1]].HA.hbdev = [('port6', 0)]  # heartbeat interfaces
+            devices[cluster[0]].HA.sessyncdev = devices[cluster[1]].HA.sessyncdev = [
                 'port6']  # session synch interfaces
-            devices[cluster[0]].ha.monitordev = devices[cluster[1]].ha.monitordev = ['port1', 'port2',
+            devices[cluster[0]].HA.monitordev = devices[cluster[1]].HA.monitordev = ['port1', 'port2',
                                                                                      'port5']  # monitored interfaces
 
     # The request.POST sends all secondary devices (FGT-A_sec, etc...) for simplicity

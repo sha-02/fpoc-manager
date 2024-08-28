@@ -55,13 +55,13 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
             fortigate.template_context['WAN_underlays'] = False
 
         if request.POST.get('HA') == 'FGCP':
-            fortigate.ha = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=fpoc_fgtname,
+            fortigate.HA = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=fpoc_fgtname,
                                      hbdev=[('port6', 0)], sessyncdev=['port6'],
                                      monitordev=['port1', 'port2', 'port5'], priority=128)
             if fpoc_fgtname in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
-                fortigate.ha.role = FortiGate_HA.Roles.SECONDARY
+                fortigate.HA.role = FortiGate_HA.Roles.SECONDARY
             else:
-                fortigate.ha.role = FortiGate_HA.Roles.PRIMARY
+                fortigate.HA.role = FortiGate_HA.Roles.PRIMARY
 
     # Render and deploy the configs
     return fpoc.start(poc, fortigates)

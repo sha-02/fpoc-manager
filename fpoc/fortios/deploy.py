@@ -207,15 +207,15 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
 
     # Render the bootstrap configuration
 
-    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
     # device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # e.g., 172.16.31.254
     device.template_context['mgmt_gw'] = poc.mgmt_gw
     device.template_context['mgmt_dns'] = poc.mgmt_dns
     device.template_context['mgmt_vrf'] = poc.mgmt_vrf
+    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
+    device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
     device.template_context['apiadmin'] = device.apiadmin
     device.template_context['password'] = device.password
-    device.template_context['HA'] = device.ha
+    device.template_context['HA'] = device.HA
     device.template_context['alias'] = device.alias
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
@@ -239,15 +239,15 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     """
     running_ha = is_running_ha(device)
 
-    if running_ha and device.ha.mode == FortiGate_HA.Modes.STANDALONE:
+    if running_ha and device.HA.mode == FortiGate_HA.Modes.STANDALONE:
         print(f"{device.name} : HA is running on FGT but 'standalone' mode must be deployed")
         return True
 
-    if not running_ha and device.ha.mode != FortiGate_HA.Modes.STANDALONE:
+    if not running_ha and device.HA.mode != FortiGate_HA.Modes.STANDALONE:
         print(f"{device.name} : HA must be deployed but FGT is running in 'standalone' mode")
         return True
 
-    if device.ha.mode != FortiGate_HA.Modes.STANDALONE:
+    if device.HA.mode != FortiGate_HA.Modes.STANDALONE:
         print(f"{device.name} : HA must be deployed")
 
     return not is_running_bootstrap(device)  # Returns False if FGT is not running bootstrap config, True otherwise.
@@ -312,13 +312,13 @@ def deploy(poc: TypePoC, device: FortiGate):
     #
 
     # Add information to the template context of this device
-    device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
-    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
     # device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
     device.template_context['mgmt_gw'] = poc.mgmt_gw
     device.template_context['mgmt_dns'] = poc.mgmt_dns
     device.template_context['mgmt_vrf'] = poc.mgmt_vrf
-    device.template_context['HA'] = device.ha
+    device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
+    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
+    device.template_context['HA'] = device.HA
     device.template_context['wan'] = device.wan
     device.template_context['lan'] = device.lan
     device.template_context['alias'] = device.alias
@@ -335,7 +335,7 @@ def deploy(poc: TypePoC, device: FortiGate):
         render_bootstrap_config(poc, device)
         upload_bootstrap_config(device)
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
-        if device.ha.mode == FortiGate_HA.Modes.FGCP and device.ha.role == FortiGate_HA.Roles.SECONDARY:
+        if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
             raise CompletedDeviceProcessing
         else:
             device.apikey = None  # reset cached API key since there is no API key in the bootstrap config

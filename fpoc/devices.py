@@ -223,7 +223,7 @@ class FortiGate(Device):
     apikey: str = None  # API key for the API admin
     fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
-    ha: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
+    HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
     lan: Interface = None  # used to define the LAN connectivity (eg, "port5")
     wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
 
@@ -238,7 +238,7 @@ class FortiGate(Device):
         #
         # initialize attributes from local class
         # self.apiadmin = 'adminapi'
-        self.ha = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
+        self.HA = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
     @classmethod
     def FOS_int(cls, fos_version: str):
