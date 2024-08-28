@@ -10,7 +10,7 @@ $ cd fpoc-manager
 
 With Pip:
 ```
-$ python3.8 -m venv venv
+$ python3.11 -m venv venv
 $ source venv/bin/activate
 (venv) $ pip install pip --upgrade 
 (venv) $ pip install -r requirements.txt
