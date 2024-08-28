@@ -154,31 +154,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # LAN underlays
     #
 
-    # fgt_lan_ips = {
-    #     'WEST-DC1': '10.1.0.1/24',
-    #     'WEST-DC2': '10.2.0.1/24',
-    #     'WEST-BR1': '10.0.1.1/24',
-    #     'WEST-BR2': '10.0.2.1/24',
-    #     'EAST-DC': '10.4.0.1/24', # DC and not DC1 because it is looked up against FortiPoCSDWAN
-    #     'EAST-BR': '10.4.1.1/24', # DC and not DC1 because it is looked up against FortiPoCSDWAN
-    # }
-    #
-    # # From the FGT interface IP, construct a LAN dictionary containing port, ip, dotted mask, prefix length, subnet
-    # LAN = {}
-    # for devname, ipprefix in fgt_lan_ips.items():
-    #     LAN[devname] = {
-    #         'port': poc.devices[devname].lan.port,  # eg, port5
-    #         'ipprefix': ipprefix,   # eg, 10.1.0.1/24
-    #         'ip' : str(ipaddress.ip_interface(ipprefix).ip),    # eg, 10.1.0.1
-    #         'subnet' : str(ipaddress.ip_interface(ipprefix).network.network_address),   # eg, 10.1.0.0
-    #         'mask': str(ipaddress.ip_interface(ipprefix).netmask),  # eg, 255.255.255.0
-    #         'prefixlen': str(ipaddress.ip_interface(ipprefix).network.prefixlen),   # eg, 24
-    #     }
-    #
-    # # "Replace" EAST-DC/EAST-BR by EAST-DC1/EAST-BR1
-    # LAN['EAST-DC1'] = LAN['EAST-DC']; del(LAN['EAST-DC'])
-    # LAN['EAST-BR1'] = LAN['EAST-BR']; del(LAN['EAST-BR'])
-
     LAN = {
         'WEST-DC1': Interface(address='10.1.0.1/24'),
         'WEST-DC2': Interface(address='10.2.0.1/24'),
@@ -280,42 +255,36 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                          lan=LAN['WEST-DC1'],
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
                                            'loopback': dc_loopbacks['WEST-DC1'],
-                                           # 'lan':LAN['WEST-DC1'],
                                            'datacenter': datacenters,
                                            **context})
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
                          lan=LAN['WEST-DC2'],
                          template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
                                            'loopback': dc_loopbacks['WEST-DC2'],
-                                           # 'lan': LAN['WEST-DC2'],
                                            'datacenter': datacenters,
                                            **context})
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
                          lan=LAN['WEST-BR1'],
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
                                            'loopback': '10.200.1.1',
-                                           # 'lan': LAN['WEST-BR1'],
                                            'datacenter': datacenters['west'],
                                            **context})
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          lan=LAN['WEST-BR2'],
                          template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
                                            'loopback': '10.200.1.2',
-                                           # 'lan': LAN['WEST-BR2'],
                                            'datacenter': datacenters['west'],
                                            **context})
     east_dc1 = FortiGate(name='EAST-DC1', template_group='DATACENTERS',
                         lan=LAN['EAST-DC1'],
                         template_context={'region': 'East', 'region_id': 2, 'dc_id': 1, 'gps': (52.2296756, 21.0122287),
                                           'loopback': dc_loopbacks['EAST-DC1'],
-                                          # 'lan': LAN['EAST-DC1'],
                                            'datacenter': datacenters,
                                            **context})
     east_br1 = FortiGate(name='EAST-BR1', template_group='BRANCHES',
                         lan=LAN['EAST-BR1'],
                         template_context={'region': 'East', 'region_id': 2, 'branch_id': 1, 'gps': (47.497912, 19.040235),
                                           'loopback': '10.200.2.1',
-                                          # 'lan': LAN['EAST-BR1'],
                                            'datacenter': datacenters['east'],
                                            **context})
 
@@ -381,61 +350,43 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
 def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     vrf = {
-        'LAN': { 'vrfid': context['vrf_blue'], 'vlanid': 0, 'color': 'BLUE', 'alias': 'LAN_BLUE' },
-        'SEG_YELLOW': { 'vrfid': context['vrf_yellow'], 'vlanid': 100+context['vrf_yellow'], 'color': 'YELLOW', 'alias': 'LAN_YELLOW' },
-        'SEG_RED': { 'vrfid': context['vrf_red'], 'vlanid': 100+context['vrf_red'], 'color': 'RED', 'alias': 'LAN_RED' },
+        'LAN': { 'vrfid': context['vrf_blue'], 'vlanid': 0, 'alias': 'LAN_BLUE' },
+        'SEG_YELLOW': { 'vrfid': context['vrf_yellow'], 'alias': 'LAN_YELLOW' },
+        'SEG_RED': { 'vrfid': context['vrf_red'], 'alias': 'LAN_RED' },
     }
 
     segments = {
         'WEST-DC1': {
-            'LAN': {'ip': '10.1.0.1/24', 'host_rank': 7, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.1.1.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.1.2.1/24', 'host_rank': 7, **vrf['SEG_RED']},
+            'LAN': Interface(address='10.1.0.1/24', **vrf['LAN']),
+            'SEG_YELLOW': Interface(address='10.1.1.1/24', vlanid=16, **vrf['SEG_YELLOW']),
+            'SEG_RED': Interface(address='10.1.2.1/24', vlanid=17, **vrf['SEG_RED']),
         },
         'WEST-DC2': {
-            'LAN': {'ip': '10.2.0.1/24', 'host_rank': 7, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.2.1.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.2.2.1/24', 'host_rank': 7, **vrf['SEG_RED']},
+            'LAN': Interface(address='10.2.0.1/24', **vrf['LAN']),
+            'SEG_YELLOW': Interface(address='10.2.1.1/24', vlanid=26, **vrf['SEG_YELLOW']),
+            'SEG_RED': Interface(address='10.2.2.1/24', vlanid=27, **vrf['SEG_RED']),
         },
         'WEST-BR1': {
-            'LAN': {'ip': '10.0.1.1/24', 'host_rank': 101, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.0.11.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.0.12.1/24', 'host_rank': 101, **vrf['SEG_RED']},
+            'LAN': Interface(address='10.0.1.1/24', **vrf['LAN']),
+            'SEG_YELLOW': Interface(address='10.0.11.1/24', vlanid=36, **vrf['SEG_YELLOW']),
+            'SEG_RED': Interface(address='10.0.12.1/24', vlanid=37, **vrf['SEG_RED']),
         },
         'WEST-BR2': {
-            'LAN': {'ip': '10.0.2.1/24', 'host_rank': 101, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.0.21.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.0.22.1/24', 'host_rank': 101, **vrf['SEG_RED']},
+            'LAN': Interface(address='10.0.2.1/24', **vrf['LAN']),
+            'SEG_YELLOW': Interface(address='10.0.21.1/24', vlanid=46, **vrf['SEG_YELLOW']),
+            'SEG_RED': Interface(address='10.0.22.1/24', vlanid=47, **vrf['SEG_RED']),
         },
         'EAST-DC': {
-            'LAN': {'ip': '10.4.0.1/24', 'host_rank': 7, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.4.1.1/24', 'host_rank': 7, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.4.2.1/24', 'host_rank': 7, **vrf['SEG_RED']},
+            'LAN': Interface(address='10.4.0.1/24', **vrf['LAN']),
+            'SEG_YELLOW': Interface(address='10.4.1.1/24', vlanid=56, **vrf['SEG_YELLOW']),
+            'SEG_RED': Interface(address='10.4.2.1/24', vlanid=57, **vrf['SEG_RED']),
         },
         'EAST-BR': {
-            'LAN': {'ip': '10.4.1.1/24', 'host_rank': 101, **vrf['LAN']},
-            'SEG_YELLOW': {'ip': '10.4.11.1/24', 'host_rank': 101, **vrf['SEG_YELLOW']},
-            'SEG_RED': {'ip': '10.4.12.1/24', 'host_rank': 101, **vrf['SEG_RED']},
+            'LAN': Interface(address='10.4.1.1/24', **vrf['LAN']),
+            'SEG_YELLOW': Interface(address='10.4.11.1/24', vlanid=66, **vrf['SEG_YELLOW']),
+            'SEG_RED': Interface(address='10.4.12.1/24', vlanid=67, **vrf['SEG_RED']),
         },
     }
-
-    # Host Devices used to build the /etc/hosts file
-    hosts = dict()
-    for devname, segs in segments.items():
-        for seg in segs.values():
-            hostname = 'PC-'+devname+'-'+seg['color']   # eg, PC-WEST-DC1-BLUE
-            hosts[hostname] = dict()
-            hosts[hostname]['gateway'] = seg['ip']       # eg, 10.1.0.1/24  (IP@ of the IP gateway)
-            hosts[hostname]['rank'] = seg['host_rank']   # eg, 7             (ie, IP@ is 10.1.0.7)
-
-    # Restore the previous structure of the 'segments' to avoid having to change the jinja templates
-    for segs in segments.values():
-        for seg in segs.values():
-            seg['ipprefix'] = seg['ip']     # 10.1.10.1/24
-            seg['ip'] = str(ipaddress.ip_interface(seg['ip']).ip)   # 10.1.10.1
-            seg['subnet'] = str(ipaddress.ip_interface(seg['ipprefix']).network.network_address) # 10.1.10.0
-            seg['mask'] = str(ipaddress.ip_interface(seg['ipprefix']).netmask)  # 255.255.255.0
-            seg['prefixlen'] = str(ipaddress.ip_interface(seg['ipprefix']).network.prefixlen)   # 24
 
     # Allow segments in VRF x to access the Internet which is in VRF {{vrf_wan}}
     inter_segments = {
@@ -475,12 +426,13 @@ def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, t
     #
 
     for name in ('WEST-DC1', 'WEST-DC2', 'EAST-DC', 'WEST-BR1', 'WEST-BR2', 'EAST-BR'):
-        devices[name].template_context['lan'].update(vrf['LAN'])
+        # devices[name].template_context['lan'].update(vrf['LAN'])
+        devices[name].lan.update(segments[name]['LAN'])
         devices[name].template_context['vrf_segments'] = segments[name]
 
         # Update Host Devices
-        devices[f'PC-{name}'].template_context['namespaces'] = segments[name]
-        devices[f'PC-{name}'].template_context['hosts'] = hosts
+        # devices[f'PC-{name}'].template_context['namespaces'] = segments[name]
+        # devices[f'PC-{name}'].template_context['hosts'] = hosts
         devices[f'PC-{name}'].template_filename = 'lxc.vrf.conf'
 
     # 'inter_segments' describes the inter-vrf links

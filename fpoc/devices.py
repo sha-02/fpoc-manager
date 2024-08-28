@@ -10,11 +10,14 @@ class Interface:
     # vlanid: int  # e.g, 11
     # _address: ipaddress
 
-    def __init__(self, port:str = None, vlanid: int = None, address: str = None, name: str = None, speed: str = None):
+    def __init__(self, port:str = None, vlanid: int = None, address: str = None, name: str = None, speed: str = None,
+                 vrfid: int = None, alias: str = None):
         # All parameters must default to None due to the update() method used by FortiGate class
         self.port = port
         self.vlanid = vlanid
+        self.vrfid = vrfid
         self.speed = speed
+        self.alias = alias
         self.dhcp = None    # must default to None because of the update() method
 
         self._name = name if vlanid else port
@@ -35,8 +38,8 @@ class Interface:
             self.dhcp = False
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(port={self.port}, vlanid={self.vlanid}, address={str(self._address)}, '
-                f'name={self.name}, speed={self.speed})')
+        return (f'{self.__class__.__name__}(port={self.port}, vrfid={self.vrfid}, vlanid={self.vlanid}, '
+                f'address={str(self._address)}, name={self.name}, speed={self.speed}, alias={self.alias})')
 
     @property
     def name(self) -> str:  # vlan name or physical interface name
@@ -68,7 +71,7 @@ class Interface:
 
     @property
     def mask(self) -> str:
-        return str(self._address.netmask)
+        return str(self._address.netmask)  # e.g. '255.255.255.0'
 
     def update(self, interface: Interface):
         # Update (Override) this Interface instance with all not-None attributes from the 'interface' passed as argument
