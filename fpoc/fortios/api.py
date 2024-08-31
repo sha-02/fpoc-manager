@@ -44,11 +44,12 @@ def retrieve_access_token(device: FortiGate) -> str:
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve an access_token using APIv2 admin/password authentication'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
-    response_json = response.json()
-    # pprint(response_json)
+    res = response.json().get('session_key')
+    if res is None:
+        raise RetryProcessingDevice(f'{device.name} : failure to retrieve access_token. response=', response.text, '\n')
 
-    # return the access_token
-    return response_json['session_key']
+    return res
+
 
 
 def retrieve_hostname(device: FortiGate) -> str:
@@ -62,17 +63,17 @@ def retrieve_hostname(device: FortiGate) -> str:
     url = f"https://{device.ip}:{device.https_port}" \
           f"/api/v2/monitor/system/status?access_token={device.apikey}"
 
-    # print(url)
     response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
     if response.status_code != 200:
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve FGT hostname'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
-    response_json = response.json()
-    # pprint(response_json)
+    res = response.json().get('results', {}).get('hostname')
+    if res is None:
+        raise RetryProcessingDevice(f'{device.name} : failure to retrieve hostname. response=', response.text, '\n')
 
-    return response_json['results']['hostname']
+    return res
 
 
 def is_running_ha(device: FortiGate) -> bool:
@@ -86,18 +87,14 @@ def is_running_ha(device: FortiGate) -> bool:
     url = f"https://{device.ip}:{device.https_port}" \
           f"/api/v2/monitor/system/ha-peer?access_token={device.apikey}"
 
-    # print(url)
     response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
     if response.status_code != 200:
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve HA status of FGT'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
-    response_json = response.json()
-    # pprint(response_json)
-
     # 'results' is a list of all HA peers. List is empty if no HA.
-    return bool(len(response_json['results']))
+    return bool(len(response.json().get('results', [])))
 
 
 def change_hostname(device: FortiGate, hostname: str):
@@ -109,7 +106,6 @@ def change_hostname(device: FortiGate, hostname: str):
     :return:
     """
     url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
-    # print(url)
 
     payload = {'hostname': hostname}
     response = requests.request("PUT", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
@@ -119,6 +115,48 @@ def change_hostname(device: FortiGate, hostname: str):
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure during update of firmware'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
+
+
+def enable_vdom_mode(device: FortiGate):
+    """
+    Enable the equivalent of 'set vdom-mode multi-vdom' via API
+
+    :param device:
+    :return:
+    """
+    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+
+    payload = {'vdom-mode': 'multi-vdom'}
+    response = requests.request("PUT", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+                                verify=False)
+
+    if response.status_code != 200:
+        # API access failed => skip this device
+        raise RetryProcessingDevice(f'{device.name} : failure to enable VDOMs'
+                                   f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
+
+
+def retrieve_vdom_mode(device: FortiGate) -> str:
+    """
+    Check the value of 'set vdom-mode {no-vdom|multi-vdom}' via API
+
+    :param device:
+    :return:
+    """
+    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+
+    response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
+
+    if response.status_code != 200:
+        # API access failed => skip this device
+        raise RetryProcessingDevice(f'{device.name} : failure to check the vdom-mode'
+                                   f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
+
+    res = response.json().get('results', {}).get('vdom-mode')
+    if res is None:
+        raise RetryProcessingDevice(f'{device.name} : failure to check the vdom-mode. response=', response.text, '\n')
+
+    return res
 
 
 def retrieve_fos_version(device: FortiGate) -> str:
@@ -132,18 +170,18 @@ def retrieve_fos_version(device: FortiGate) -> str:
     url = f"https://{device.ip}:{device.https_port}" \
           f"/api/v2/monitor/system/status?access_token={device.apikey}"
 
-    # print(url)
     response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
     if response.status_code != 200:
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve FortiOS version'
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
-    response_json = response.json()
-    # pprint(response_json)
+    res = response.json().get('version')
+    if res is None:
+        raise RetryProcessingDevice(f'{device.name} : failure to retrieve FortiOS version. response=', response.text, '\n')
 
-    # Updates the FOS version => string returned by JSON is e.g. "v6.4.4", so need to only keep "6.4.4"
-    return response_json['version'][1:]
+    # string returned by JSON is e.g. "v6.4.4", so need to only keep "6.4.4"
+    return res[1:]
 
 
 def upload_firmware(device: FortiGate, firmware: str):
@@ -157,7 +195,6 @@ def upload_firmware(device: FortiGate, firmware: str):
     url = f"https://{device.ip}:{device.https_port}" \
           f"/api/v2/monitor/system/firmware/upgrade?access_token={device.apikey}"
 
-    # print(url)
     with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', mode='rb') as f:
         firmware_bytes = f.read()
 
@@ -186,7 +223,6 @@ def run_script(device: FortiGate, script_name: str):
     url = f"https://{device.ip}:{device.https_port}" \
           f"/api/v2/monitor/system/config-script/upload?access_token={device.apikey}"
 
-    # print(url)
     config_base64_bytes = base64.b64encode(bytes(device.config, "utf-8"))  # base64 in raw (bytes) format (b'...')
     config_base64_string = config_base64_bytes.decode()  # base64 in string format (without the 'b')
 

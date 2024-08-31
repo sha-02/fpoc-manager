@@ -157,11 +157,13 @@ class Device:
     ssh_port: int = None  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
     https_port: int = None  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
 
+    reboot_delay: int = None     # number of seconds to wait for the device to perform a full reboot
+
     mgmt: Interface = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
     # mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the mgmt subnet inside FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name configured on the device
-    name_fpoc: str = None  # Name of the device in the FortiPoC
+    name_fpoc: str = None  # Name of the device in the FortiPoC or name of the device in the hardware Lab
     username: str = None  # username for SSH session
     password: str = None  # password for SSH session
 
@@ -173,7 +175,6 @@ class Device:
     commands: list = None  # List of CLI commands to be executed on the device
 
     deployment_status: str = None  # e.g. 'completed' or 'skipped'
-    reboot_delay: int = None     # number of seconds to wait for the device to perform a full reboot
 
     def __post_init__(self):  # Apply default values
         self.template_group = self.template_group or self.name  # initialize if it is None
@@ -221,14 +222,18 @@ class FortiGate_HA:
 class FortiGate(Device):
     alias: str = None   # alias name
     model: str = None # FGT model as displayed in the firmware filename
+    npu: str = None     # NPU model for appliances
+
+    fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
+    fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
+
+    lan: Interface = None  # used to define the LAN connectivity (eg, "port5")
+    wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
+    HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
+
     apiv2auth: bool = True  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
     apiadmin: str = 'adminapi'  # username for the API admin
     apikey: str = None  # API key for the API admin
-    fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
-    fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
-    HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
-    lan: Interface = None  # used to define the LAN connectivity (eg, "port5")
-    wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
 
     def __post_init__(self):  # Apply default values
         super(FortiGate, self).__post_init__()  # Call parent __post_init__

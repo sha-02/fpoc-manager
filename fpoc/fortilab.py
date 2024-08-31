@@ -36,6 +36,7 @@ class FortiLab:
         self.minimum_FOS_version = 0  # Minimum FortiOS version required for the devices of this poc (eg, 7_004_002)
         self.messages = ["<no message>"]  # List of messages regarding this poc which are displayed to the user
         self.lock = threading.Lock()  # mutual exclusion (mutex) lock used for concurrency (e.g., download FOS firmware)
+        self._callback = None   # Callback function which can be registered to the class instance and can be called later on
 
         # Configure default SSH/HTTPS ports for FortiGates
         for device in self.devices.values():
@@ -90,6 +91,18 @@ class FortiLab:
         for fpoc_devname, device in self.devices.items():
             device.ip = device.mgmt.ip
 
+    def callback_register(self, callback_func):
+        """
+        Register a callback function which can be called later on
+        """
+        self._callback = callback_func
+
+    def callback(self):
+        """
+        Call the callback function passing the class instance (self) as an argument
+        In case the callback is supposed to return something, then return the result of this call
+        """
+        return self._callback(self) if self._callback else None
 
     @classmethod
     def devices_of_type(cls, device_class) -> dict:

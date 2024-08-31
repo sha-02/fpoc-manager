@@ -1,6 +1,7 @@
 from django.template import loader
 from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
 import threading
+import time
 
 import fpoc.fortios as fortios
 from fpoc import FortiGate, FortiGate_HA, TypePoC, json_to_dict
@@ -217,6 +218,7 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
     device.template_context['password'] = device.password
     device.template_context['HA'] = device.HA
     device.template_context['alias'] = device.alias
+    device.template_context['npu'] = device.npu
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf',
@@ -322,6 +324,7 @@ def deploy(poc: TypePoC, device: FortiGate):
     device.template_context['wan'] = device.wan
     device.template_context['lan'] = device.lan
     device.template_context['alias'] = device.alias
+    device.template_context['npu'] = device.npu
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     # device.config = loader.render_to_string(f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
@@ -349,6 +352,13 @@ def deploy(poc: TypePoC, device: FortiGate):
         raise CompletedDeviceProcessing  # No more processing needed for this FGT
 
     if is_config_snippets(device.config):
+        # Enable VDOMs on the FGT if it is needed for the PoC and VDOMs are not yet enabled on the FGT
+        if device.template_context.get('multi_vdom') and fortios.retrieve_vdom_mode(device) == 'no-vdom':
+            print(f'{device.name} : Enabling VDOMs')
+            fortios.enable_vdom_mode(device)
+            # Re-process the device because I noticed API authentication would fail after enabling VDOMs
+            device.apikey=None; raise ReProcessDevice(sleep=10)
+
         # Execute the CLI settings in device.config on the FGT and Save them in the 'Script' repository of the FGT
         script_name = f'fpoc={poc.id:02} config_hash={hash(device.config):_}'
         print(f'{device.name} : Upload and run configuration script: {script_name}')

@@ -159,8 +159,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-DC2': Interface(address='10.2.0.1/24'),
         'WEST-BR1': Interface(address='10.0.1.1/24'),
         'WEST-BR2': Interface(address='10.0.2.1/24'),
-        'EAST-DC1': Interface(address='10.4.0.1/24'), # DC and not DC1 because it is looked up against FortiPoCSDWAN
-        'EAST-BR1': Interface(address='10.4.1.1/24'), # DC and not DC1 because it is looked up against FortiPoCSDWAN
+        'EAST-DC1': Interface(address='10.4.0.1/24'),
+        'EAST-BR1': Interface(address='10.4.1.1/24'),
     }
 
     # DataCenters info used:
@@ -321,6 +321,15 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     #
     if context['vrf_aware_overlay']:
         vrf_segmentation(context, poc, devices)
+
+        # Create a callback function to check if VDOMs must be enabled on FGT appliances with NPU ASIC
+        # when VRF segmentation is done
+        def multi_vdom(poc: TypePoC):
+            for fortigate in [device for device in poc.devices.values() if isinstance(device, FortiGate)]:
+                fortigate.template_context['multi_vdom'] = bool(fortigate.npu)
+
+        # Register the callback function
+        poc.callback_register(multi_vdom)
 
     # Update the poc
     poc.id = poc_id

@@ -87,6 +87,10 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
     # Only keep the 'devices' that are active members for the poc
     poc.members(devices=devices)
 
+    # Call the callback function (if any was previously registered) before starting the actual deployment
+    poc.callback()
+
+    # Start the actual deployment on devices
     status_devices = start2(poc)
 
     return render(poc.request, f'fpoc/deployment_status.html',
