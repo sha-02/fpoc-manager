@@ -404,6 +404,15 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     if context['vrf_aware_overlay']:
         vrf_segmentation(context, poc, devices)
 
+        # Create a callback function to check if VDOMs must be enabled on FGT appliances with NPU ASIC
+        # when VRF segmentation is done
+        def multi_vdom(poc: TypePoC):
+            for fortigate in [device for device in poc.devices.values() if isinstance(device, FortiGate)]:
+                fortigate.template_context['multi_vdom'] = bool(fortigate.npu)
+
+        # Register the callback function
+        poc.callback_register(multi_vdom)
+
     # Update the poc
     poc.id = poc_id
     poc.minimum_FOS_version = minimumFOSversion
