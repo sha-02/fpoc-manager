@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, pocs, FortiPoCFoundation1
+from . import views, pocs, fortilab, FortiPoCFoundation1
 import fpoc
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
@@ -29,5 +29,6 @@ urlpatterns = [
 
     path('vpn/dialup/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('vpn/site2site/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),
+    path('vpn/site2site/fortilab/', fortilab.vpn_site2site_fortilab, {'poc_id': 3}, name='vpn_site2site_fortilab'),
     path('l2vpn/', pocs.l2vpn, {'poc_id': 1}, name='l2vpn'),
 ]

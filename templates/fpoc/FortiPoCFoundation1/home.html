@@ -233,12 +233,12 @@ $(document).ready(function(){
             <input type="checkbox" name="FGT-B" checked>FGT-B
             <br>
             LXC
-            <input type="checkbox" name="PC_A1" checked>PC-A1
-            <input type="checkbox" name="PC_A2" checked>
+            <input type="checkbox" name="PC_A1" >PC-A1
+            <input type="checkbox" name="PC_A2" >
               <span data-toggle="tooltip" data-placement="top" title="(PC_A2)">PC-A11</span>
-            <input type="checkbox" name="PC_B1" checked>
+            <input type="checkbox" name="PC_B1" >
               <span data-toggle="tooltip" data-placement="top" title="(PC_B1)">PC-B2</span>
-            <input type="checkbox" name="PC_B2" checked>
+            <input type="checkbox" name="PC_B2" >
               <span data-toggle="tooltip" data-placement="top" title="(PC_B2)">PC-B22</span>
           </fieldset>
           <fieldset>
@@ -268,7 +268,9 @@ $(document).ready(function(){
               <option value='static2static' selected>Static to Static</option>
               <option value='static2dialup'>Static to Dialup</option>
             </select>
-          <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_site2site' %}">Start</button>
+          <br>
+          <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_site2site' %}" formaction="{% url 'fpoc:vpn_site2site' %}">Start (FortiPoC)</button>
+          <button class="btn btn-info btn-sm" type="submit" data-toggle="tooltip" data-placement="bottom" title="{% url 'fpoc:vpn_site2site_fortilab' %}" formaction="{% url 'fpoc:vpn_site2site_fortilab' %}">Start (FortiLab)</button>
         </fieldset>
         </form>
       </div>

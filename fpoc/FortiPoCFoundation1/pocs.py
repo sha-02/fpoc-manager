@@ -3,7 +3,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 import fpoc
-from fpoc import FortiGate, LXC, VyOS
+from fpoc.fortilab import FortiLab
+from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
 from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1
 
 
@@ -17,10 +18,10 @@ def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'ipsec_phase1': request.POST.get('ipsec_phase1'),  # 'static2static', 'static2dialup'
 
         # Used as 'remote-gw' for IPsec tunnels
-        'fgta_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.subnet + '.1',  # 100.64.11.1
-        'fgta_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.subnet + '.1',  # 100.64.11.1
-        'fgtb_inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.subnet + '.2',  # 100.64.21.2
-        'fgtb_inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.subnet + '.2',  # 100.64.22.2
+        'fgta_inet1': FortiPoCFoundation1.devices['FGT-A'].wan.inet1.ip,
+        'fgta_inet2': FortiPoCFoundation1.devices['FGT-A'].wan.inet2.ip,
+        'fgtb_inet1': FortiPoCFoundation1.devices['FGT-B'].wan.inet1.ip,
+        'fgtb_inet2': FortiPoCFoundation1.devices['FGT-B'].wan.inet2.ip,
     }
 
     # If IPsec VPN with 'static2dialup' is selected then only static routing is possible
@@ -32,8 +33,18 @@ def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
 
     # List of all devices for this Scenario
     devices = {
-        'FGT-A': FortiGate(name='FGT-A', template_group='SITES', template_context={'i': 1, **context}),
-        'FGT-B': FortiGate(name='FGT-B', template_group='SITES', template_context={'i': 2, **context}),
+        'FGT-A': FortiGate(name='FGT-A', lan=Interface(address='192.168.1.254/24'),
+                           template_group='SITES',
+                           template_context={'i': 1,
+                                             'lan2': Interface(port='port6', address='192.168.11.254/24', speed='auto'),
+                                             **context}),
+
+        'FGT-B': FortiGate(name='FGT-B', lan=Interface(address='192.168.2.254/24'),
+                           template_group='SITES',
+                           template_context={'i': 2,
+                                             'lan2': Interface(port='port6', address='192.168.21.254/24', speed='auto'),
+                                             **context}),
+
         'PC_A1': LXC(name='PC-A1', template_context={'ipmask': '192.168.1.1/24', 'gateway': '192.168.1.254'}),
         'PC_A2': LXC(name='PC-A11', template_context={'ipmask': '192.168.11.1/24', 'gateway': '192.168.11.254'}),
         'PC_B1': LXC(name='PC-B2', template_context={'ipmask': '192.168.2.1/24', 'gateway': '192.168.2.254'}),
