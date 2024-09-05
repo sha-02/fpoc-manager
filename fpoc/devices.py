@@ -289,6 +289,12 @@ class LXC(Device):
         self.template_context.setdefault('interface', 'eth0')  # initialize if key does not exist
         self.template_context.setdefault('vlan', None)  # initialize if key does not exist
 
+    def update(self, lxc: LXC):
+        # Update (Override) this LXC instance with all not-None attributes from the 'lxc' passed as argument
+        for k, v in lxc.__dict__.items():
+            if v is not None:
+                self.__dict__[k] = v    # update LXC 'k' with LXC 'v'
+
 
 @dataclass
 class VyOS(Device):
