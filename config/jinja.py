@@ -10,6 +10,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 # Both the below import are Ok
 # from ansible_collections.ansible.utils.plugins.plugin_utils.base.ipaddr_utils import ipaddr
 from ansible_collections.ansible.utils.plugins.filter.ipaddr import ipaddr
+from ansible_collections.ansible.utils.plugins.filter.ipmath import ipmath
 
 
 # Using Jinja2 with Django:
@@ -46,7 +47,8 @@ def environment(**options):
     # Another alternative is to test like this:  var.__class__.__name__ == 'list'  to check if 'var' is a list
     env.globals.update({"isinstance": isinstance})
 
-    # Adds Ansible 'ipaddr' filter to Jinja2
+    # Adds Ansible filters to Jinja2
     env.filters['ipaddr'] = ipaddr
+    env.filters['ipmath'] = ipmath
 
     return env
