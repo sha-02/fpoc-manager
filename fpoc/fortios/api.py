@@ -25,6 +25,12 @@ urllib3.disable_warnings()
 # and optional trusted-host for API admin was introduced in 6.4.2:
 # https://mantis.fortinet.com/bug_view_page.php?bug_id=0647762
 #
+
+# As of 7.6.1/7.4.5 (1058092), use of REST API keys in the URL (as a query parameter) is controlled by a CLI setting
+# (rest-api-key-url-query in system.global) which is disabled by default
+# The plan may be to completely remove the ability to use API key in URL in future FOS release
+# For the time being, the bootstrap config is updated: this setting is configured to enable API in URL.
+
 def retrieve_access_token(device: FortiGate) -> str:
     """
     Retrieve an access_token using APIv2 admin/password authentication without the need to create an API admin (api-user) via SSH
