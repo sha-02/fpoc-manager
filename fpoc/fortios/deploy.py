@@ -207,19 +207,7 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
         raise StopProcessingDevice
 
     # Render the bootstrap configuration
-
-    # device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # e.g., 172.16.31.254
-    device.template_context['mgmt_gw'] = poc.mgmt_gw
-    device.template_context['mgmt_dns'] = poc.mgmt_dns
-    device.template_context['mgmt_vrf'] = poc.mgmt_vrf
-    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
-    device.template_context['apiadmin'] = device.apiadmin
-    device.template_context['password'] = device.password
-    device.template_context['HA'] = device.HA
-    device.template_context['alias'] = device.alias
-    device.template_context['npu'] = device.npu
-
+    #
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf',
                                             device.template_context, using='jinja2')
@@ -294,6 +282,26 @@ def deploy(poc: TypePoC, device: FortiGate):
                                 FOS_minimum=poc.minimum_FOS_version,
                                 lock=poc.lock)
 
+    # Add information to the template context of this device
+    #
+    device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
+    device.template_context['apiadmin'] = device.apiadmin
+    device.template_context['password'] = device.password
+    device.template_context['mgmt_gw'] = poc.mgmt_gw
+    device.template_context['mgmt_dns'] = poc.mgmt_dns
+    device.template_context['mgmt_vrf'] = poc.mgmt_vrf
+    device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
+    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
+    device.template_context['HA'] = device.HA
+    device.template_context['wan'] = device.wan
+    device.template_context['lan'] = device.lan
+    device.template_context['alias'] = device.alias
+    device.template_context['npu'] = device.npu
+
+    # Call the device callback method in case something must be done to the device (usually on its context based on
+    # the actual FOS version) before doing the rendering of the config
+    device.callback()
+
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
@@ -308,30 +316,9 @@ def deploy(poc: TypePoC, device: FortiGate):
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         raise CompletedDeviceProcessing
 
-    # Render the config (CLI script or full-config)
-    # Upload bootstrap config (if CLI script)
-    # Deploy the config (CLI script of full-config)
-    #
-
-    # Add information to the template context of this device
-    # device.template_context['mgmt_fpoc'] = device.mgmt_fpoc_ip  # 172.16.31.254
-    device.template_context['mgmt_gw'] = poc.mgmt_gw
-    device.template_context['mgmt_dns'] = poc.mgmt_dns
-    device.template_context['mgmt_vrf'] = poc.mgmt_vrf
-    device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
-    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['HA'] = device.HA
-    device.template_context['wan'] = device.wan
-    device.template_context['lan'] = device.lan
-    device.template_context['alias'] = device.alias
-    device.template_context['npu'] = device.npu
-
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    # device.config = loader.render_to_string(f'fpoc/{poc.__class__.__name__}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
-    #                                         device.template_context, using='jinja2')
     device.config = loader.render_to_string(f'fpoc/{poc.template_folder}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
                                             device.template_context, using='jinja2')
-    # print(cli_settings)
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
     if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
@@ -367,11 +354,6 @@ def deploy(poc: TypePoC, device: FortiGate):
         # Full configuration file
         print(f'{device.name} : Restoring full configuration')
         fortios.restore_config_file(device)
-
-    # Save this configuration in the config revision
-    # revision_name = f' fpoc={poc.id:02} context={device.template_context}'
-    # print(f'Saving the configuration in the revision history: {revision_name}')
-    # fortios.save_to_revision(device, revision_name)
 
 
 def is_config_snippets(config: str) -> bool:

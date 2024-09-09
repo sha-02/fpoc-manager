@@ -2,6 +2,7 @@ import threading
 from django.core.handlers.wsgi import WSGIRequest
 import copy
 from fpoc.devices import FortiGate
+from typing import Callable
 
 
 class FortiLab:
@@ -88,7 +89,7 @@ class FortiLab:
         for fpoc_devname, device in self.devices.items():
             device.ip = device.mgmt.ip
 
-    def callback_register(self, callback_func):
+    def callback_register(self, callback_func: Callable):
         """
         Register a callback function which can be called later on
         """

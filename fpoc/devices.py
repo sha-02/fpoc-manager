@@ -2,6 +2,7 @@ from __future__ import annotations  # Allows to reference a class as a type hint
 from dataclasses import dataclass
 import ipaddress
 from enum import Enum
+from typing import Callable
 from fpoc.exceptions import StopProcessingDevice
 
 
@@ -9,7 +10,6 @@ class Interface:
     # port: str  # e.g. 'port1'
     # vlanid: int  # e.g, 11
     # _address: ipaddress
-
     def __init__(self, port:str = None, vlanid: int = None, address: str = None, name: str = None, speed: str = None,
                  vrfid: int = None, alias: str = None):
         # All parameters must default to None due to the update() method used by FortiGate class
@@ -19,6 +19,7 @@ class Interface:
         self.speed = speed
         self.alias = alias
         self.dhcp = None    # must default to None because of the update() method
+        self._address = None
 
         self._name = name if vlanid else port
             # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
@@ -176,23 +177,24 @@ class Device:
 
     deployment_status: str = None  # e.g. 'completed' or 'skipped'
 
+    _callback: Callable = None  # Callback function which can be registered to the class instance and can be called later on
+
     def __post_init__(self):  # Apply default values
         self.template_group = self.template_group or self.name  # initialize if it is None
         self.template_context = self.template_context or {}  # initialize if it is None
 
-    # @property
-    # def mgmt_fpoc_ip(self):
-    #     # e.g. '172.16.31.254' when mgmt_ipmask='172.16.31.254/24'
-    #     return ipaddress.ip_interface(self.mgmt_fpoc_ipmask).ip.compressed
+    def callback_register(self, callback_func: Callable):
+        """
+        Register a callback function which can be called later on
+        """
+        self._callback = callback_func
 
-    # def update(self, device: Device):
-    #     # Update (Override) this device instance with all not-None attributes from the 'device' passed as argument
-    #     for k, v in device.__dict__.items():
-    #         if v is not None:
-    #             if k == 'reboot_delay':  # for reboot_delay, keep the biggest value of the two devices
-    #                 self.reboot_delay = max(self.reboot_delay, v)
-    #             else:
-    #                 self.__dict__[k] = v    # update the local instance attribute with the 'device' attribute
+    def callback(self):
+        """
+        Call the callback function passing the class instance (self) as an argument
+        In case the callback is supposed to return something, then return the result of this call
+        """
+        return self._callback(self) if self._callback else None
 
 
 @dataclass

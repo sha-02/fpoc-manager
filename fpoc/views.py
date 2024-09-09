@@ -50,7 +50,6 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
         fortigate.template_context = {'name': fpoc_fgtname, 'mgmt': poc.devices[fpoc_fgtname].mgmt}
         if bool(request.POST.get('WAN_underlays', False)) and fortigate.wan is not None:
             fortigate.template_context['WAN_underlays'] = True
-            fortigate.template_context['wan'] = fortigate.wan
         else:
             fortigate.template_context['WAN_underlays'] = False
 
