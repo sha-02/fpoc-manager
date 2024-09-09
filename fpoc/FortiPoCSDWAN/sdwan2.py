@@ -324,12 +324,27 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         # Create a callback function to check if VDOMs must be enabled on FGT appliances with NPU ASIC
         # when VRF segmentation is done
-        def multi_vdom(poc: TypePoC):
-            for fortigate in [device for device in poc.devices.values() if isinstance(device, FortiGate)]:
-                fortigate.template_context['multi_vdom'] = bool(fortigate.npu)
 
-        # Register the callback function
-        poc.callback_register(multi_vdom)
+        # As of 7.6.1, multi-vdom is no longer needed for VRF segmentation. So, the callback must now be registered at
+        # the device level (which contains the FOS version) rather than at the poc level
+        def multi_vdom(fgt: FortiGate):
+            fgt.template_context['multi_vdom'] = not fgt.FOS >= 7_006_001   # multi-vdom no longer needed as of 7.6.1
+
+        # Register the callback function for each NPU FGT in the 'devices' dict
+        # Do not register the callback on poc.devices because at this stage these are the devices of the class itself
+        # So the callback must be registered to the 'devices' in the dict
+        # The dict 'devices' do not have the NPU info, so need to get this info from the class 'devices' (poc.devices)
+        for devname, device in devices.items():
+            if isinstance(device, FortiGate) and poc.devices[devname].npu:
+                    device.callback_register(multi_vdom)
+
+        # Before 7.6.1, the callback was done at poc level since all devices had to enable vdoms for VRF segmentation
+        # def multi_vdom(poc: TypePoC):
+        #     for fortigate in [device for device in poc.devices.values() if isinstance(device, FortiGate)]:
+        #         fortigate.template_context['multi_vdom'] = bool(fortigate.npu)
+        #
+        # # Register the callback function
+        # poc.callback_register(multi_vdom)
 
     # Update the poc
     poc.id = poc_id
