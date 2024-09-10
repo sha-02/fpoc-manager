@@ -91,7 +91,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
             if context['vrf_aware_overlay']:
                 messages.append("for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
-                context['vrf_pe'] = context['vrf_blue'] = 0
+                messages.append("for simplicity, <b>WAN VRF</b> (Internet +MPLS overlays) <b>is also forced to VRF 0 </b>(i.e., use same VRF as PE)")
+                context['vrf_wan'] = context['vrf_pe'] = context['vrf_blue'] = 0
 
         if context['vrf_aware_overlay']:
             for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_blue', 'vrf_yellow', 'vrf_red'):
