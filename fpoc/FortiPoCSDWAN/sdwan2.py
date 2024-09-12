@@ -57,13 +57,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     #
     # Not yet done
-    if context['bidir_sdwan_bgp_priority'] == 'remote_sla_priority':
-        poc_id = None
-        errors.append("Not yet implemented: Hub-side Steering BGP priority from priority in per-overlay Branch SD-WAN probes")
-
     if context['bidir_sdwan_bgp_priority'] == 'remote_sla_status':
         poc_id = None
-        errors.append("Not yet implemented: Hub-side Steering BGP priority from SLA status in per-overlay Branch SD-WAN probes")
+        errors.append("Not implemented: Hub-side Steering BGP priority from SLA status in per-overlay Branch SD-WAN probes")
 
 
     #
