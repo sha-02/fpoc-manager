@@ -40,7 +40,8 @@ class Interface:
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(port={self.port}, vrfid={self.vrfid}, vlanid={self.vlanid}, '
-                f'address={str(self._address)}, name={self.name}, speed={self.speed}, alias={self.alias})')
+                f'address={"dhcp" if self.dhcp else (self._address)}, name={self.name}, speed={self.speed}, '
+                f'alias={self.alias})')
 
     @property
     def name(self) -> str:  # vlan name or physical interface name
