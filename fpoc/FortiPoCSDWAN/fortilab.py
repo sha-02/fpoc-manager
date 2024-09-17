@@ -4,7 +4,7 @@ from fpoc import FortiLab, FortiGate, WAN, Interface, Network
 # Define each FGT appliance in the hardware Lab
 
 SDW_1001F_A = FortiGate(name_fpoc='SDW-1001F-A', alias='SDW-1001F-A', model='FGT_1001F', password='fortinet',
-                            npu='NP7', reboot_delay=200,
+                            npu='NP7', reboot_delay=300,
                             mgmt=Interface('mgmt', 0, '10.210.0.59/23'),
                             lan=Interface('port6', vlanid=0, speed='1000auto'),
                             wan=WAN(
@@ -14,7 +14,7 @@ SDW_1001F_A = FortiGate(name_fpoc='SDW-1001F-A', alias='SDW-1001F-A', model='FGT
                             ))
 
 SDW_1001F_B = FortiGate(name_fpoc='SDW-1001F-B', alias='SDW-1001F-B', model='FGT_1001F', password='fortinet',
-                            npu='NP7', reboot_delay=200,
+                            npu='NP7', reboot_delay=300,
                             mgmt=Interface('mgmt', 0, '10.210.0.50/23'),
                             lan=Interface('port6', vlanid=0, speed='1000auto'),
                             wan=WAN(
@@ -24,7 +24,7 @@ SDW_1001F_B = FortiGate(name_fpoc='SDW-1001F-B', alias='SDW-1001F-B', model='FGT
                             ))
 
 SDW_3301E_A = FortiGate(name_fpoc='SDW-3301E-A', alias='SDW-3301E-A', model='FGT_3301E', password='fortinet',
-                            npu='NP6', reboot_delay=200,
+                            npu='NP6', reboot_delay=300,
                             mgmt=Interface('mgmt1', 0, '10.210.0.63/23'),
                             lan=Interface('port5', vlanid=0, speed='1000auto'),
                             wan=WAN(
@@ -34,7 +34,7 @@ SDW_3301E_A = FortiGate(name_fpoc='SDW-3301E-A', alias='SDW-3301E-A', model='FGT
                             ))
 
 SDW_3301E_B = FortiGate(name_fpoc='SDW-3301E-B', alias='SDW-3301E-B', model='FGT_3301E', password='fortinet',
-                            npu='NP6', reboot_delay=200,
+                            npu='NP6', reboot_delay=300,
                             mgmt=Interface('mgmt1', 0, '10.210.0.67/23'),
                             lan=Interface('port5', vlanid=0, speed='1000auto'),
                             wan=WAN(
@@ -44,7 +44,7 @@ SDW_3301E_B = FortiGate(name_fpoc='SDW-3301E-B', alias='SDW-3301E-B', model='FGT
                             ))
 
 SDW_101F_A = FortiGate(name_fpoc='SDW-101F-A', alias='SDW-101F-A', model='FGT_101F', password='fortinet',
-                            npu='SoC4', reboot_delay=150,
+                            npu='SoC4', reboot_delay=180,
                             mgmt=Interface('mgmt', 0, '10.210.0.23/23'),
                             lan=Interface('port4', vlanid=0, speed='auto'),
                             wan=WAN(
@@ -54,7 +54,7 @@ SDW_101F_A = FortiGate(name_fpoc='SDW-101F-A', alias='SDW-101F-A', model='FGT_10
                             ))
 
 SDW_101F_B = FortiGate(name_fpoc='SDW-101F-B', alias='SDW-101F-B', model='FGT_101F', password='fortinet',
-                            npu='SoC4', reboot_delay=150,
+                            npu='SoC4', reboot_delay=180,
                             mgmt=Interface('mgmt', 0, '1.2.3.4/23'),
                             lan=Interface('port4', vlanid=0, speed='auto'),
                             wan=WAN(
