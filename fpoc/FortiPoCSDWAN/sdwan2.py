@@ -117,9 +117,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             messages.append("with setup (per-overlay BGP to Hub, on-loopback dynBGP for shortcuts) only dynamic overlay "
                             "works (details in '_restriction_no-static-IP-for-BGP-per-Overlay.md'). <b>Forcing to mode-cfg</b>")
 
-        if context['bidir_sdwan_bgp_priority'] != 'bgp_community':
+        if context['bidir_sdwan_bgp_priority'] in ('remote_sla_metrics', 'remote_sla_priority', 'remote_sla_status'):
+            messages.append(f"Bidirectional SDWAN with '{context['bidir_sdwan_bgp_priority']}' is requested but it can only work with static overlay IPs."
+                            "<br>On the other hand, static overlays do not work with dynamic BGP on-loopback over shortcuts (details in '_restriction_no-static-IP-for-BGP-per-Overlay.md')."
+                            f"<br>Consequently, it is not possible to combine '{context['bidir_sdwan_bgp_priority']}' and 'dynamic BGP': "
+                            "BGP priority for Hub-side steering is <b>forced</b> to be based on <b>BGP community</b>")
             context['bidir_sdwan_bgp_priority'] = 'bgp_community'
-            messages.append("design choice: BGP priority for Hub-side steering is <b>forced</b> to be based on <b>BGP community</b>")
 
         if context['vrf_aware_overlay']:
             context['vrf_aware_overlay'] = False
@@ -129,10 +132,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
             messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is <b>forced to 'False'</b>")
 
-        if context['bidir_sdwan_bgp_priority'] == 'remote_sla_metrics':
-            context['overlay'] = 'static_ip'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
-            messages.append("Bidirectional SDWAN with 'remote_sla_metrics' is requested: <b>overlay is therefore forced to 'static'</b> since "
-                           "remote-sla-HC with bgp-per-overlay can only work with static-overlay IP@")
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
 
