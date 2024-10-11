@@ -20,21 +20,20 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     WEST: Dual DC, Two Branches
     EAST: Single DC, One Branch
     """
-
     context = {
         # From HTML form
-        'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_metrics', 'bgp_community', 'remote_sla_priority', 'remote_sla_status'
+        'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'on_loopback'
+        'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
+        'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_metrics', 'bgp_community', 'remote_sla_priority', 'remote_sla_status'
+        'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+        'vrf_ria': request.POST.get('vrf_ria'),  # 'preserve_origin' or 'nat_origin'
         'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-251] VRF for Internet and MPLS links
         'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-251] VRF for IPsec tunnels
         'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-251] port5 (no vlan) segment
         'vrf_yellow': int(request.POST.get('vrf_yellow')),  # [0-251] vlan segment
         'vrf_red': int(request.POST.get('vrf_red')),  # [0-251] vlan segment
-        'vrf_ria': request.POST.get('vrf_ria'),  # 'preserve_origin' or 'nat_origin'
-        'multicast': bool(request.POST.get('multicast', False)),  # True or False
-        'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'on_loopback'
-        'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
     }
 
     # Create the poc
@@ -87,8 +86,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
             if context['vrf_aware_overlay']:
                 messages.append("for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
-                messages.append("for simplicity, <b>WAN VRF</b> (Internet +MPLS overlays) <b>is also forced to VRF 0 </b>(i.e., use same VRF as PE)")
-                context['vrf_wan'] = context['vrf_pe'] = context['vrf_blue'] = 0
+                # messages.append("for simplicity, <b>WAN VRF</b> (Internet +MPLS overlays) <b>is also forced to VRF 0 </b>(i.e., use same VRF as PE)")
+                messages.append("<b>WAN VRF</b> (Internet +MPLS overlays) <b>is forced to VRF 1 </b> (unlike PE VRF 0 to avoid configuring VRF leaking -- SNAT not possible in VRF 0)")
+                context['vrf_wan'] = 1
+                context['vrf_pe'] = context['vrf_blue'] = 0
 
         if context['vrf_aware_overlay']:
             for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_blue', 'vrf_yellow', 'vrf_red'):
@@ -131,6 +132,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         if context['full_mesh_ipsec']:
             context['full_mesh_ipsec'] = False   # Full-mesh IPsec not implemented for bgp-per-overlay
             messages.append("Full-mesh IPsec not implemented for bgp-per-overlay: option is <b>forced to 'False'</b>")
+
+    #
+    # Final cleanup
+    if not context['vrf_aware_overlay']:
+        del(context['vrf_ria']); del(context['vrf_wan']); del(context['vrf_pe'])
+        del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']);
 
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
@@ -237,11 +244,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             'EAST-DC1': dc_loopbacks['EAST-DC1'],
         }
 
-    # merge dictionaries
-    context = {
-        **context,
-        'rendezvous_points': rendezvous_points
-    }
+        context.update({'rendezvous_points': rendezvous_points})
 
 
     #
@@ -249,40 +252,40 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
                          lan=LAN['WEST-DC1'],
-                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
+                         template_context=context | {'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
                                            'loopback': dc_loopbacks['WEST-DC1'],
                                            'datacenter': datacenters,
-                                           **context})
+                                           })
     west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
                          lan=LAN['WEST-DC2'],
-                         template_context={'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
+                         template_context=context | {'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
                                            'loopback': dc_loopbacks['WEST-DC2'],
                                            'datacenter': datacenters,
-                                           **context})
+                                           })
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
                          lan=LAN['WEST-BR1'],
-                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
+                         template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
                                            'loopback': '10.200.1.1',
                                            'datacenter': datacenters['west'],
-                                           **context})
+                                           })
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          lan=LAN['WEST-BR2'],
-                         template_context={'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
+                         template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
                                            'loopback': '10.200.1.2',
                                            'datacenter': datacenters['west'],
-                                           **context})
+                                           })
     east_dc1 = FortiGate(name='EAST-DC1', template_group='DATACENTERS',
                         lan=LAN['EAST-DC1'],
-                        template_context={'region': 'East', 'region_id': 2, 'dc_id': 1, 'gps': (52.2296756, 21.0122287),
+                        template_context=context | {'region': 'East', 'region_id': 2, 'dc_id': 1, 'gps': (52.2296756, 21.0122287),
                                           'loopback': dc_loopbacks['EAST-DC1'],
                                            'datacenter': datacenters,
-                                           **context})
+                                           })
     east_br1 = FortiGate(name='EAST-BR1', template_group='BRANCHES',
                         lan=LAN['EAST-BR1'],
-                        template_context={'region': 'East', 'region_id': 2, 'branch_id': 1, 'gps': (47.497912, 19.040235),
+                        template_context=context | {'region': 'East', 'region_id': 2, 'branch_id': 1, 'gps': (47.497912, 19.040235),
                                           'loopback': '10.200.2.1',
                                            'datacenter': datacenters['east'],
-                                           **context})
+                                           })
 
     #
     # Host Devices used to build the /etc/hosts file
