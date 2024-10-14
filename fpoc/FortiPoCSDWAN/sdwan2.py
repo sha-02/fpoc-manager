@@ -54,12 +54,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     if context['vrf_aware_overlay']:
         minimumFOSversion = 7_004_005
 
-    #
-    # Not yet done
-    if context['bidir_sdwan_bgp_priority'] == 'remote_sla_status':
-        poc_id = None
-        errors.append("Not implemented: Hub-side Steering BGP priority from SLA status in per-overlay Branch SD-WAN probes")
-
 
     #
     # BGP on loopback - sanity checks
