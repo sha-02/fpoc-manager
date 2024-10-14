@@ -68,8 +68,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         if context['bidir_sdwan_bgp_priority'] == 'bgp_community':
             context['bidir_sdwan_bgp_priority'] = 'remote_sla_metrics'  # bgp_community only works with BGP per overlay
-            messages.append("Bi-directional SD-WAN was requested: <b>method was forced to 'remote-sla'</b> which is the only "
-                           "supported method with bgp-on-loopback")
+            messages.append("Bi-directional SD-WAN from BGP community was requested but it is not supported by BGP on "
+                            "loopback design. <b>Forcing to 'remote_sla_metrics'</b>")
 
         if not context['multicast']:
             context['overlay'] = 'no_ip'   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
@@ -86,10 +86,15 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
             if context['vrf_aware_overlay']:
                 messages.append("for multicast to work <b>PE VRF and BLUE VRF are forced to VRF 0</b>")
-                # messages.append("for simplicity, <b>WAN VRF</b> (Internet +MPLS overlays) <b>is also forced to VRF 0 </b>(i.e., use same VRF as PE)")
-                messages.append("<b>WAN VRF</b> (Internet +MPLS overlays) <b>is forced to VRF 1 </b> (unlike PE VRF 0 to avoid configuring VRF leaking -- SNAT not possible in VRF 0)")
+                messages.append("<b>WAN VRF</b> (Internet +MPLS overlays) <b>is forced to VRF 1 </b> "
+                                "(unlike PE VRF 0 to avoid configuring VRF leaking -- SNAT not possible in VRF 0)")
                 context['vrf_wan'] = 1
                 context['vrf_pe'] = context['vrf_blue'] = 0
+
+                if context['vrf_ria'] == 'preserve_origin':
+                    messages.append("preserve_origin is not yet implemented in context VRF segmentation + Multicast. "
+                                    "<b>Forcing to nat_origin</b>")
+                    context['vrf_ria'] = 'nat_origin'
 
         if context['vrf_aware_overlay']:
             for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_blue', 'vrf_yellow', 'vrf_red'):
@@ -135,6 +140,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     #
     # Final cleanup
+
     if not context['vrf_aware_overlay']:
         del(context['vrf_ria']); del(context['vrf_wan']); del(context['vrf_pe'])
         del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']);
