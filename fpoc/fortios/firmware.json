@@ -7,6 +7,10 @@
     "build": "3401",
     "trailername": "-v7.6.0.F-build3401-FORTINET.out"
   },
+  "7.4.6": {
+    "build": "2726",
+    "trailername": "-v7.4.6.M-build2726-FORTINET.out"
+  },
   "7.4.5": {
     "build": "2702",
     "trailername": "-v7.4.5.M-build2702-FORTINET.out"
