@@ -28,8 +28,7 @@ urllib3.disable_warnings()
 
 # As of 7.6.1/7.4.5 (1058092), use of REST API keys in the URL (as a query parameter) is controlled by a CLI setting
 # (rest-api-key-url-query in system.global) which is disabled by default
-# The plan may be to completely remove the ability to use API key in URL in future FOS release
-# For the time being, the bootstrap config is updated: this setting is configured to enable API in URL.
+# This FOS API library passes the API key (access_token) in the header instead of URL
 
 def retrieve_access_token(device: FortiGate) -> str:
     """
@@ -66,10 +65,13 @@ def retrieve_hostname(device: FortiGate) -> str:
     :return:
     """
 
-    url = f"https://{device.ip}:{device.https_port}" \
-          f"/api/v2/monitor/system/status?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/status?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/status"
 
-    response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
+    response = requests.request("GET", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                verify=False)
+
     if response.status_code != 200:
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve FGT hostname'
@@ -90,10 +92,13 @@ def is_running_ha(device: FortiGate) -> bool:
     :return:
     """
 
-    url = f"https://{device.ip}:{device.https_port}" \
-          f"/api/v2/monitor/system/ha-peer?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/ha-peer?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/ha-peer"
 
-    response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
+    response = requests.request("GET", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                verify=False)
+
     if response.status_code != 200:
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve HA status of FGT'
@@ -111,10 +116,13 @@ def change_hostname(device: FortiGate, hostname: str):
     :param hostname:
     :return:
     """
-    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global"
 
     payload = {'hostname': hostname}
-    response = requests.request("PUT", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+    response = requests.request("PUT", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                data=json.dumps(payload),
                                 verify=False)
 
     if response.status_code != 200:
@@ -130,10 +138,13 @@ def enable_vdom_mode(device: FortiGate):
     :param device:
     :return:
     """
-    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global"
 
     payload = {'vdom-mode': 'multi-vdom'}
-    response = requests.request("PUT", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+    response = requests.request("PUT", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                data=json.dumps(payload),
                                 verify=False)
 
     if response.status_code != 200:
@@ -149,9 +160,12 @@ def retrieve_vdom_mode(device: FortiGate) -> str:
     :param device:
     :return:
     """
-    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/cmdb/system/global"
 
-    response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
+    response = requests.request("GET", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                verify=False)
 
     if response.status_code != 200:
         # API access failed => skip this device
@@ -173,10 +187,13 @@ def retrieve_fos_version(device: FortiGate) -> str:
     :return:
     """
 
-    url = f"https://{device.ip}:{device.https_port}" \
-          f"/api/v2/monitor/system/status?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/status?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/status"
 
-    response = requests.request("GET", url, headers={'accept': 'application/json'}, verify=False)
+    response = requests.request("GET", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                verify=False)
+
     if response.status_code != 200:
         # API access failed => skip this device
         raise RetryProcessingDevice(f'{device.name} : failure to retrieve FortiOS version'
@@ -198,8 +215,8 @@ def upload_firmware(device: FortiGate, firmware: str):
     :param firmware: filename of the firmware to be uploaded to the FGT
     :return:
     """
-    url = f"https://{device.ip}:{device.https_port}" \
-          f"/api/v2/monitor/system/firmware/upgrade?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/firmware/upgrade?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/firmware/upgrade"
 
     with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', mode='rb') as f:
         firmware_bytes = f.read()
@@ -208,7 +225,9 @@ def upload_firmware(device: FortiGate, firmware: str):
 
     payload = {'source': 'upload', 'format_partition': False, 'filename': firmware, 'file_content': firmware_base64}
 
-    response = requests.request("POST", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+    response = requests.request("POST", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                data=json.dumps(payload),
                                 verify=False)
 
     if response.status_code != 200 or json.loads(response.text).get('results').get('status') == 'error':
@@ -226,16 +245,19 @@ def run_script(device: FortiGate, script_name: str):
     :return:
     """
     # Upload and run script on FGT
-    url = f"https://{device.ip}:{device.https_port}" \
-          f"/api/v2/monitor/system/config-script/upload?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/config-script/upload?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/config-script/upload"
 
     config_base64_bytes = base64.b64encode(bytes(device.config, "utf-8"))  # base64 in raw (bytes) format (b'...')
     config_base64_string = config_base64_bytes.decode()  # base64 in string format (without the 'b')
 
     payload = {'filename': script_name, 'file_content': f'{config_base64_string}'}
 
-    response = requests.request("POST", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+    response = requests.request("POST", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                data=json.dumps(payload),
                                 verify=False)
+
     if response.status_code != 200:
         # API access failed => skip this device
         raise StopProcessingDevice(f'{device.name} : failure during upload or run of the configuration script'
@@ -249,15 +271,17 @@ def restore_config_file(device: FortiGate):
     :param device:
     :return:
     """
-    url = f"https://{device.ip}:{device.https_port}" \
-          f"/api/v2/monitor/system/config/restore?access_token={device.apikey}"
+    # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/config/restore?access_token={device.apikey}"
+    url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/config/restore"
 
     config_base64_bytes = base64.b64encode(bytes(device.config, "utf-8"))  # base64 in raw (bytes) format (b'...')
     config_base64_string = config_base64_bytes.decode()  # base64 in string format (without the 'b')
 
     payload = {'source': 'upload', 'scope': 'global', 'file_content': config_base64_string}
 
-    response = requests.request("POST", url, headers={'accept': 'application/json'}, data=json.dumps(payload),
+    response = requests.request("POST", url,
+                                headers={'accept': 'application/json', 'authorization': 'Bearer '+device.apikey},
+                                data=json.dumps(payload),
                                 verify=False)
 
     if response.status_code != 200:
