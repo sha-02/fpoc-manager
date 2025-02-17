@@ -61,7 +61,7 @@ SDW_101F_A = FortiGate(name_fpoc='SDW-101F-A', alias='SDW-101F-A', model='FGT_10
 
 SDW_101F_B = FortiGate(name_fpoc='SDW-101F-B', alias='SDW-101F-B', model='FGT_101F', password='fortinet',
                        npu='SoC4', reboot_delay=150,
-                       mgmt=Interface('mgmt', 0, '1.2.3.4/23'),
+                       mgmt=Interface('mgmt', 0, '10.210.0.41/23'),
                        lan=Interface('port4', vlanid=0, speed='auto'),
                        wan=WAN(
                            inet1=Interface('port1', vlanid=0, speed='auto'),
@@ -111,6 +111,10 @@ SDW_101F_B.update(FortiGate(wan=WAN(
 
 FGT_A = SDW_1001F_A
 FGT_B = SDW_1001F_B
+
+# SDW_101F_A.wan.inet1.update(Interface(address='100.64.31.1/24'))
+# SDW_101F_A.wan.inet2.update(Interface(address='100.64.32.1/24'))
+# FGT_B = SDW_101F_A
 
 
 class FortiLabVpnSite2Site(FortiLab):
