@@ -1,12 +1,9 @@
 import base64
-import re
 
 import json
 import requests
 import urllib3
-from requests.exceptions import Timeout
 
-from config.settings import PATH_FPOC_FIRMWARE
 from fpoc import FortiGate
 from fpoc import StopProcessingDevice, RetryProcessingDevice
 
@@ -218,7 +215,7 @@ def upload_firmware(device: FortiGate, firmware: str):
     # url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/firmware/upgrade?access_token={device.apikey}"
     url = f"https://{device.ip}:{device.https_port}/api/v2/monitor/system/firmware/upgrade"
 
-    with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', mode='rb') as f:
+    with open(firmware, mode='rb') as f:
         firmware_bytes = f.read()
 
     firmware_base64 = base64.b64encode(firmware_bytes).decode()  # base64 in string format (without the 'b')

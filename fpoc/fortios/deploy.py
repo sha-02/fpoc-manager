@@ -2,6 +2,7 @@ from django.template import loader
 from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
 import threading
 import time
+from pathlib import Path
 
 import fpoc.fortios as fortios
 from fpoc import FortiGate, FortiGate_HA, TypePoC, json_to_dict
@@ -90,28 +91,37 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # - 'FGT_VM64_KVM-v6-build1911-FORTINET.out'
     # - or '6.4.7_FGT_VM64_KVM-v6-build1911-FORTINET.out'
     firmware_names = (device.model + firmwares[fos_version_target]["trailername"],
-                       fos_version_target + '_' + device.model + firmwares[fos_version_target]["trailername"])
+                      fos_version_target + '_' + device.model + firmwares[fos_version_target]["trailername"])
+
+    # for firmware_name in firmware_names:
+    #     try:
+    #         with open(f'{PATH_FPOC_FIRMWARE}/{firmware_name}', "rb"):   # Check if firmware file exists
+    #             break
+    #     except FileNotFoundError:
+    #         pass
+    # else:
+    #     print(f'{device.name} : Firmware {fos_version_target} for model {device.model} not found in folder {PATH_FPOC_FIRMWARE}')
+    #     lock.release()
+    #     raise StopProcessingDevice
+
+    # Recursively search for the firmware file under PATH_FPOC_FIRMWARE
+    path = None
     for firmware_name in firmware_names:
-        try:
-            with open(f'{PATH_FPOC_FIRMWARE}/{firmware_name}', "rb"):   # Check if firmware file exists
-                break
-        except FileNotFoundError:
-            pass
-    else:
-        print(f'{device.name} : Firmware {fos_version_target} for model {device.model} not found in folder {PATH_FPOC_FIRMWARE}')
+        for path in Path(PATH_FPOC_FIRMWARE).rglob(firmware_name):
+            break   # firmware found
+
+    if path is None:
+        print(f'{device.name} : Firmware {fos_version_target} for model {device.model} not recursively found under folder {PATH_FPOC_FIRMWARE}')
         lock.release()
         raise StopProcessingDevice
-        # print(f'{device.name} : Downloading firmware image from store... ')
-        # firmware = firmwares[fos_version_target]["filename"]
-        # firmware_download(firmware)
-        # print(f'{device.name} : Download completed.')
 
-    # release the lock so that other treads can now check the existence of the firmware file
+    print(f'{device.name} : Found firmware {path.name} ({fos_version_target}) in folder {path.parent}')
+
+    # release the lock so that other treads can now check for the existence of the firmware file
     lock.release()
 
-    print(f'{device.name} : Found firmware {fos_version_target} for model {device.model} in folder {PATH_FPOC_FIRMWARE}')
     print(f'{device.name} : Uploading firmware... ')
-    fortios.upload_firmware(device, firmware_name)
+    fortios.upload_firmware(device, str(path))
     print(f'{device.name} : Firmware uploaded.')
 
 
@@ -124,22 +134,6 @@ def fortios_firmware(minimum: str ="0.0.0") -> dict:
     firmware = json_to_dict(f'{BASE_DIR}/fpoc/fortios/firmware.json')   # Load all firmware definition
     # Return firmware with higher version then 'minimum'
     return { version: firmware[version] for version in firmware.keys() if FortiGate.FOS_int(version) >= FortiGate.FOS_int(minimum) }
-
-def firmware_download(firmware: str):
-    """
-
-    :param firmware: contains the filename of the firmware to download from store
-    :return:
-    """
-    import requests
-
-    download_url = f"https://labsetup1.repository.fortipoc.etlab.net/store/images/{firmware}"
-
-    response = requests.get(download_url, verify=False)
-    response.raise_for_status()  # Check that the request was successful
-
-    with open(f'{PATH_FPOC_FIRMWARE}/{firmware}', "wb") as f:
-        f.write(response.content)
 
 
 def retrieve_hostname(device: FortiGate) -> str:
