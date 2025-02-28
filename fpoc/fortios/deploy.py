@@ -300,6 +300,7 @@ def deploy(poc: TypePoC, device: FortiGate):
     #
     if poc.id == 0:
         render_bootstrap_config(poc, device)
+        save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if not poc.request.POST.get('previewOnly'):
             upload_bootstrap_config(device)  # for this PoC, the bootstrap config is pushed unconditionally, without
             # checking if there is a bootstrap config already running on the FGT. This is because there are different
@@ -307,7 +308,6 @@ def deploy(poc: TypePoC, device: FortiGate):
             # It's simpler to push the bootstrap config unconditionally than having to check whether the bootstrap
             # config running on the FGT has the same options as the ones requested
 
-        save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         raise CompletedDeviceProcessing
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
@@ -317,8 +317,8 @@ def deploy(poc: TypePoC, device: FortiGate):
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
     if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
         render_bootstrap_config(poc, device)
-        upload_bootstrap_config(device)
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
+        upload_bootstrap_config(device)
         if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
             raise CompletedDeviceProcessing
         else:
