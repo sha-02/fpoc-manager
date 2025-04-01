@@ -143,32 +143,8 @@ $(document).ready(function(){
             <option value='bgp_community'>from BGP community in per-overlay Branch BGP prefix</option>
           </select>
           <br>
-<!--          Remote Internet Access <select name="remote_internet">-->
-<!--            <option value='none'>DIA only</option>-->
-<!--            <option value='mpls' selected>RIA over MPLS</option>-->
-<!--            <option value='all'>RIA over all overlays</option>-->
-<!--          </select>-->
-<!--          <br>-->
-<!--          ADVPN Hub branch-to-branch routing <select name="br2br_routing">-->
-<!--            <option value='fib'>Simple FIB lookup</option>-->
-<!--            <option value='strict_overlay_stickiness' selected>Stick to same overlay</option>-->
-<!--            <option value='hub_side_steering'>Leverage Hub-side steering</option>-->
-<!--          </select>-->
-<!--          ADVPN Branch shortcut routing <select name="shortcut_routing">-->
-<!--            <option value='no_advpn' >No ADVPN</option>-->
-<!--            <option value='exchange_ip' selected>BGP NH convergence with exchange-interface-ip</option>-->
-<!--            <option value='ipsec_selectors'>IPsec selectors (7.2+)</option>-->
-<!--            <option value='dynamic_bgp'>Dynamic BGP peering (7.4.1+)</option>-->
-<!--          </select>-->
-<!--          <br>-->
-<!--          <input type="checkbox" name="advpnv2" value=0> ADVPN v2.0-->
-<!--          <input type="checkbox" name="cross_region_advpn" value=1 checked> ADVPN Cross-Regional shortcuts-->
 
           <br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation
-<!--          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">-->
-<!--          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">-->
-<!--          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">-->
-<!--          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">-->
           <input type="hidden" name="vrf_wan" maxlength="3" size="3" value="1">
           <input type="hidden" name="vrf_pe" maxlength="3" size="3" value="1">
           <input type="hidden" name="vrf_blue" maxlength="3" size="3" value="13">
@@ -212,28 +188,6 @@ $(document).ready(function(){
     </div>
   </div>
 </div>
-
-  <!-- ========================================================================================================= -->
-  <!-- Network Design - BGP per overlay -->
-  <!-- ========================================================================================================= -->
-<!--  <div class="card">-->
-<!--  <div class="card-header" id="heading-9">-->
-<!--    <h2 class="mb-0">-->
-<!--      <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-9" aria-expanded="true" aria-controls="collapse-9">-->
-<!--        Network Design - BGP per overlay-->
-<!--      </button>-->
-<!--    </h2>-->
-<!--  </div>-->
-<!--  <div id="collapse-9" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">-->
-<!--    <div class="card-body">-->
-<!--      <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">-->
-<!--        <img src="{% static 'images/poc_x.png' %}" class="img-fluid" alt="BGP-per-overlay design"/>-->
-<!--        <p class="lead">BGP per overlay</p>-->
-<!--      </div>-->
-<!--    </div>-->
-<!--  </div>-->
-<!--</div>-->
-<!--</div>-->
 
 {% endblock content %}
 

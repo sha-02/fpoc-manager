@@ -7,17 +7,19 @@ from config.settings import BASE_DIR
 # dict of sites, the key must be consistent with the content of file 'site.txt'
 
 sites = {
+    'SDWAN/ADVPNv2/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    'SDWAN/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/ADVPNv2/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/ADVPNv2/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'Foundation1/': {'urls': 'fpoc.FortiPoCFoundation1.urls', 'selected': False},
-    'Airbus/': {'urls': 'fpoc.FortiPoCAirbus.urls', 'selected': False}
+    # 'Airbus/': {'urls': 'fpoc.FortiPoCAirbus.urls', 'selected': False}
 }
 
-# The first line of file 'site.txt' contains the URL of the site to start (kind of equivalent to index.html principle) ?
+# The first line of file 'site.txt' contains the URL of the site to start (kind of equivalent to index.html principle)
 
-try:    # Check if there is a config file indicating which site is desired in the first line of the file
+try:    # Check if there is a config file indicating which site is desired (first line in the file)
     with open(f"{BASE_DIR}/config/site.txt") as f:
         startup_site = f.readline().strip('\n')
 except:  # something went wrong when attempting to read the config file

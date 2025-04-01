@@ -17,13 +17,18 @@ class Interface:
         self.vlanid = vlanid
         self.vrfid = vrfid
         self.speed = speed
-        self.alias = alias
         self.dhcp = None    # must default to None because of the update() method
         self._address = None
 
         self._name = name if vlanid else port
             # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
             # for non-VLAN interface: '_name' and 'port' both reference the physical interface
+
+        if alias is None and vlanid==0 and name is not None:
+            # there is no vlanid but a name was specified, use this name as an alias for the physical interface
+            self.alias = name
+        else:
+            self.alias = alias
 
         if address is None:
             self._address = None
@@ -181,7 +186,7 @@ class Device:
     _callback: Callable = None  # Callback function which can be registered to the class instance and can be called later on
 
     def __post_init__(self):  # Apply default values
-        self.template_group = self.template_group or self.name  # initialize if it is None
+        # self.template_group = self.template_group or self.name  # initialize if it is None
         self.template_context = self.template_context or {}  # initialize if it is None
 
     def callback_register(self, callback_func: Callable):

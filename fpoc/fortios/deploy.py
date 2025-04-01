@@ -311,8 +311,12 @@ def deploy(poc: TypePoC, device: FortiGate):
         raise CompletedDeviceProcessing
 
     # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'fpoc/{poc.template_folder}/poc{poc.id:02}/{device.template_group}/{device.template_filename}',
-                                            device.template_context, using='jinja2')
+    template_name = f'fpoc/{poc.template_folder}/poc{poc.id:02}/'
+    if device.template_group is not None:
+        template_name += f'{device.template_group}/'
+    template_name += f'{device.template_filename}'
+
+    device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
     if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):

@@ -5,8 +5,8 @@ from fpoc.devices import FortiGate
 
 
 class FortiPoC(FortiLab):
-    BASE_PORT_SSH = 11000  # SSH ports for FortiPoC devices are 10100 + poc-devid: 10101, 10102, 10103, ...
-    BASE_PORT_HTTPS = 14000  # HTTPS ports for FortiPoC devices are 10400 + poc-devid: 10401, 10402, 10403, ...
+    BASE_PORT_SSH = 11000  # SSH ports for FortiPoC devices are 11000 + poc-devid: 11001, 11002, 11003, ...
+    BASE_PORT_HTTPS = 14000  # HTTPS ports for FortiPoC devices are 14000 + poc-devid: 14001, 14002, 14003, ...
     # mgmt_fpoc_ipmask = '172.16.31.254/24'  # mgmt IP@ of FortiPoC in its OOB management subnet
     mgmt_gw = '172.16.31.254'      # Gateway for OOB mgmt network (override FortiLab parent class attribute)
     mgmt_dns = '172.16.31.254'     # DNS from the OOB mgmt (override FortiLab parent class attribute)
@@ -68,3 +68,7 @@ class FortiPoC(FortiLab):
         Return the name of the Class itself
         """
         return cls.__name__
+
+
+class FabricStudio(FortiPoC):
+    BASE_PORT_HTTPS = 13000  # HTTPS ports for FabricStudio devices are 13000 + poc-devid: 13001, 13002, 13003, ...
