@@ -309,7 +309,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-BR2': west_br2,
         'EAST-BR': east_br1,    # 'BR' and not 'BR1' because it references the device in class FortiPoCSDWAN
 
-        'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
+        # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
 
         'PC-WEST-DC1': LXC(name="PC-WEST-DC1", template_context={'hosts': hosts}),
         'PC-WEST-DC2': LXC(name="PC-WEST-DC2",template_context={'hosts': hosts}),
