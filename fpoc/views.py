@@ -5,7 +5,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 import fpoc
-from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios, FortiPoCFoundation1, FortiPoCSDWAN, FortiLabSDWAN
+from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
+from fpoc import FortiPoCFoundation1, FortiPoCSDWAN, FortiLabSDWAN
+from fpoc.FortiPoCSDWAN.fabric_studio import FabricStudioSDWAN
 import fpoc.ansible as ansible
 
 #
