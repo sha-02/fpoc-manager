@@ -26,6 +26,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
         'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_metrics', 'bgp_community', 'remote_sla_priority', 'remote_sla_status'
+        'remote_signaling': request.POST.get('remote_signaling'),  # 'branch_community', 'branch_MED'
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
         'vrf_ria': request.POST.get('vrf_ria'),  # 'preserve_origin' or 'nat_origin'
@@ -50,12 +51,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     errors = []     # List of errors
 
     targetedFOSversion = FortiGate.FOS_int(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
+
+    # Minimum FOS version
     minimumFOSversion = 7_004_004
 
-    # ADVPNv2.0 bug with VRF segmentation fixed in 7.4.5 (1018427)
     if context['vrf_aware_overlay']:
-        minimumFOSversion = 7_004_005
-
+        minimumFOSversion = 7_004_005   # ADVPNv2.0 bug with VRF segmentation fixed in 7.4.5 (1018427)
 
     #
     # BGP on loopback - sanity checks
@@ -66,6 +67,15 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             context['bidir_sdwan_bgp_priority'] = 'remote_sla_metrics'  # bgp_community only works with BGP per overlay
             messages.append("Bi-directional SD-WAN from BGP community was requested but it is not supported by BGP on "
                             "loopback design. <b>Forcing to 'remote_sla_metrics'</b>")
+
+        if context['remote_signaling'] == 'branch_MED':
+            minimumFOSversion = 7_006_001
+
+            if context['bidir_sdwan_bgp_priority'] == 'remote_sla_metrics':
+                messages.append("Core Remote signaling on Hub based off MED from Branch requires that the Branch is "
+                                "configured to send priorities to the Hub for Hub-side Steering. "
+                                "<b>Forcing to 'remote_sla_priority'</b>")
+                context['bidir_sdwan_bgp_priority'] = 'remote_sla_priority'
 
         if not context['multicast']:
             context['overlay'] = 'no_ip'   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
@@ -125,6 +135,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                             f"<br>Consequently, it is not possible to combine '{context['bidir_sdwan_bgp_priority']}' and 'dynamic BGP': "
                             "BGP priority for Hub-side steering is <b>forced</b> to be based on <b>BGP community</b>")
             context['bidir_sdwan_bgp_priority'] = 'bgp_community'
+
+        if context['remote_signaling'] != 'none':
+            messages.append("Remote signaling is not yet implemented with BGP per overlay, option is <b>disabled</b>")
+            context['remote_signaling'] = 'none'
 
         if context['vrf_aware_overlay']:
             context['vrf_aware_overlay'] = False
