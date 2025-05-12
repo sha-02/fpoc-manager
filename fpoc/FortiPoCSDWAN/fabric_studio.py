@@ -13,49 +13,49 @@ class FabricStudioSDWAN(FabricStudio):
         'WEST-DC1': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
-                                inet1=Interface('port1', 0, '203.0.113.1/24', 'Internet_1'),
-                                inet2=Interface('port2', 0, '198.51.100.1/24', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.0.1/24', 'MPLS'),
+                                inet1=Interface('port1', 0, '100.64.11.1/24', 'Internet_1'),
+                                inet2=Interface('port2', 0, '100.64.12.1/24', 'Internet_2'),
+                                mpls1=Interface('port3', 0, '10.71.14.1/24', 'MPLS'),
                             )),
 
         'WEST-DC2': FortiGate(offset=2, mgmt=Interface('port10', 0, '172.16.31.21/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
-                                inet1=Interface('port1', 0, '203.0.113.2/24', 'Internet_1'),
-                                inet2=Interface('port2', 0, '198.51.100.2/24', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.0.2/24', 'MPLS'),
+                                inet1=Interface('port1', 0, '100.64.21.1/24', 'Internet_1'),
+                                inet2=Interface('port2', 0, '100.64.22.1/24', 'Internet_2'),
+                                mpls1=Interface('port3', 0, '10.71.24.1/24', 'MPLS'),
                             )),
 
         'EAST-DC': FortiGate(offset=3, mgmt=Interface('port10', 0, '172.16.31.22/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
-                                inet1=Interface('port1', 0, '203.0.113.3/24', 'Internet_1'),
-                                inet2=Interface('port2', 0, '198.51.100.3/24', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.0.3/24', 'MPLS'),
+                                inet1=Interface('port1', 0, '100.64.31.1/24', 'Internet_1'),
+                                inet2=Interface('port2', 0, '100.64.32.1/24', 'Internet_2'),
+                                mpls1=Interface('port3', 0, '10.71.34.1/24', 'MPLS'),
                             )),
 
         'WEST-BR1': FortiGate(offset=4, mgmt=Interface('port10', 0, '172.16.31.31/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
-                                inet1=Interface('port1', 0, 'dhcp', 'Internet_1'),
-                                inet2=Interface('port2', 0, 'dhcp', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.0.11/24', 'MPLS'),
+                                inet1=Interface('port1', 0, '100.64.41.1/24', 'Internet_1'),
+                                inet2=Interface('port2', 0, '100.64.42.1/24', 'Internet_2'),
+                                mpls1=Interface('port3', 0, '10.71.44.1/24', 'MPLS'),
                             )),
 
         'WEST-BR2': FortiGate(offset=6, mgmt=Interface('port10', 0, '172.16.31.41/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
-                                inet1=Interface('port1', 0, 'dhcp', 'Internet_1'),
-                                inet2=Interface('port2', 0, 'dhcp', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.0.12/24', 'MPLS'),
+                                inet1=Interface('port1', 0, '100.64.51.1/24', 'Internet_1'),
+                                inet2=Interface('port2', 0, '100.64.52.1/24', 'Internet_2'),
+                                mpls1=Interface('port3', 0, '10.71.54.1/24', 'MPLS'),
                             )),
 
         'EAST-BR': FortiGate(offset=7, mgmt=Interface('port10', 0, '172.16.31.42/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
-                                inet1=Interface('port1', 0, 'dhcp', 'Internet_1'),
-                                inet2=Interface('port2', 0, 'dhcp', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.0.13/24', 'MPLS'),
+                                inet1=Interface('port1', 0, '100.64.61.1/24', 'Internet_1'),
+                                inet2=Interface('port2', 0, '100.64.62.1/24', 'Internet_2'),
+                                mpls1=Interface('port3', 0, '10.71.64.1/24', 'MPLS'),
                             )),
 
         'WAN': FortiGate(offset=9, mgmt=Interface('port10', 0, '172.16.31.251/24'),
