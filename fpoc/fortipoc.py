@@ -58,8 +58,8 @@ class FortiPoC(FortiLab):
                 device.ssh_port = 22
             else:  # fpoc-manager is running outside the FortiPoC
                 device.ip = self.ip  # device is accessed via the FortiPoC outside IP
-                device.https_port = self.__class__.BASE_PORT_HTTPS + device.offset
-                device.ssh_port = self.__class__.BASE_PORT_SSH + device.offset
+                device.https_port = self.BASE_PORT_HTTPS + device.offset
+                device.ssh_port = self.BASE_PORT_SSH + device.offset
 
     @classmethod
     @property
@@ -71,4 +71,8 @@ class FortiPoC(FortiLab):
 
 
 class FabricStudio(FortiPoC):
-    BASE_PORT_HTTPS = 13000  # HTTPS ports for FabricStudio devices are 13000 + poc-devid: 13001, 13002, 13003, ...
+    # BASE_PORT_HTTPS = 13000  # default HTTPS ports for FabricStudio devices (13000 + devid): 13000, 13001, 13002, ...
+
+    # Fabric Studio has a reverse proxy which blocks API call on the default HTTPS redirection ports (13000 + devid)
+    # So I configured additional HTTPS redirections with a base port of 20000
+    BASE_PORT_HTTPS = 20000
