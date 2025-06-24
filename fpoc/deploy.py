@@ -128,7 +128,7 @@ def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
     if 'fortipoc' in poc.request.path or 'fabric' in poc.request.path:
         ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
         if isinstance(device, FortiGate):
-            return 'HTTPS', f'https://{ip}:{device.https_port}/'
+            return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
         if isinstance(device, LXC) or isinstance(device, VyOS):
             return 'SSH', f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/ssh'
 
