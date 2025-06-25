@@ -57,11 +57,11 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
     # if the target version is specified, it is already compatible with the minimum version (check was done previously)
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
-        print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED' before updating the firmware")
+        update_fortios_version(device, fos_version_target, lock)
+        print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED'")
         fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_fpoc}')  # FortiPoC device name is used here
         print(f"{device.name} : Hostname changed")
-        update_fortios_version(device, fos_version_target, lock)
-        device.apikey = None  # Reset the API key
+        device.apikey = ''  # Reset the API key
         raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
     print('')  # because of the print("... is running FOS ...", end='')
@@ -121,7 +121,7 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     lock.release()
 
     print(f'{device.name} : Uploading firmware... ')
-    fortios.upload_firmware(device, str(path))
+    fortios.api.upload_firmware(device, str(path))
     print(f'{device.name} : Firmware uploaded.')
 
 
@@ -326,7 +326,7 @@ def deploy(poc: TypePoC, device: FortiGate):
         if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
             raise CompletedDeviceProcessing
         else:
-            device.apikey = None  # reset cached API key since there is no API key in the bootstrap config
+            device.apikey = ''  # reset cached API key since there is no API key in the bootstrap config
             raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to load the config and reboot
 
     # Save this CLI configuration to disk
@@ -342,7 +342,7 @@ def deploy(poc: TypePoC, device: FortiGate):
             print(f'{device.name} : Enabling VDOMs')
             fortios.enable_vdom_mode(device)
             # Re-process the device because I noticed API authentication would fail after enabling VDOMs
-            device.apikey=None; raise ReProcessDevice(sleep=10)
+            device.apikey=''; raise ReProcessDevice(sleep=10)
 
         # Execute the CLI settings in device.config on the FGT and Save them in the 'Script' repository of the FGT
         script_name = f'fpoc={poc.id:02} config_hash={hash(device.config):_}'

@@ -1,7 +1,6 @@
-import re
-
-import netmiko
+import re, netmiko, paramiko
 from netmiko import NetmikoAuthenticationException
+import scp as scp_
 
 from fpoc.devices import FortiGate
 from fpoc.exceptions import StopProcessingDevice
@@ -48,9 +47,7 @@ def ssh_logon(device: FortiGate):
 
     return ssh
 
-# DEPRECATED:
-# Replaced by API authentication based on username-password to retrieve an access_token
-# Creation of an api-user via SSH is no longer needed
+# Used as backup solution if there is a failure of the API authentication based on username-password
 def create_api_admin(device: FortiGate):
     """
     Create an API admin and retrieve an API key for this admin
@@ -96,6 +93,29 @@ def create_api_admin(device: FortiGate):
     # Store the output of the SSH session (can be useful for debugging)
     device.output += output_generate_apikey
 
+
+def upload_firmware(device: FortiGate, firmware: str):
+    """
+    Update (upgrade or downgrade) the firmware of this FGT
+
+    :param device:
+    :param firmware: filename of the firmware to be uploaded to the FGT
+    :return:
+    """
+    ssh = paramiko.SSHClient()
+    # ssh.load_system_host_keys()   # Do not load system host jeys otherwise it can trigger paramiko.ssh_exception.BadHostKeyException
+    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())   # Accept unknown server key, simply log a warning
+    ssh.connect(hostname=device.ip, username=device.username, password=device.password, port=device.ssh_port)
+
+    scp = scp_.SCPClient(ssh.get_transport())   # SCPCLient takes a paramiko transport as an argument
+
+    # Upload firmware
+    scp.put(remote_path='fgt-image', files=firmware)
+
+    # close connections
+    scp.close(); ssh.close()
+
+# Legacy functions for old FOS versions (< 7.0) #####################
 
 def retrieve_hostname(device: FortiGate) -> str:
     """

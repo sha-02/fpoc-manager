@@ -241,7 +241,7 @@ class FortiGate(Device):
 
     apiv2auth: bool = True  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
     apiadmin: str = 'adminapi'  # username for the API admin
-    apikey: str = None  # API key for the API admin
+    apikey: str = ''  # API key for the API admin
 
     def __post_init__(self):  # Apply default values
         super(FortiGate, self).__post_init__()  # Call parent __post_init__

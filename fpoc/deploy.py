@@ -190,7 +190,8 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
             break  # exit the 'while True' loop to process the next device
 
         except StopProcessingDevice as ex:
-            print(f'\n{device.name} : *** WARNING ***', ex, ' *** device is skipped ***\n\n')  # display warning message
+            print(f'\n{device.name} : *** ERROR ***', ex)
+            print(f'\n{device.name} : device is **skipped**\n\n')
             device.deployment_status = 'skipped'
             break  # exit the 'while True' loop to process the next device
 
@@ -213,8 +214,8 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
         except (RetryProcessingDevice, Exception) as ex:
             nb_failures += 1
             if nb_failures >= 5:
-                print(f'\n{device.name} : *** ERROR ***', ex, f' *** limit of 5 failures is reached, '
-                                                              ' device is skipped ***\n\n')  # display message
+                print(f'\n{device.name} : *** ERROR ***', ex)
+                print(f'\n{device.name} : limit of 5 failures is reached, device is **skipped**\n\n')
                 device.deployment_status = 'failed'
                 break  # exit the 'while True' loop to process the next device
 
@@ -227,7 +228,7 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
 
             if isinstance(device, FortiGate) and "401 Unauthorized" in str(ex):
                 print(f'\n{device.name} : Authentication failure')
-                device.apikey = None
+                device.apikey = ''
                 if device.apiv2auth:
                     auth_failures += 1
                     if auth_failures >= 2 and device.apiv2auth:
@@ -252,7 +253,6 @@ def deploy(poc: TypePoC, device: TypeDevice):
     :param device:
     :return:
     """
-
     if isinstance(device, FortiGate):
         fortios.deploy(poc, device)
     elif isinstance(device, LXC):
