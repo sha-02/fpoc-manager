@@ -119,6 +119,7 @@ $(document).ready(function(){
             <option value="FGCP">FGCP</option>
         </select>
 
+        <button type="submit" class="btn btn-success btn-sm" title="Dashboard" formaction="dashboard/" >Dashboard</button>
         {% if fortipoc_instances %}<button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices" formaction="{% url 'sdwan:poweron' %}">Power-On Devices</button>{% endif %}
         <button type="submit" class="btn btn-warning btn-sm" title="Upgrade/Downgrade FortiGates" formaction="{% url 'sdwan:upgrade' %}">Upgrade FortiGates</button>
 <!--        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'sdwan:bootstrap' %}" >Deploy Bootstrap Config to FortiGates</button>-->

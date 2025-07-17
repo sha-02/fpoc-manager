@@ -28,6 +28,7 @@ urlpatterns = [
     path('poweron/', fpoc.views.poweron, name='poweron'),
     path('upgrade/', fpoc.views.upgrade, name='upgrade'),
     path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
+    path('dashboard/', fpoc.views.dashboard, name='dashboard'),
 
     path('dualdc_dualregion/', sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10
     path('dualdc_dualregion2/', sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11

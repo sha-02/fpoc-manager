@@ -139,6 +139,11 @@ def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     """
     returns URL to access the device via its FortiPoC console
     """
+    if 'fabric' in poc.request.path:
+        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+        return f'https://{ip}/ttyd/con/{device.nameid}/'
+        # return f'https://{ip}/console/spice/{device.nameid}'
+
     if 'fortipoc' in poc.request.path:
         ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
         if isinstance(device, FortiGate) or isinstance(device, VyOS):

@@ -9,6 +9,8 @@ from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
 from fpoc import FortiPoCFoundation1, FortiPoCSDWAN, FortiLabSDWAN
 from fpoc.FortiPoCSDWAN.fabric_studio import FabricStudioSDWAN
 import fpoc.ansible as ansible
+from fpoc.deploy import device_URL, device_URL_console
+
 
 #
 # Functions/Views which are common to multiple PoCs
@@ -28,6 +30,34 @@ def request_sanity(request: WSGIRequest) -> str:
         return "Select a PoC instance from the list, 'internal' is not a valid choice from 127.0.0.1"
 
     return ''
+
+
+def dashboard(request: WSGIRequest) -> HttpResponse:
+    """
+    Display a dashboard of all devices
+    """
+
+    # Check the request
+    # error_message = request_sanity(request)
+    # if error_message:
+    #     return render(request, f'fpoc/message.html',{'title': 'Error', 'header': 'Error', 'message': error_message})
+
+    # Create a class instance based on the class name stored as a string in variable request.POST['Class_PoC']
+    # eval() is used to "convert" the string into a class name which can be instantiated with (request=..., poc_id=...)
+    poc = eval(request.POST['Class_PoC'])(request=request, poc_id=0)
+
+    # Keep all 'devices' (this call allows to complete attributes for the devices like ip, etc...)
+    poc.members(devices=poc.devices)
+
+    devices = dict()
+    for device in poc:
+        devices[device.name.replace('-', '_')] = {   # replace hypen by underscore in the key because django template does not support them
+            'URL': device_URL(poc, device),
+            'console': device_URL_console(poc, device)
+        }
+
+    # Render and deploy the dashboard
+    return render(poc.request, f'fpoc/dashboard.html', {'devices': devices})
 
 
 def bootstrap(request: WSGIRequest) -> HttpResponse:

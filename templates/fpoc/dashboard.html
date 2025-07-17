@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <title>SDWAN Dashboard</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+</head>
+
+<body>
+  <main role="main">
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+      <h2 class="my-0 mr-md-auto font-weight-normal">
+      	SD-WAN Dashboard
+      </h2>
+        Two Regions<br>
+        Dual-DC in WEST region<br>
+        Single-DC in EAST region
+    </div>
+  </main>
+
+  <div class="container">
+
+    <div class="row">
+      <div class="p-3 mb-2 bg-info text-white">WEST REGION</div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        WEST-BR1
+        [<a href="{{devices.WEST_BR1.URL.1}}" target="_blank">{{devices.WEST_BR1.URL.0}}</a>]
+        [<a href="{{devices.WEST_BR1.console}}" target="_blank">console</a>]
+      </div>
+<!--      <div class="col">-->
+<!--        WEST-BR1-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_15_PC-WEST-BR1/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_15_PC-WEST-BR1/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+    </div>
+
+    <div class="row">
+      <div class="col">
+        WEST-BR2
+        [<a href="{{devices.WEST_BR2.URL.1}}" target="_blank">{{devices.WEST_BR2.URL.0}}</a>]
+        [<a href="{{devices.WEST_BR2.console}}" target="_blank">console</a>]
+      </div>
+<!--      <div class="col">-->
+<!--        WEST-BR2-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_17_PC-WEST-BR2/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_17_PC-WEST-BR2/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+    </div>
+
+    <br>
+    <div class="row">
+      <div class="col">
+        WEST-DC1
+        [<a href="{{devices.WEST_DC1.URL.1}}" target="_blank">{{devices.WEST_DC1.URL.0}}</a>]
+        [<a href="{{devices.WEST_DC1.console}}" target="_blank">console</a>]
+      </div>
+<!--      <div class="col">-->
+<!--        WEST-DC1-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_11_PC-WEST-DC1/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_11_PC-WEST-DC1/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+    </div>
+
+    <div class="row">
+      <div class="col">
+        WEST-DC2
+        [<a href="{{devices.WEST_DC2.URL.1}}" target="_blank">{{devices.WEST_DC2.URL.0}}</a>]
+        [<a href="{{devices.WEST_DC2.console}}" target="_blank">console</a>]
+      </div>
+<!--      <div class="col">-->
+<!--        WEST-DC2-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_13_PC-WEST-DC2/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_13_PC-WEST-DC2/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+    </div>
+
+    <br>
+<!--    <div class="row">-->
+<!--      <div class="col">-->
+<!--        WEST-CORE-->
+<!--        [<a href="https://<?=$server_ip?>:14008/" target="_blank">HTTPS</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_08_WEST-CORE/cons" target="_blank">console</a>]-->
+<!--      </div>-->
+<!--      <div class="col">-->
+<!--        WEST-CORE-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_21_PC-WEST-CORE/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_21_PC-WEST-CORE/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+<!--    </div>-->
+
+
+    <br>
+    <div class="row">
+      <div class="p-3 mb-2 bg-info text-white">EAST REGION</div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        EAST-BR
+        [<a href="{{devices.EAST_BR.URL.1}}" target="_blank">{{devices.EAST_BR.URL.0}}</a>]
+        [<a href="{{devices.EAST_BR.console}}" target="_blank">console</a>]
+      </div>
+<!--      <div class="col">-->
+<!--        EAST-BR-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_18_PC-EAST-BR1/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_18_PC-EAST-BR1/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+    </div>
+
+    <div class="row">
+      <div class="col">
+        EAST-DC
+        [<a href="{{devices.EAST_DC.URL.1}}" target="_blank">{{devices.EAST_DC.URL.0}}</a>]
+        [<a href="{{devices.EAST_DC.console}}" target="_blank">console</a>]
+      </div>
+<!--      <div class="col">-->
+<!--        EAST-DC-LXC-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_14_PC-EAST-DC1/ssh" target="_blank">SSH</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_14_PC-EAST-DC1/lxcbash" target="_blank">console</a>]-->
+<!--      </div>-->
+    </div>
+
+<!--    <br>-->
+<!--    <div class="row">-->
+<!--      <div class="p-3 mb-2 bg-info text-white">FORTIMANAGER</div>-->
+<!--    </div>-->
+
+<!--    <div class="row">-->
+<!--      <div class="col">-->
+<!--        FMG-->
+<!--        [<a href="https://<?=$server_ip?>:14027/" target="_blank">HTTPS</a>]-->
+<!--        [<a href="https://<?=$server_ip?>/term/dev_i_98_fortimanager/cons" target="_blank">console</a>]-->
+<!--      </div>-->
+<!--    </div>-->
+</html>

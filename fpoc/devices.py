@@ -159,6 +159,7 @@ class WAN:
 class Device:
     # All attributes must default to None due to the update() method used by FortiGate class
     offset: int = None  # Offset of this device if inside a FortiPoC (used to derive SSH/HTTPS external port)
+    nameid: str = None  # name used by Fabric-Studio for the console access
 
     ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/fortipoc IP)
     ssh_port: int = None  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)

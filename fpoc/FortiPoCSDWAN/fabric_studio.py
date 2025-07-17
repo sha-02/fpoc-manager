@@ -10,7 +10,8 @@ class FabricStudioSDWAN(FabricStudio):
     password = 'nsefortinet'  # password assigned to each FGT of this PoC
 
     devices = {
-        'WEST-DC1': FortiGate(offset=0, mgmt=Interface('port10', 0, '172.16.31.11/24'),
+        'WEST-DC1': FortiGate(offset=0, nameid='fgt000',
+                            mgmt=Interface('port10', 0, '172.16.31.11/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.11.1/24', 'Internet_1'),
@@ -18,7 +19,8 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.14.1/24', 'MPLS'),
                             )),
 
-        'WEST-DC2': FortiGate(offset=2, mgmt=Interface('port10', 0, '172.16.31.21/24'),
+        'WEST-DC2': FortiGate(offset=2, nameid='fgt001',
+                            mgmt=Interface('port10', 0, '172.16.31.21/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.21.1/24', 'Internet_1'),
@@ -26,7 +28,8 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.24.1/24', 'MPLS'),
                             )),
 
-        'EAST-DC': FortiGate(offset=3, mgmt=Interface('port10', 0, '172.16.31.22/24'),
+        'EAST-DC': FortiGate(offset=3, nameid='fgt004',
+                            mgmt=Interface('port10', 0, '172.16.31.22/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.31.1/24', 'Internet_1'),
@@ -34,7 +37,8 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.34.1/24', 'MPLS'),
                             )),
 
-        'WEST-BR1': FortiGate(offset=4, mgmt=Interface('port10', 0, '172.16.31.31/24'),
+        'WEST-BR1': FortiGate(offset=4, nameid='fgt002',
+                            mgmt=Interface('port10', 0, '172.16.31.31/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.41.1/24', 'Internet_1'),
@@ -42,7 +46,8 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.44.1/24', 'MPLS'),
                             )),
 
-        'WEST-BR2': FortiGate(offset=6, mgmt=Interface('port10', 0, '172.16.31.41/24'),
+        'WEST-BR2': FortiGate(offset=6, nameid='fgt003',
+                            mgmt=Interface('port10', 0, '172.16.31.41/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.51.1/24', 'Internet_1'),
@@ -50,7 +55,8 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.54.1/24', 'MPLS'),
                             )),
 
-        'EAST-BR': FortiGate(offset=7, mgmt=Interface('port10', 0, '172.16.31.42/24'),
+        'EAST-BR': FortiGate(offset=7, nameid='fgt005',
+                            mgmt=Interface('port10', 0, '172.16.31.42/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.61.1/24', 'Internet_1'),
@@ -58,7 +64,8 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.64.1/24', 'MPLS'),
                             )),
 
-        'WAN': FortiGate(offset=9, mgmt=Interface('port10', 0, '172.16.31.251/24'),
+        'WAN': FortiGate(offset=9, nameid='fgt007',
+                            mgmt=Interface('port10', 0, '172.16.31.251/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet=Interface('port9', 0, '198.18.8.1/24', 'INTERNET'),
