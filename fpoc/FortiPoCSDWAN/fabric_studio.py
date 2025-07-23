@@ -64,6 +64,10 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.64.1/24', 'MPLS'),
                             )),
 
+        'WEST-CORE': VyOS(offset=8, nameid='vyos00',
+                            mgmt=Interface('eth0', 0, '172.16.31.6/24'),
+                            ),
+
         'WAN': FortiGate(offset=9, nameid='fgt007',
                             mgmt=Interface('port10', 0, '172.16.31.251/24'),
                             lan=Interface('port5', 0, ''),
@@ -74,13 +78,13 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.0.254/24', 'MPLS_SP1'),
                             )),
 
-        # 'PC-WEST-DC1': LXC(offset=11, mgmt=Interface('eth9', 0, '172.16.31.111/24')),
-        # 'PC-WEST-DC2': LXC(offset=13, mgmt=Interface('eth9', 0, '172.16.31.121/24')),
-        # 'PC-EAST-DC': LXC(offset=14, mgmt=Interface('eth9', 0, '172.16.31.122/24')),
-        # 'PC-WEST-BR1': LXC(offset=15, mgmt=Interface('eth9', 0, '172.16.31.131/24')),
-        # 'PC-WEST-BR2': LXC(offset=17, mgmt=Interface('eth9', 0, '172.16.31.141/24')),
-        # 'PC-EAST-BR': LXC(offset=18, mgmt=Interface('eth9', 0, '172.16.31.142/24')),
-        # 'INTERNET-SERVER': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
+        'WEST-DC1-LXC': LXC(offset=11, mgmt=Interface('eth9', 0, '172.16.31.111/24')),
+        'WEST-DC2-LXC': LXC(offset=13, mgmt=Interface('eth9', 0, '172.16.31.121/24')),
+        'EAST-DC-LXC': LXC(offset=14, mgmt=Interface('eth9', 0, '172.16.31.122/24')),
+        'WEST-BR1-LXC': LXC(offset=15, mgmt=Interface('eth9', 0, '172.16.31.131/24')),
+        'WEST-BR2-LXC': LXC(offset=17, mgmt=Interface('eth9', 0, '172.16.31.141/24')),
+        'EAST-BR-LXC': LXC(offset=18, mgmt=Interface('eth9', 0, '172.16.31.142/24')),
+        'INTERNET-SERVER': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):

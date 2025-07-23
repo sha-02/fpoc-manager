@@ -312,3 +312,9 @@ class VyOS(Device):
         self.username = self.username or 'vyos'  # initialize if it is None
         self.password = self.password or 'vyos'  # initialize if it is None
         self.template_filename = self.template_filename or 'vyos.conf'  # initialize if it is None
+
+    def update(self, vyos: VyOS):
+        # Update (Override) this LXC instance with all not-None attributes from the 'vyos' passed as argument
+        for k, v in vyos.__dict__.items():
+            if v is not None:
+                self.__dict__[k] = v    # update VyOS 'k' with VyOS 'v'

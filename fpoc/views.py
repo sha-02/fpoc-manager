@@ -46,6 +46,10 @@ def dashboard(request: WSGIRequest) -> HttpResponse:
     # eval() is used to "convert" the string into a class name which can be instantiated with (request=..., poc_id=...)
     poc = eval(request.POST['Class_PoC'])(request=request, poc_id=0)
 
+    # the intersection of the keys of request.POST dict and the keys of 'devices' dict produces the keys of each
+    # device to be used for this poc. Only keep these devices (this call allows to complete attributes for the devices like ip, etc...)
+    # poc.members(devices={ k: poc.devices[k] for k in poc.request.POST.keys() & poc.devices.keys() })
+
     # Keep all 'devices' (this call allows to complete attributes for the devices like ip, etc...)
     poc.members(devices=poc.devices)
 

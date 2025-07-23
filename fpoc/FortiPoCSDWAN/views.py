@@ -54,6 +54,8 @@ class HomePageView(TemplateView):
         if 'fabric' in self.request.path:
             context['Class_PoC'] = 'FabricStudioSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
             context['fortigates'] = FabricStudioSDWAN.devices_of_type(FortiGate).keys()
+            context['lxces'] = FabricStudioSDWAN.devices_of_type(LXC).keys()
+            context['vyoses'] = FabricStudioSDWAN.devices_of_type(VyOS).keys()
 
         if 'hardware' in self.request.path:
             context['Class_PoC'] = 'FortiLabSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form

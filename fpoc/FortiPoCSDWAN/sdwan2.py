@@ -307,12 +307,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Host Devices used to build the /etc/hosts file
 
     hosts = {
-        'PC-WEST-DC1': {'rank': 7, 'gateway': LAN['WEST-DC1'].ipprefix},
-        'PC-WEST-DC2': {'rank': 7, 'gateway': LAN['WEST-DC2'].ipprefix},
-        'PC-EAST-DC1': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
-        'PC-WEST-BR1': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
-        'PC-WEST-BR2': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
-        'PC-EAST-BR1': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
+        'WEST-DC1-LXC': {'rank': 7, 'gateway': LAN['WEST-DC1'].ipprefix},
+        'WEST-DC2-LXC': {'rank': 7, 'gateway': LAN['WEST-DC2'].ipprefix},
+        'EAST-DC1-LXC': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
+        'WEST-BR1-LXC': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
+        'WEST-BR2-LXC': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
+        'EAST-BR1-LXC': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
     }
 
     devices = {
@@ -325,12 +325,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
 
-        'PC-WEST-DC1': LXC(name="PC-WEST-DC1", template_context={'hosts': hosts}),
-        'PC-WEST-DC2': LXC(name="PC-WEST-DC2",template_context={'hosts': hosts}),
-        'PC-EAST-DC': LXC(name="PC-EAST-DC1", template_context={'hosts': hosts}),   # DC and not DC1
-        'PC-WEST-BR1': LXC(name="PC-WEST-BR1",template_context={'hosts': hosts}),
-        'PC-WEST-BR2': LXC(name="PC-WEST-BR2",template_context={'hosts': hosts}),
-        'PC-EAST-BR': LXC(name="PC-EAST-BR1", template_context={'hosts': hosts}),   # BR and not BR1
+        'WEST-DC1-LXC': LXC(name="WEST-DC1-LXC", template_context={'hosts': hosts}),
+        'WEST-DC2-LXC': LXC(name="WEST-DC2-LXC",template_context={'hosts': hosts}),
+        'EAST-DC-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),   # DC and not DC1
+        'WEST-BR1-LXC': LXC(name="WEST-BR1-LXC",template_context={'hosts': hosts}),
+        'WEST-BR2-LXC': LXC(name="WEST-BR2-LXC",template_context={'hosts': hosts}),
+        'EAST-BR-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),   # BR and not BR1
         'INTERNET-SERVER': LXC(name="INTERNET-SERVER", template_filename='lxc.SRVINET.conf')
     }
 
