@@ -138,16 +138,21 @@ $(document).ready(function(){
           <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
           <br><br>
           Hub-side Steering BGP priority <select name="bidir_sdwan_bgp_priority">
-            <option value='remote_sla_metrics' selected>from SLA metrics in per-overlay Branch SD-WAN probes</option>
-            <option value='remote_sla_priority'>from priority in per-overlay Branch SD-WAN probes (7.6+)</option>
+            <option value='remote_sla_metrics'>from SLA metrics in per-overlay Branch SD-WAN probes</option>
+            <option value='remote_sla_priority' selected>from priority in per-overlay Branch SD-WAN probes (7.6+)</option>
             <option value='remote_sla_status'>from SLA status in per-overlay Branch SD-WAN probes (7.6+)</option>
             <option value='bgp_community'>from BGP community in per-overlay Branch BGP prefix</option>
           </select>
           <br>
-          Remote signaling to West Core Network <select name="remote_signaling">
-          <option value='none' selected>No remote signaling</option>
+          Remote signaling to WEST-CORE <select name="remote_signaling">
+          <option value='none'>No remote signaling</option>
           <option value='branch_community'>Hub sends MED to CORE based on the community received from the Branch</option>
-          <option value='branch_MED'>Hub re-enforce MED to CORE based on the MED received from the Branch (7.6.1+)</option>
+          <option value='branch_MED' selected>Hub re-enforce MED to CORE based on the MED received from the Branch (7.6.1+)</option>
+          </select>
+          <br>
+          Dual-Hub Failover strategy <select name="dualHub_failover">
+          <option value='lowest-cost' selected>Lowest Cost</option>
+          <option value='best-link'>Best Link</option>
           </select>
 
           <br><br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation

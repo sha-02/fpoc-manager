@@ -11,7 +11,7 @@
     [<a href="{{device.URL.1}}" target="_blank">{{device.URL.0}}</a>]
     {% if device.URL_console %}[<a href="{{device.URL_console}}" target="_blank">console</a>]{% endif %}
     =>
-    {% if device.deployment_status == "skipped" %}
+    {% if "skipped" in device.deployment_status or "failed" in device.deployment_status %}
         <strong>{{device.deployment_status}}</strong>
     {% else %}
         {{device.deployment_status}}

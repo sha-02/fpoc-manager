@@ -204,7 +204,7 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
         except StopProcessingDevice as ex:
             print(f'\n{device.name} : *** ERROR ***', ex)
             print(f'\n{device.name} : device is **skipped**\n\n')
-            device.deployment_status = 'skipped'
+            device.deployment_status = f'skipped ({ex})'
             break  # exit the 'while True' loop to process the next device
 
         except ReProcessDevice as ex:
@@ -228,7 +228,7 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
             if nb_failures >= 5:
                 print(f'\n{device.name} : *** ERROR ***', ex)
                 print(f'\n{device.name} : limit of 5 failures is reached, device is **skipped**\n\n')
-                device.deployment_status = 'failed'
+                device.deployment_status = 'failed (limit of 5 failures reached)'
                 break  # exit the 'while True' loop to process the next device
 
             print(f'\n{device.name} : error (#{nb_failures}/5)- ', ex)

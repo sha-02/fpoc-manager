@@ -26,7 +26,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
         'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_metrics', 'bgp_community', 'remote_sla_priority', 'remote_sla_status'
-        'remote_signaling': request.POST.get('remote_signaling'),  # 'branch_community', 'branch_MED'
+        'remote_signaling': request.POST.get('remote_signaling'),  # 'none', 'branch_community', 'branch_MED'
+        'dualHub_failover': request.POST.get('dualHub_failover'),  # 'lowest-cost', 'best-link'
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
         'vrf_ria': request.POST.get('vrf_ria'),  # 'preserve_origin' or 'nat_origin'
@@ -76,6 +77,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                 "configured to send priorities to the Hub for Hub-side Steering. "
                                 "<b>Forcing to 'remote_sla_priority'</b>")
                 context['bidir_sdwan_bgp_priority'] = 'remote_sla_priority'
+
+        if context['remote_signaling'] == 'none' and context['dualHub_failover'] == 'best-link':
+            messages.append("No remote signaling to WEST-CORE (i.e., SNAT to Core) is incompatible with 'best-link' "
+                            "steering on the Branches. <b>Forcing to 'lowest-cost'</b>")
+            context['dualHub_failover'] = 'lowest-cost'
 
         if not context['multicast']:
             context['overlay'] = 'no_ip'   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
