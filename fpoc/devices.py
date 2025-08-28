@@ -240,7 +240,8 @@ class FortiGate(Device):
     wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
     HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
 
-    apiv2auth: bool = True  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
+    apiv2auth: bool = False  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
+                             # APIv2 auth with admin/pwd is broken (or discontinued?) as of 7.6.4, so I'm reverting to the API admin method
     apiadmin: str = 'adminapi'  # username for the API admin
     apikey: str = ''  # API key for the API admin
 
