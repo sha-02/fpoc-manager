@@ -1,4 +1,8 @@
 {
+  "7.6.4": {
+    "build": "3596",
+    "trailername": "-v7.6.4.F-build3596-FORTINET.out"
+  },
   "7.6.3": {
     "build": "3510",
     "trailername": "-v7.6.3.F-build3510-FORTINET.out"
