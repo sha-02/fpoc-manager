@@ -113,10 +113,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             messages.append("<b>Shortcut failover</b> on remote SLA failure is <b>only possible between INET1 and INET2</b>. "
                             "It is <b>not possible between INET and MPLS</b>")
         if context['cross_region_advpn']:
-            messages.append("Cross-regional branch-to-remoteHub shortcut routing <b>cannot be done with IPsec selectors</b>. See comments with CLI settings.")
+            messages.append("Cross-regional branch-to-remoteHub shortcut routing <b>cannot be done with ADVPN routing "
+                            "convergence from IPsec selectors</b>. See comment in the rendered CLI.")
         if context['vrf_aware_overlay']:
             context['vrf_aware_overlay'] = False  # shortcuts from ph2 selectors are incompatible with vpn-id-ipip
-            messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported with shortcuts from phase2 selectors")
+            messages.append("VRF-aware overlay was requested but is <b>forced to disable</b> since it is not supported "
+                            "with shortcuts from phase2 selectors")
 
     #
     # PoC 6 #####
@@ -154,9 +156,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         #     errors.append("Dynamic BGP over shortcuts not yet available with BGP per overlay")
 
         if context['shortcut_routing'] == 'ipsec_selectors' and context['bidir_sdwan'] == 'remote_sla':
-            context['bidir_sdwan'] = 'route_priority'
-            messages.append("ADVPN from IPsec selectors <b>DOES NOT WORK with</b> bgp-per-overlay and <b>remote-sla</b>"
-                            " (see comment in code). <b>Forcing 'BGP priority'</b>")
+            messages.append("ADVPN from IPsec selectors <b>MIGHT NOT WORK</b> with bgp-per-overlay and remote-sla"
+                            " depending on FOS version. See comment in the rendered CLI.")
 
         if context['bidir_sdwan'] == 'remote_sla':
             context['overlay'] = 'static'   # remote-sla with bgp-per-overlay can only work with static-overlay IP@
