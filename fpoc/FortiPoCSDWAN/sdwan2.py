@@ -22,6 +22,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     """
     context = {
         # From HTML form
+        'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
+        'fmg_sn': request.POST.get('fmg_sn'),
         'bgp_design': request.POST.get('bgp_design'),  # 'per_overlay', 'on_loopback'
         'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
         'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
@@ -58,6 +60,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     if context['vrf_aware_overlay']:
         minimumFOSversion = 7_004_005   # ADVPNv2.0 bug with VRF segmentation fixed in 7.4.5 (1018427)
+
+    #
+    # central-management - sanity checks
+    if context['fortimanager'] and not context['fmg_sn'].startswith('FMG-'):
+        errors.append('central-management is requested by the FMG S/N is incorrect')
 
     #
     # BGP on loopback - sanity checks
@@ -111,12 +118,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         if context['vrf_aware_overlay']:
             for vrf_name in ('vrf_wan', 'vrf_pe', 'vrf_blue', 'vrf_yellow', 'vrf_red'):
                 if context[vrf_name] > 251 or context[vrf_name] < 0:
-                    poc_id = None; errors.append('VRF id must be within [0-251]')
+                    errors.append('VRF id must be within [0-251]')
             if context['vrf_pe'] in (context['vrf_yellow'], context['vrf_red']):
-                poc_id = None; errors.append("Only seg0/BLUE VRF can be in the same VRF as the PE VRF")
+                errors.append("Only seg0/BLUE VRF can be in the same VRF as the PE VRF")
             ce_vrfids = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red']] # list of all CE VRF IDs
             if len(set(ce_vrfids)) != len(ce_vrfids):  # check if the CE VRF IDs are all unique
-                poc_id = None; errors.append('All CE VRF IDs must be unique')
+                errors.append('All CE VRF IDs must be unique')
 
             messages.append("design choice: All CE VRFs from all Branches in all Regions have DIA (there is no Branch with only RIA)")
 
@@ -159,7 +166,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     if not context['vrf_aware_overlay']:
         del(context['vrf_ria']); del(context['vrf_wan']); del(context['vrf_pe'])
-        del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']);
+        del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red'])
 
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
@@ -167,7 +174,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     #
     # Display errors and Stop
 
-    if poc_id is None:
+    if errors:
         return render(request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': errors})
 

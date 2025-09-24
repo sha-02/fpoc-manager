@@ -276,21 +276,25 @@ def deploy(poc: TypePoC, device: FortiGate):
                                 FOS_minimum=poc.minimum_FOS_version,
                                 lock=poc.lock)
 
-    # Add information to the template context of this device
+    # Update the template context of this device
     #
-    device.template_context['mgmt'] = device.mgmt  # mgmt info (interface, vlanid, ipmask)
-    device.template_context['apiadmin'] = device.apiadmin
-    device.template_context['password'] = device.password
-    device.template_context['mgmt_gw'] = poc.mgmt_gw
-    device.template_context['mgmt_dns'] = poc.mgmt_dns
-    device.template_context['mgmt_vrf'] = poc.mgmt_vrf
-    device.template_context['fos_version'] = device.fos_version  # FOS version encoded as a string like '6.0.13'
-    device.template_context['FOS'] = device.FOS  # FOS version as long integer, like 6_000_013 for '6.0.13'
-    device.template_context['HA'] = device.HA
-    device.template_context['wan'] = device.wan
-    device.template_context['lan'] = device.lan
-    device.template_context['alias'] = device.alias
-    device.template_context['npu'] = device.npu
+    device.template_context.update(
+        {
+            'mgmt': device.mgmt,  # mgmt info (interface, vlanid, ipmask)
+            'apiadmin': device.apiadmin,
+            'password': device.password,
+            'mgmt_gw': poc.mgmt_gw,
+            'mgmt_dns': poc.mgmt_dns,
+            'mgmt_vrf': poc.mgmt_vrf,
+            'fos_version': device.fos_version,  # FOS version encoded as a string like '6.0.13'
+            'FOS': device.FOS,  # FOS version as long integer, like 6_000_013 for '6.0.13'
+            'HA': device.HA,
+            'wan': device.wan,
+            'lan': device.lan,
+            'alias': device.alias,
+            'npu': device.npu
+        }
+    )
 
     # Call the device callback method in case something must be done to the device (usually on its context based on
     # the actual FOS version) before doing the rendering of the config

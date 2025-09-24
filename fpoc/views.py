@@ -83,7 +83,13 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
     for fpoc_fgtname, fortigate in fortigates.items():
         fortigate.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
 
-        fortigate.template_context = {'name': fpoc_fgtname, 'mgmt': poc.devices[fpoc_fgtname].mgmt}
+        fortigate.template_context = {
+            'name': fpoc_fgtname,
+            'mgmt': poc.devices[fpoc_fgtname].mgmt,
+            'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
+            'fmg_sn': request.POST.get('fmg_sn')
+        }
+
         if bool(request.POST.get('WAN_underlays', False)) and fortigate.wan is not None:
             fortigate.template_context['WAN_underlays'] = True
         else:
