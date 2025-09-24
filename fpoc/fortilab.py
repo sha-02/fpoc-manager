@@ -3,13 +3,18 @@ from django.core.handlers.wsgi import WSGIRequest
 import copy
 from fpoc.devices import FortiGate
 from typing import Callable
+from dataclasses import dataclass
 
+@dataclass
+class Mgmt: # poc mgmt network
+    vrfid:  int = None  # VRF where it should be isolated
+    dns:    str = None  # DNS server inside the poc mgmt network
+    gw:     str = None  # Default Gateway
+    gw2:    str = None  # Alternative Default Gateway ('WAN' FGT in Fabric Studio)
 
 class FortiLab:
     devices: dict = {}  # The class-level dict containing all possible devices which can be used in this poc
-    mgmt_gw = None      # Gateway for OOB mgmt network
-    mgmt_dns = None     # DNS from the OOB mgmt
-    mgmt_vrf = 0        # VRF for the OOB mgmt
+    mgmt = Mgmt(vrfid=0)
     template_folder = None  # Folder hosting the jinja templates
 
 

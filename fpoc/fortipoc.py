@@ -2,15 +2,12 @@ from django.core.handlers.wsgi import WSGIRequest
 
 from fpoc import FortiLab
 from fpoc.devices import FortiGate
-
+from fpoc.fortilab import Mgmt
 
 class FortiPoC(FortiLab):
     BASE_PORT_SSH = 11000  # SSH ports for FortiPoC devices are 11000 + poc-devid: 11001, 11002, 11003, ...
     BASE_PORT_HTTPS = 14000  # HTTPS ports for FortiPoC devices are 14000 + poc-devid: 14001, 14002, 14003, ...
-    # mgmt_fpoc_ipmask = '172.16.31.254/24'  # mgmt IP@ of FortiPoC in its OOB management subnet
-    mgmt_gw = '172.16.31.254'      # Gateway for OOB mgmt network (override FortiLab parent class attribute)
-    mgmt_dns = '172.16.31.254'     # DNS from the OOB mgmt (override FortiLab parent class attribute)
-    mgmt_vrf = 10                  # VRF for the OOB mgmt (override FortiLab parent class attribute)
+    mgmt = Mgmt(vrfid=10, gw='172.16.31.254', gw2='172.16.31.251', dns='172.16.31.254')
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Call parent class to store the WSGI request and merge the class-level devices with the instance-level devices
@@ -20,7 +17,7 @@ class FortiPoC(FortiLab):
         fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('pocInstance')
         if fpoc_ip == '0.0.0.0':  # fpoc-manager is running inside the FortiPoC
             self.manager_inside_fpoc = True
-            self.ip = self.mgmt_gw  # device is accessed by fpoc-manager from within the FortiPoC OOB inside IP
+            self.ip = self.mgmt.gw  # device is accessed by fpoc-manager from within the FortiPoC OOB inside IP
         else:  # fpoc-manager is running outside the FortiPoC
             self.manager_inside_fpoc = False
             self.ip = fpoc_ip  # device is accessed by fpoc-manager via the FortiPoC outside IP

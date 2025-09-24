@@ -278,14 +278,14 @@ def deploy(poc: TypePoC, device: FortiGate):
 
     # Update the template context of this device
     #
+    device.mgmt.vrfid = poc.mgmt.vrfid
+
     device.template_context.update(
         {
-            'mgmt': device.mgmt,  # mgmt info (interface, vlanid, ipmask)
             'apiadmin': device.apiadmin,
             'password': device.password,
-            'mgmt_gw': poc.mgmt_gw,
-            'mgmt_dns': poc.mgmt_dns,
-            'mgmt_vrf': poc.mgmt_vrf,
+            'mgmt': device.mgmt,  # mgmt info (interface, vlanid, ipmask, vrfid)
+            'poc': {'dns': poc.mgmt.dns, 'gw': poc.mgmt.gw, 'gw2': poc.mgmt.gw2},
             'fos_version': device.fos_version,  # FOS version encoded as a string like '6.0.13'
             'FOS': device.FOS,  # FOS version as long integer, like 6_000_013 for '6.0.13'
             'HA': device.HA,

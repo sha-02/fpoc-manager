@@ -376,7 +376,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         # # Register the callback function
         # poc.callback_register(multi_vdom)
 
-    # Update the poc
+    # Update the poc (monkey patching)
     poc.id = poc_id
     poc.minimum_FOS_version = minimumFOSversion
     poc.messages = messages
