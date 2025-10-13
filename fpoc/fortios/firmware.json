@@ -1,4 +1,8 @@
 {
+  "8.0.0": {
+    "build": "0075",
+    "trailername": "-v8.0.0Beta1-build0075-FORTINET.out"
+  },
   "7.6.4": {
     "build": "3596",
     "trailername": "-v7.6.4.F-build3596-FORTINET.out"
@@ -6,18 +10,6 @@
   "7.6.3": {
     "build": "3510",
     "trailername": "-v7.6.3.F-build3510-FORTINET.out"
-  },
-  "7.6.2": {
-    "build": "3462",
-    "trailername": "-v7.6.2.F-build3462-FORTINET.out"
-  },
-  "7.6.1": {
-    "build": "3457",
-    "trailername": "-v7.6.1.F-build3457-FORTINET.out"
-  },
-  "7.6.0": {
-    "build": "3401",
-    "trailername": "-v7.6.0.F-build3401-FORTINET.out"
   },
   "7.4.9": {
     "build": "2829",
@@ -27,36 +19,8 @@
     "build": "2795",
     "trailername": "-v7.4.8.M-build2795-FORTINET.out"
   },
-  "7.4.7": {
-    "build": "2731",
-    "trailername": "-v7.4.7.M-build2731-FORTINET.out"
-  },
-  "7.4.6": {
-    "build": "2726",
-    "trailername": "-v7.4.6.M-build2726-FORTINET.out"
-  },
-  "7.4.5": {
-    "build": "2702",
-    "trailername": "-v7.4.5.M-build2702-FORTINET.out"
-  },
-  "7.4.4": {
-    "build": "2662",
-    "trailername": "-v7.4.4.F-build2662-FORTINET.out"
-  },
-  "7.2.11": {
-    "build": "1740",
-    "trailername": "-v7.2.10.M-build1740-FORTINET.out"
-  },
-  "7.2.10": {
-    "build": "1706",
-    "trailername": "-v7.2.10.M-build1706-FORTINET.out"
-  },
-  "7.2.9": {
-    "build": "1688",
-    "trailername": "-v7.2.9.M-build1688-FORTINET.out"
-  },
-  "7.2.8": {
-    "build": "1639",
-    "trailername": "-v7.2.8.M-build1639-FORTINET.out"
+  "7.2.12": {
+    "build": "1761",
+    "trailername": "-v7.2.12.M-build1761-FORTINET.out"
   }
 }

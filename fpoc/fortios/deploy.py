@@ -132,7 +132,7 @@ def fortios_firmware(minimum: str ="0.0.0") -> dict:
     :return: dict of fos firmware
     """
     firmware = json_to_dict(f'{BASE_DIR}/fpoc/fortios/firmware.json')   # Load all firmware definition
-    # Return firmware with higher version then 'minimum'
+    # Return firmware with higher version than 'minimum'
     return { version: firmware[version] for version in firmware.keys() if FortiGate.FOS_int(version) >= FortiGate.FOS_int(minimum) }
 
 
