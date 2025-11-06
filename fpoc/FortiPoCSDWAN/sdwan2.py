@@ -487,7 +487,7 @@ def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, t
         # Update Host Devices
         # devices[f'PC-{name}'].template_context['namespaces'] = segments[name]
         # devices[f'PC-{name}'].template_context['hosts'] = hosts
-        devices[f'PC-{name}'].template_filename = 'lxc.vrf.conf'
+        # devices[f'{name}-LXC'].template_filename = 'lxc.vrf.conf'
 
     # 'inter_segments' describes the inter-vrf links
 
