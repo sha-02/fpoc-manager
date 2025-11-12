@@ -7,12 +7,13 @@ from config.settings import BASE_DIR
 # dict of sites, the key must be consistent with the content of file 'site.txt'
 
 sites = {
-    'SDWAN/ADVPNv2/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    'SDWAN/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    'SDWAN/ADVPNv2/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    'SDWAN/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    'SDWAN/ADVPNv2/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    'SDWAN/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    'SDWAN/8.0/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    'SDWAN/7.4_7.6/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    # 'SDWAN/7.4_7.6/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    # 'SDWAN/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
+    'SDWAN/7.0_7.2/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'Foundation1/': {'urls': 'fpoc.FortiPoCFoundation1.urls', 'selected': False},
     # 'Airbus/': {'urls': 'fpoc.FortiPoCAirbus.urls', 'selected': False}
 }
@@ -23,10 +24,10 @@ try:    # Check if there is a config file indicating which site is desired (firs
     with open(f"{BASE_DIR}/config/site.txt") as f:
         startup_site = f.readline().strip('\n')
 except:  # something went wrong when attempting to read the config file
-    startup_site = "Foundation1/"
+    startup_site = "SDWAN/7.4_7.6/fabric/"
 
 if sites.get(startup_site) is None:  # the site retrieved from config file is undefined
-    startup_site = "Foundation1/"
+    startup_site = "SDWAN/7.4_7.6/fabric/"
 
 #
 # Register the default URLs
