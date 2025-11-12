@@ -1,3 +1,5 @@
+import copy
+
 from django.core.handlers.wsgi import WSGIRequest
 from fpoc import FortiPoC, FortiGate, LXC, VyOS, WAN, Interface, Network, FabricStudio
 
@@ -28,7 +30,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.24.1/24', 'MPLS'),
                             )),
 
-        'EAST-DC': FortiGate(offset=3, nameid='fgt004',
+        'EAST-DC1': FortiGate(offset=3, nameid='fgt004',
                             mgmt=Interface('port10', 0, '172.16.31.22/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -55,7 +57,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.54.1/24', 'MPLS'),
                             )),
 
-        'EAST-BR': FortiGate(offset=7, nameid='fgt005',
+        'EAST-BR1': FortiGate(offset=7, nameid='fgt005',
                             mgmt=Interface('port10', 0, '172.16.31.42/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -85,6 +87,12 @@ class FabricStudioSDWAN(FabricStudio):
         'WEST-BR2-LXC': LXC(offset=17, mgmt=Interface('eth9', 0, '172.16.31.141/24')),
         'EAST-BR-LXC': LXC(offset=18, mgmt=Interface('eth9', 0, '172.16.31.142/24')),
         'INTERNET-SERVER': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
+    }
+
+    # Add dict entries for EAST-DC and EAST-BR for compatibility reasons with legacy poc9 and poc10
+    devices |= {
+        'EAST-DC': devices['EAST-DC1'],
+        'EAST-BR': devices['EAST-BR1']
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
