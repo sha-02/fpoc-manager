@@ -146,10 +146,10 @@ $(document).ready(function(){
             <option value='bgp_community'>from BGP community in per-overlay Branch BGP prefix</option>
           </select>
           <br>
-          Remote signaling to WEST-CORE <select name="remote_signaling">
+          Remote signaling to WEST-EXT <select name="remote_signaling">
           <option value='none'>No remote signaling</option>
-          <option value='branch_community'>Hub sends MED to CORE based on the community received from the Branch</option>
-          <option value='branch_MED' selected>Hub re-enforce MED to CORE based on the MED received from the Branch (7.6.1+)</option>
+          <option value='branch_community'>Hub sets the MED based on the community received from the Branch</option>
+          <option value='branch_MED' selected>Hub forwards untouched the MED received from the Branch (7.6.1+)</option>
           </select>
           <br>
           Dual-Hub Failover strategy <select name="dualHub_failover">

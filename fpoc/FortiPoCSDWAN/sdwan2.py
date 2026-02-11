@@ -83,7 +83,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                 context['bidir_sdwan_bgp_priority'] = 'remote_sla_priority'
 
         if context['remote_signaling'] == 'none' and context['dualHub_failover'] == 'best-link':
-            messages.append("No remote signaling to WEST-CORE (i.e., SNAT to Core) is incompatible with 'best-link' "
+            messages.append("No remote signaling to WEST-EXT (i.e., SNAT to Core) is incompatible with 'best-link' "
                             "steering on the Branches. <b>Forcing to 'lowest-cost'</b>")
             context['dualHub_failover'] = 'lowest-cost'
 

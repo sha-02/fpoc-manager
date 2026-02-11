@@ -24,8 +24,8 @@ class Interface:
             # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
             # for non-VLAN interface: '_name' and 'port' both reference the physical interface
 
-        if alias is None and vlanid==0 and name is not None:
-            # there is no vlanid but a name was specified, use this name as an alias for the physical interface
+        if alias is None and vlanid is not None and name is not None:
+            # a name and a vlanid [0-x] was specified: use this name also as an alias
             self.alias = name
         else:
             self.alias = alias
@@ -241,7 +241,7 @@ class FortiGate(Device):
     HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
 
     apiv2auth: bool = False  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
-                             # APIv2 auth with admin/pwd is broken (or discontinued?) as of 7.6.4, so I'm reverting to the API admin method
+                             # APIv2 auth with admin/pwd is no longer supported as of 7.6.4, so I'm reverting to the API admin method
     apiadmin: str = 'adminapi'  # username for the API admin
     apikey: str = ''  # API key for the API admin
 

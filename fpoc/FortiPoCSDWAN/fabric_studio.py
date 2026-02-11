@@ -9,7 +9,7 @@ class FabricStudioSDWAN(FabricStudio):
     """
     template_folder = 'FortiPoCSDWAN'
     mpls_summary = '10.71.0.0/16'  # mpls_summary assigned to the WAN of each FGT of this PoC
-    password = 'nsefortinet'  # password assigned to each FGT of this PoC
+    password = 'Fortinet123#'  # password assigned to each FGT of this PoC
 
     devices = {
         'WEST-DC1': FortiGate(offset=0, nameid='fgt000',
@@ -66,7 +66,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.64.1/24', 'MPLS'),
                             )),
 
-        'WEST-CORE': VyOS(offset=8, nameid='vyos00',
+        'WEST-EXT': VyOS(offset=8, nameid='vyos00',
                             mgmt=Interface('eth0', 0, '172.16.31.6/24'),
                             ),
 
