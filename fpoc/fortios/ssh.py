@@ -1,4 +1,6 @@
 import re, netmiko, paramiko
+import time
+
 from netmiko import NetmikoAuthenticationException
 import scp as scp_
 
@@ -47,51 +49,55 @@ def ssh_logon(device: FortiGate):
 
     return ssh
 
+
 # Used as backup solution if there is a failure of the API authentication based on username-password
 def create_api_admin(device: FortiGate):
     """
     Create an API admin and retrieve an API key for this admin
-    REQUIRES to ALTER the netmiko class for 'fortinet'
-    => comment all code in FortinetSSH.session_preparation() method: only keep a 'pass' statement
-
     :param device:
     :return:
     """
+    def commands_with_password(ssh, password: str, cmd_list: list):
+        output = ''
+        for cmd in cmd_list:
+            output += ssh.send_command_timing(cmd, strip_prompt=False, strip_command=False)
+            # Check if FortiOS is asking for password
+            if "password" in output.lower():
+                output += ssh.send_command_timing(password, strip_prompt=False, strip_command=False)
+
+        return output
 
     ssh = ssh_logon(device)
+    device.output = ''
 
     # Check if there is an API admin already configured on this device
-    device.output = ssh.send_command(f'get sys api-user | grep "name: {device.apiadmin}"')
+    device.output += ssh.send_command(f'get sys api-user | grep "name: {device.apiadmin}"')
     if device.output.strip() != f'name: {device.apiadmin}':  # API admin is not configured on the device
-        # Create API admin
+        # Create API admin (admin password requested as of 7.6.4)
         cli_commands = f'''
-        config system api-user
-            edit "{device.apiadmin}"
-                set accprofile "super_admin"
-                set vdom "root"
-                config trusthost
-                    edit 1
-                        set ipv4-trusthost {device.mgmt.network}
-                    next
-                end
-            next
-        end    
-        '''
-        device.output += ssh.send_config_set(cli_commands.splitlines())
+config system api-user
+edit "{device.apiadmin}"
+    set accprofile super_admin
+end
+'''
+        print(f'{device.name} : Create API admin')
+        device.output += commands_with_password(ssh, device.password, cli_commands.splitlines())
 
-    # Generate and retrieve the API key for the API admin
-    output_generate_apikey = ssh.send_command('exec api-user generate-key adminapi')
-    re_token = re.search('New API key:(.+)', output_generate_apikey, re.IGNORECASE)
+    time.sleep(1)
+
+    # Generate and retrieve the API key for the API admin (admin password requested as of 7.6.4)
+    print(f'{device.name} : Generate API key')
+
+    output_api = commands_with_password(ssh, device.password, [f'exec api-user generate-key {device.apiadmin}'])
+    device.output += output_api
+
+    re_token = re.search('New API key:(.+)', output_api, re.IGNORECASE)
 
     if not re_token:  # API key failed to be retrieved => skip this device
-        raise StopProcessingDevice(f'device={device.name} : failure to create the API admin or to retrieve '
-                                   f'the API key')
+        raise StopProcessingDevice(f'device={device.name} : failure to retrieve the API key: <pre>{device.output}</pre>')
 
     # Update the apikey for this FGT
     device.apikey = re_token.group(1).strip()
-
-    # Store the output of the SSH session (can be useful for debugging)
-    device.output += output_generate_apikey
 
 
 def upload_firmware(device: FortiGate, firmware: str):

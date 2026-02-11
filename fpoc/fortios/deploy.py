@@ -57,10 +57,10 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
     # if the target version is specified, it is already compatible with the minimum version (check was done previously)
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
-        update_fortios_version(device, fos_version_target, lock)
         print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED'")
         fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_fpoc}')  # FortiPoC device name is used here
         print(f"{device.name} : Hostname changed")
+        update_fortios_version(device, fos_version_target, lock)
         device.apikey = ''  # Reset the API key
         raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
@@ -87,35 +87,19 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # Check if the target firmware file is available
     lock.acquire()  # Acquire the mutual exclusion (mutex) lock to ensure only one thread at a time goes through this code
 
-    # firmware filename can also be prefixed by the version. So filename can be, for e.g.:
-    # - 'FGT_VM64_KVM-v6-build1911-FORTINET.out'
-    # - or '6.4.7_FGT_VM64_KVM-v6-build1911-FORTINET.out'
-    firmware_names = (device.model + firmwares[fos_version_target]["trailername"],
-                      fos_version_target + '_' + device.model + firmwares[fos_version_target]["trailername"])
-
-    # for firmware_name in firmware_names:
-    #     try:
-    #         with open(f'{PATH_FPOC_FIRMWARE}/{firmware_name}', "rb"):   # Check if firmware file exists
-    #             break
-    #     except FileNotFoundError:
-    #         pass
-    # else:
-    #     print(f'{device.name} : Firmware {fos_version_target} for model {device.model} not found in folder {PATH_FPOC_FIRMWARE}')
-    #     lock.release()
-    #     raise StopProcessingDevice
-
     # Recursively search for the firmware file under PATH_FPOC_FIRMWARE
+    firmware_name = device.model + firmwares[fos_version_target]["trailername"] + '.out'
     path = None
-    for firmware_name in firmware_names:
-        for path in Path(PATH_FPOC_FIRMWARE).rglob(firmware_name):
-            break   # firmware found
+    # for firmware_name in firmware_names:
+    for path in Path(PATH_FPOC_FIRMWARE).rglob(firmware_name):
+        break   # firmware found
 
     if path is None:
-        print(f'{device.name} : Firmware {fos_version_target} for model {device.model} not recursively found under folder {PATH_FPOC_FIRMWARE}')
+        print(f'{device.name} : Firmware {firmware_name} not recursively found under folder {PATH_FPOC_FIRMWARE}')
         lock.release()
         raise StopProcessingDevice
 
-    print(f'{device.name} : Found firmware {path.name} ({fos_version_target}) in folder {path.parent}')
+    print(f'{device.name} : Found firmware {path.name} in folder {path.parent}')
 
     # release the lock so that other treads can now check for the existence of the firmware file
     lock.release()
