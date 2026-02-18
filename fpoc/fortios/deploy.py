@@ -1,4 +1,4 @@
-from django.template import loader
+from django.template import loader, engines
 from config.settings import PATH_FPOC_FIRMWARE, PATH_FPOC_BOOTSTRAP_CONFIGS, RELPATH_FPOC_BOOTSTRAP_CONFIGS, PATH_FPOC_CONFIG_SAVE, BASE_DIR
 import threading
 import time
@@ -174,20 +174,27 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
     :return:
     """
 
-    # Check if there is a bootstrap config for this FOS firmware on the disk (file name e.g. '6.4.6.out')
-    bootstrap_filename = f'{device.model}_{device.fos_version}.conf'
+    # Load the factory config for this FOS firmware and FGT model (file name e.g. 'FGT_VM64_KVM_7.6.6.conf')
+    #
+    factory_config_filename = f'{device.model}_{device.fos_version}.conf'
     try:
-        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{bootstrap_filename}', mode='r') as f:
-            f.read()
+        with open(f'{PATH_FPOC_BOOTSTRAP_CONFIGS}/{factory_config_filename}', mode='r') as f:
+            factory_config = f.read()
     except:
         print(
-            f'{device.name} : Could not find bootstrap configuration "{bootstrap_filename}" in folder {PATH_FPOC_BOOTSTRAP_CONFIGS}')
+            f'{device.name} : Could not find factory configuration "{factory_config_filename}" in folder {PATH_FPOC_BOOTSTRAP_CONFIGS}')
         raise StopProcessingDevice
 
-    # Render the bootstrap configuration
-    #
-    # No need to pass the 'request' (which adds CSRF tokens) since this is a rendering for FGT CLI settings
-    device.config = loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/{device.model}_{device.fos_version}.conf',
+    # Obsolete: there is no Jinja code anymore within the factory config, so no need to render the factory config
+        # Render the factory config
+        # jinja2_engine = engines['jinja2']
+        # device.config = jinja2_engine.from_string(factory_config).render(device.template_context)
+    device.config = factory_config
+
+    # Render specific settings for this FGT
+    #   No need to pass the 'request' parameter (which adds CSRF tokens) since this is a rendering for FGT CLI settings
+    # Append the rendered config after the factory config
+    device.config += loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/_FGT.conf',
                                             device.template_context, using='jinja2')
 
 
