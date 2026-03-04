@@ -203,6 +203,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-BR2': Interface(address='10.0.2.1/24'),
         'EAST-DC1': Interface(address='10.4.0.1/24'),
         'EAST-BR1': Interface(address='10.4.1.1/24'),
+        'EAST-BR2': Interface(address='10.4.2.1/24'),
     }
 
     # DataCenters info used:
@@ -325,6 +326,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                           'loopback': '10.200.2.1',
                                            'datacenter': datacenters['east'],
                                            })
+    east_br2 = FortiGate(name='EAST-BR2', template_group='BRANCHES',
+                        lan=LAN['EAST-BR2'],
+                        template_context=context | {'region': 'East', 'region_id': 2, 'branch_id': 2, 'gps': (44.4323, 26.1063),
+                                          'loopback': '10.200.2.2',
+                                           'datacenter': datacenters['east'],
+                                           })
 
     #
     # Host Devices used to build the /etc/hosts file
@@ -336,6 +343,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-BR1-LXC': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
         'WEST-BR2-LXC': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
         'EAST-BR1-LXC': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
+        'EAST-BR2-LXC': {'rank': 101, 'gateway': LAN['EAST-BR2'].ipprefix},
     }
 
     devices = {
@@ -345,15 +353,17 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-BR1': west_br1,
         'WEST-BR2': west_br2,
         'EAST-BR1': east_br1,
+        'EAST-BR2': east_br2,
 
         # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
 
         'WEST-DC1-LXC': LXC(name="WEST-DC1-LXC", template_context={'hosts': hosts}),
         'WEST-DC2-LXC': LXC(name="WEST-DC2-LXC",template_context={'hosts': hosts}),
-        'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),   # DC and not DC1
+        'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),
         'WEST-BR1-LXC': LXC(name="WEST-BR1-LXC",template_context={'hosts': hosts}),
         'WEST-BR2-LXC': LXC(name="WEST-BR2-LXC",template_context={'hosts': hosts}),
-        'EAST-BR1-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),   # BR and not BR1
+        'EAST-BR1-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),
+        'EAST-BR2-LXC': LXC(name="EAST-BR2-LXC", template_context={'hosts': hosts}),
         'INTERNET-SERVER': LXC(name="INTERNET-SERVER", template_filename='lxc.SRVINET.conf')
     }
 
@@ -449,6 +459,11 @@ def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, t
             'LAN': Interface(address='10.4.1.1/24', **vrf['LAN']),
             'LAN_YELLOW': Interface(address='10.4.11.1/24', vlanid=66, **vrf['LAN_YELLOW']),
             'LAN_RED': Interface(address='10.4.12.1/24', vlanid=67, **vrf['LAN_RED']),
+        },
+        'EAST-BR2': {
+            'LAN': Interface(address='10.4.2.1/24', **vrf['LAN']),
+            'LAN_YELLOW': Interface(address='10.4.21.1/24', vlanid=76, **vrf['LAN_YELLOW']),
+            'LAN_RED': Interface(address='10.4.22.1/24', vlanid=77, **vrf['LAN_RED']),
         },
     }
 
