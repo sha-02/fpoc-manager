@@ -353,7 +353,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-BR1': west_br1,
         'WEST-BR2': west_br2,
         'EAST-BR1': east_br1,
-        'EAST-BR2': east_br2,
+        # 'EAST-BR2': east_br2,
 
         # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
 
