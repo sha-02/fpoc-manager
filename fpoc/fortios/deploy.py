@@ -88,7 +88,7 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     lock.acquire()  # Acquire the mutual exclusion (mutex) lock to ensure only one thread at a time goes through this code
 
     # Recursively search for the firmware file under PATH_FPOC_FIRMWARE
-    firmware_name = device.model + firmwares[fos_version_target]["trailername"] + '.out'
+    firmware_name = device.model + firmwares[fos_version_target]["trailername"]
     path = None
     # for firmware_name in firmware_names:
     for path in Path(PATH_FPOC_FIRMWARE).rglob(firmware_name):
