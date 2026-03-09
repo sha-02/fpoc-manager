@@ -132,11 +132,13 @@ $(document).ready(function(){
             <option value='on_loopback' selected>BGP on loopback</option>
             <option value='per_overlay'>BGP per overlay</option>
           </select>
+          &nbsp; &nbsp;
           Overlay <select name="overlay">
             <option value='no_ip' selected>unnumbered (no IP)</option>
           <option value='static_ip'>static (exchange-interface-ip)</option>
           <option value='mode_cfg' >dynamic (Mode-Config)</option>
           </select>
+          &nbsp; &nbsp;
           <input type="checkbox" name="full_mesh_ipsec" value=1 title="(bgp-on-loopback) Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
           <br><br>
           Hub-side Steering BGP priority <select name="bidir_sdwan_bgp_priority">
@@ -172,9 +174,18 @@ $(document).ready(function(){
           </select>
 
           <br><input type="checkbox" name="multicast" value=0 title="(only BLUE VRF if VRF segmentation)"> Multicast routing
+
+          <br><br>Corporate summary <select name="corporate_summary">
+          <option value='net10' selected>10.0.0.0/8</option>
+          <option value='rfc1918' >RFC1918</option>
+          </select>
+
         </fieldset>
         <br>
-<!--        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion2' %}" formaction="{% url 'sdwan:dualdc_dualregion2' %}" >Start</button>-->
+
+        <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
+
+        <!--        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion2' %}" formaction="{% url 'sdwan:dualdc_dualregion2' %}" >Start</button>-->
         <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion2" formaction="dualdc_dualregion2/" >Deploy</button>
         <button type="submit" class="btn btn-success btn-sm" title="Dashboard" formaction="dashboard/" >Dashboard</button>
       </form>

@@ -87,7 +87,8 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
             'name': fpoc_fgtname,
             'mgmt': poc.devices[fpoc_fgtname].mgmt,
             'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
-            'fmg_sn': request.POST.get('fmg_sn')
+            'fmg_sn': request.POST.get('fmg_sn'),
+            'corporate_summary': request.POST.get('corporate_summary'),  # 'rfc1918', 'net10'
         }
 
         if bool(request.POST.get('WAN_underlays', False)) and fortigate.wan is not None:

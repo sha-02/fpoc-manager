@@ -30,6 +30,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'remote_signaling': request.POST.get('remote_signaling'),  # 'none', 'branch_community', 'branch_MED'
         'dualHub_failover': request.POST.get('dualHub_failover'),  # 'lowest-cost', 'best-link'
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
+        'corporate_summary':  request.POST.get('corporate_summary'),  # 'rfc1918', 'net10'
 
         # VRF segmentation
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
