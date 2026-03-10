@@ -311,7 +311,11 @@ def deploy(poc: TypePoC, device: FortiGate):
         template_name += f'{device.template_group}/'
     template_name += f'{device.template_filename}'
 
-    device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
+    if not poc.request.POST.get('previewOnly') and poc.request.POST.get('singlePassDeploy'):
+        render_bootstrap_config(poc, device)    # bootstrap config is loaded in device.config
+        device.config += loader.render_to_string(template_name, device.template_context, using='jinja2') # add PoC CLI
+    else:
+        device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
     if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
