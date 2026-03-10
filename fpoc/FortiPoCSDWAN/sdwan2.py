@@ -34,7 +34,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         # VRF segmentation
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
-        'vrf_ria': request.POST.get('vrf_ria'),  # 'preserve_origin' or 'nat_origin'
+        'vrf_ria': request.POST.get('vrf_ria'),  # 'none', 'preserve_origin' or 'nat_origin'
         'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-251] VRF for Internet and MPLS links
         'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-251] VRF for IPsec tunnels
         'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-251] port5 (no vlan) segment
@@ -123,7 +123,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             if len(set(ce_vrfids)) != len(ce_vrfids):  # check if the CE VRF IDs are all unique
                 errors.append('All CE VRF IDs must be unique')
 
-            messages.append("design choice: All CE VRFs from all Branches in all Regions have DIA (there is no Branch with only RIA)")
+            messages.append("design choice: All CE VRFs from all Branches in all Regions have DIA + SIA (no RIA via Hub)")
 
     #
     # BGP per overlay - sanity checks
@@ -191,9 +191,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         poc = FortiLabSDWAN(request)
 
     # OOB in VRF 10
-    poc.mgmt.vrfid = 10
+    if context['vrf_aware_overlay']:
+        poc.mgmt.vrfid = 0  # VRF 0 is not used by PoC so it can be used for OOB
+    else:
+        poc.mgmt.vrfid = 10
 
-    #
+
     # LAN underlays
     #
 

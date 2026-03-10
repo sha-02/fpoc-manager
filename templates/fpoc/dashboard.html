@@ -83,12 +83,13 @@
 <!--      </div>-->
     </div>
 
+{% if devices.WEST_EXT %}
     <br>
     <div class="row">
       <div class="col">
-        WEST-CORE
-        [<a href="{{devices.WEST_CORE.URL.1}}" target="_blank">{{devices.WEST_CORE.URL.0}}</a>]
-        [<a href="{{devices.WEST_CORE.console}}" target="_blank">console</a>]
+        WEST-EXT
+        [<a href="{{devices.WEST_EXT.URL.1}}" target="_blank">{{devices.WEST_EXT.URL.0}}</a>]
+        [<a href="{{devices.WEST_EXT.console}}" target="_blank">console</a>]
       </div>
 <!--      <div class="col">-->
 <!--        WEST-CORE-LXC-->
@@ -96,7 +97,7 @@
 <!--        [<a href="https://<?=$server_ip?>/term/dev_i_21_PC-WEST-CORE/lxcbash" target="_blank">console</a>]-->
 <!--      </div>-->
     </div>
-
+{% endif %}
 
     <br>
     <div class="row">
@@ -105,9 +106,9 @@
 
     <div class="row">
       <div class="col">
-        EAST-BR
-        [<a href="{{devices.EAST_BR.URL.1}}" target="_blank">{{devices.EAST_BR.URL.0}}</a>]
-        [<a href="{{devices.EAST_BR.console}}" target="_blank">console</a>]
+        EAST-BR1
+        [<a href="{{devices.EAST_BR1.URL.1}}" target="_blank">{{devices.EAST_BR1.URL.0}}</a>]
+        [<a href="{{devices.EAST_BR1.console}}" target="_blank">console</a>]
       </div>
 <!--      <div class="col">-->
 <!--        EAST-BR-LXC-->
@@ -118,9 +119,9 @@
 
     <div class="row">
       <div class="col">
-        EAST-DC
-        [<a href="{{devices.EAST_DC.URL.1}}" target="_blank">{{devices.EAST_DC.URL.0}}</a>]
-        [<a href="{{devices.EAST_DC.console}}" target="_blank">console</a>]
+        EAST-DC1
+        [<a href="{{devices.EAST_DC1.URL.1}}" target="_blank">{{devices.EAST_DC1.URL.0}}</a>]
+        [<a href="{{devices.EAST_DC1.console}}" target="_blank">console</a>]
       </div>
 <!--      <div class="col">-->
 <!--        EAST-DC-LXC-->

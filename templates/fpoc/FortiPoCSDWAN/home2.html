@@ -167,11 +167,10 @@ $(document).ready(function(){
           <input type="hidden" name="vrf_yellow" maxlength="3" size="3" value="11">
           <input type="hidden" name="vrf_red" maxlength="3" size="3" value="12">
 
-          <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
-
-          CE VRF RIA <select name="vrf_ria">
-          <option value='nat_origin' selected>origin IP can be NATed</option>
-          <option value='preserve_origin'>origin IP must be preserved, no NAT to the Hub</option>
+          &nbsp; &nbsp; &nbsp;CE VRF RIA via Hub <select name="vrf_ria">
+          <option value='none' selected>No Hub RIA, only SSE SIA</option>
+          <option value='nat_origin' disabled>origin IP can be NATed</option>
+          <option value='preserve_origin' disabled>origin IP must be preserved, no NAT to the Hub</option>
           </select>
 
           <br><input type="checkbox" name="multicast" value=0 title="(only BLUE VRF if VRF segmentation)"> Multicast routing
