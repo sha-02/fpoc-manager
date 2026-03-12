@@ -1,7 +1,5 @@
-import re, netmiko, paramiko
 import time
-
-from netmiko import NetmikoAuthenticationException
+import re, netmiko, paramiko
 import scp as scp_
 
 from fpoc.devices import FortiGate
@@ -39,7 +37,7 @@ def ssh_logon(device: FortiGate):
         ssh_params['password'] = pwd
         try:
             ssh = netmiko.ConnectHandler(**ssh_params)
-        except NetmikoAuthenticationException:
+        except netmiko.NetmikoAuthenticationException:
             print(f'{device.name} : SSH authentication failed with password "{pwd}". Trying with next password...')
             continue
             # ssh = netmiko.ConnectHandler(**ssh_params)
@@ -100,26 +98,39 @@ end
     device.apikey = re_token.group(1).strip()
 
 
-def upload_firmware(device: FortiGate, firmware: str):
+def upload_config(device: FortiGate, filepath):
     """
-    Update (upgrade or downgrade) the firmware of this FGT
+    Upload config file with SCP
+    """
+    print(f'{device.name} : Uploading full-config...')
+    scp_upload(device=device, filepath=filepath, remote_path='fgt-restore-config')
+    print(f'{device.name} : full-config uploaded.')
 
-    :param device:
-    :param firmware: filename of the firmware to be uploaded to the FGT
-    :return:
+
+def upload_firmware(device: FortiGate, filepath: str):
+    """
+    Update (upgrade or downgrade) the firmware of this FGT using SCP
+    """
+    scp_upload(device=device, filepath=filepath, remote_path='fgt-image')
+
+
+def scp_upload(device: FortiGate, filepath: str, remote_path: str):
+    """
+    paramiko library is used because netmiko does NOT support 'fortinet' device type (at the time of writing this code)
     """
     ssh = paramiko.SSHClient()
-    # ssh.load_system_host_keys()   # Do not load system host jeys otherwise it can trigger paramiko.ssh_exception.BadHostKeyException
+    # ssh.load_system_host_keys()   # Do not load system host keys otherwise it can trigger paramiko.ssh_exception.BadHostKeyException
     ssh.set_missing_host_key_policy(paramiko.WarningPolicy())   # Accept unknown server key, simply log a warning
     ssh.connect(hostname=device.ip, username=device.username, password=device.password, port=device.ssh_port)
 
-    scp = scp_.SCPClient(ssh.get_transport())   # SCPCLient takes a paramiko transport as an argument
+    scp = scp_.SCPClient(ssh.get_transport())   # SCPClient takes a paramiko transport as an argument
 
     # Upload firmware
-    scp.put(remote_path='fgt-image', files=firmware)
+    scp.put(remote_path=remote_path, files=filepath)
 
     # close connections
     scp.close(); ssh.close()
+
 
 # Legacy functions for old FOS versions (< 7.0) #####################
 

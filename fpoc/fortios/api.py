@@ -215,7 +215,7 @@ def upload_firmware(device: FortiGate, firmware: str):
         print(f'{device.name} : Trying firmware upload via SCP...')
         try:
             configure(device, path='/system/global', payload={'admin-scp': 'enable'}, error_msg='failure to enable SCP')
-            fortios.ssh.upload_firmware(device, firmware)
+            fortios.ssh.upload_firmware(device, filepath=firmware)
         except Exception as ex:
             # Display detailed information about the exception (class, filename, line number)
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -252,7 +252,7 @@ def run_script(device: FortiGate, script_name: str):
                                    f'\nstatus_code={response.status_code} reason={response.reason} \ntext={response.text}\n')
 
 
-def restore_config_file(device: FortiGate):
+def upload_config(device: FortiGate):
     """
     Restore full configuration file on FGT
 

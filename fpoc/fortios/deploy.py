@@ -198,15 +198,6 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
                                             device.template_context, using='jinja2')
 
 
-def upload_bootstrap_config(device: FortiGate):
-    """
-    Upload the bootstrap configuration stored in device.config
-    """
-    print(f'{device.name} : Uploading bootstrap configuration... ')
-    fortios.restore_config_file(device)
-    print(f'{device.name} : bootstrap configuration uploaded.')
-
-
 def should_upload_boostrap(device: FortiGate) -> bool:
     """
     Check if bootstrap config must be uploaded to FGT or not
@@ -228,11 +219,11 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     return not is_running_bootstrap(device)  # Returns False if FGT is not running bootstrap config, True otherwise.
 
 
-def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
+def save_config(fortipoc_name: str, device: FortiGate, poc_id: int) -> str:
     """
     """
-    filename = f'{PATH_FPOC_CONFIG_SAVE}/{fortipoc_name}_poc{poc_id:02}_{device.name}.conf'
-    with open(filename, 'w') as f:
+    filepath = f'{PATH_FPOC_CONFIG_SAVE}/{fortipoc_name}_poc{poc_id:02}_{device.name}.conf'
+    with open(filepath, 'w') as f:
         if is_config_snippets(device.config):
             f.write(f'# fpoc{poc_id:02} {device.name} FortiOS {device.fos_version}')
             f.write(f'\n# context = {device.template_context}')
@@ -240,11 +231,13 @@ def save_config(fortipoc_name: str, device: FortiGate, poc_id: int):
         f.write(device.config)
 
     if poc_id == 0:
-        print(f'{device.name} : Bootstrap configuration saved to {filename}')
+        print(f'{device.name} : Bootstrap configuration saved to {filepath}')
     elif is_config_snippets(device.config):
-        print(f'{device.name} : CLI script saved to {filename}')
+        print(f'{device.name} : CLI script saved to {filepath}')
     else:
-        print(f'{device.name} : full-config saved to {filename}')
+        print(f'{device.name} : full-config saved to {filepath}')
+
+    return filepath
 
 
 def deploy(poc: TypePoC, device: FortiGate):
@@ -294,14 +287,12 @@ def deploy(poc: TypePoC, device: FortiGate):
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
-        render_bootstrap_config(poc, device)
+        render_bootstrap_config(poc, device)    # config is stored in device.config
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if not poc.request.POST.get('previewOnly'):
-            upload_bootstrap_config(device)  # for this PoC, the bootstrap config is pushed unconditionally, without
-            # checking if there is a bootstrap config already running on the FGT. This is because there are different
-            # possible options for the bootstrap config (e.g., 'WAN_underlays')
-            # It's simpler to push the bootstrap config unconditionally than having to check whether the bootstrap
-            # config running on the FGT has the same options as the ones requested
+            print(f'{device.name} : Uploading bootstrap configuration... ')
+            fortios.api.upload_config(device)
+            print(f'{device.name} : bootstrap configuration uploaded.')
 
         raise CompletedDeviceProcessing
 
@@ -312,16 +303,19 @@ def deploy(poc: TypePoC, device: FortiGate):
     template_name += f'{device.template_filename}'
 
     if not poc.request.POST.get('previewOnly') and poc.request.POST.get('singlePassDeploy'):
+        # Create a full-config made up of the bootstrap config followed by the PoC CLI commands
         render_bootstrap_config(poc, device)    # bootstrap config is loaded in device.config
-        device.config += loader.render_to_string(template_name, device.template_context, using='jinja2') # add PoC CLI
+        device.config += loader.render_to_string(template_name, device.template_context, using='jinja2') # add PoC CLI cmdes
     else:
         device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
 
     # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
     if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
-        render_bootstrap_config(poc, device)
+        render_bootstrap_config(poc, device)    # config is stored in device.config
         save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
-        upload_bootstrap_config(device)
+        print(f'{device.name} : Uploading bootstrap configuration... ')
+        fortios.api.upload_config(device)
+        print(f'{device.name} : bootstrap configuration uploaded.')
         if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
             raise CompletedDeviceProcessing
         else:
@@ -329,13 +323,14 @@ def deploy(poc: TypePoC, device: FortiGate):
             raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to load the config and reboot
 
     # Save this CLI configuration to disk
-    save_config(poc.__class__.__name__, device, poc.id)
+    config_filepath = save_config(poc.__class__.__name__, device, poc.id)
 
-    # Deploy the config
+    # Preview the config
     if poc.request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
         raise CompletedDeviceProcessing  # No more processing needed for this FGT
 
-    if is_config_snippets(device.config):
+    # Deploy the config
+    if is_config_snippets(device.config):   # CLI commands to run via API script
         # Enable VDOMs on the FGT if it is needed for the PoC and VDOMs are not yet enabled on the FGT
         if device.template_context.get('multi_vdom') and fortios.retrieve_vdom_mode(device) == 'no-vdom':
             print(f'{device.name} : Enabling VDOMs')
@@ -348,9 +343,11 @@ def deploy(poc: TypePoC, device: FortiGate):
         print(f'{device.name} : Upload and run configuration script: {script_name}')
         fortios.run_script(device, script_name)
     else:
-        # Full configuration file
-        print(f'{device.name} : Restoring full configuration')
-        fortios.restore_config_file(device)
+        # Upload the Full configuration file
+        if poc.request.POST.get('scpDeploy') :  # Upload via SCP
+            fortios.ssh.upload_config(device, filepath=config_filepath)
+        else:   # Upload via API
+            fortios.api.upload_config(device)
 
 
 def is_config_snippets(config: str) -> bool:

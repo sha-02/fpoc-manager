@@ -1,10 +1,21 @@
 {% extends '_base.html' %}
+{% load custom_filters %}
 
 {% block title %}{{title}}{% endblock %}
 
 {% block content %}
 <h1>{{header}}</h1>
 {% autoescape off %}
-{{message}}
+
+{% if message|is_list %}
+    <ul>
+    {% for msg in message %}
+        <li>{{ msg }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    {{ message }}
+{% endif %}
+
 {% endautoescape %}
 {% endblock content %}
