@@ -3,10 +3,10 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc.FortiPoCAirbus import FortiPoCAirbus
+from fpoc.FortiPoCOnce import FabricStudioOnce
 from fpoc import FortiGate, LXC, VyOS, fortipoc_instances
 
-APPNAME = "fpoc/FortiPoCAirbus"
+APPNAME = "fpoc/FortiPoCOnce"
 
 
 class HomePageView(TemplateView):
@@ -15,12 +15,12 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
 
-        context['Class_PoC'] = 'FortiPoCAirbus'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+        context['Class_PoC'] = 'FabricStudioOnce'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
         context['firmware'] = fortios_firmware()
         context['fortipoc_instances'] = fortipoc_instances()
-        context['fortigates'] = FortiPoCAirbus.devices_of_type(FortiGate).keys()
-        context['lxces'] = FortiPoCAirbus.devices_of_type(LXC).keys()
-        context['vyoses'] = FortiPoCAirbus.devices_of_type(VyOS).keys()
+        context['fortigates'] = FabricStudioOnce.devices_of_type(FortiGate).keys()
+        # context['lxces'] = FabricStudioOnce.devices_of_type(LXC).keys()
+        # context['vyoses'] = FabricStudioOnce.devices_of_type(VyOS).keys()
         return context
 
 

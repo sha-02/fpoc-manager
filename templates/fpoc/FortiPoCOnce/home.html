@@ -1,0 +1,99 @@
+{% extends '_base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}PoC One-Off{% endblock title %}
+
+{% block content %} {# override the 'content' block defined in _base.html #}
+
+{% include "./script.js" %}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> <!-- for tooltips -->
+
+<div class="accordion" id="accordionPoC">
+    <div class="card">
+        <div class="card-header" id="heading-0">
+            <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
+                        data-target="#collapse-0" aria-expanded="true" aria-controls="collapse-0">
+                    PoC
+                </button>
+            </h2>
+        </div>
+        <div id="collapse-0" class="collapse show" aria-labelledby="heading-0" data-parent="#accordionPoC">
+            <!-- 'show' in class to ensure it is opened by default -->
+            <div class="card-body">
+                <form id="formPoC" method="post" onsubmit="collectFortiPoCElements(this.id)">
+                    {% csrf_token %}
+                    <fieldset>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <input type="checkbox" name="fgtCheckbox" onclick="selectDeselectFgt(this)" checked>
+                                    <b>FortiGates</b>
+                                    {% for fgt in fortigates %}
+                                    <br><input type="checkbox" name="{{fgt}}" checked> {{fgt}}
+                                    {% endfor %}
+                                </div>
+                                {% if lxces %}
+                                <div class="col">
+                                    <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)">
+                                    <b>LXC</b>
+                                    {% for lxc in lxces %}
+                                    <br><input type="checkbox" name="{{lxc}}"> {{lxc}}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if vyoses %}
+                                <div class="col">
+                                    <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)">
+                                    <b>VyOS</b>
+                                    {% for vyos in vyoses %}
+                                    <br><input type="checkbox" name="{{vyos}}"> {{vyos}}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <hr>
+                    <input type="checkbox" name="WAN_underlays"> WAN underlays
+                    HA <select name="HA">
+                    <option value="standalone" selected>standalone</option>
+                    <option value="FGCP">FGCP</option>
+                </select>
+
+                    {% if fortipoc_instances %}
+                    <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected FortiGates"
+                            formaction="{% url 'poc:poweron' %}">Power-On Devices
+                    </button>
+                    {% endif %}
+                    <button type="submit" class="btn btn-warning btn-sm"
+                            title="Upgrade/Downgrade the selected FortiGates"
+                            formaction="{% url 'poc:upgrade' %}">Upgrade FortiGates
+                    </button>
+                    <button type="submit" class="btn btn-info btn-sm"
+                            title="Deploy bootstrap configuration to the selected FortiGates"
+                            formaction="{% url 'poc:bootstrap' %}">Deploy Bootstrap Config to FortiGates
+                    </button>
+
+                    <br><input type="checkbox" name="fortimanager"> FortiManager S/N <input type="text" name="fmg_sn"
+                                                                                            maxlength="16" size="16">
+                    <br><br>
+
+                    <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
+
+                    <button type="submit" class="btn btn-info btn-sm"
+                            title="Deploy the PoC configuration to the selected FortiGates"
+                            formaction="{% url 'poc:poc' %}">Deploy
+                    </button>
+                    <button type="submit" class="btn btn-success btn-sm" title="Dashboard" formaction="dashboard/">
+                        Dashboard
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock content %}
+
+

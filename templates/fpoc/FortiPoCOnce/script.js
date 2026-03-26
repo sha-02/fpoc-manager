@@ -1,0 +1,1 @@
+/home/shamelin/Documents/FABRICstudio/fpoc-manager/templates/fpoc/FortiPoCSDWAN/script.js

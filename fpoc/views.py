@@ -5,9 +5,12 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 import fpoc
+# from fpoc import FortiPoCFoundation1, FortiPoCSDWAN, FortiLabSDWAN
 from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
-from fpoc import FortiPoCFoundation1, FortiPoCSDWAN, FortiLabSDWAN
-from fpoc.FortiPoCSDWAN.fabric_studio import FabricStudioSDWAN
+from fpoc.FortiPoCSDWAN.fabric_studio import FabricStudioSDWAN  # required for eval(request.POST['Class_PoC'])
+from fpoc.FortiPoCSDWAN.fortilab import FortiLabSDWAN           # required for eval(request.POST['Class_PoC'])
+from fpoc.FortiPoCOnce.fabric_studio import FabricStudioOnce    # required for eval(request.POST['Class_PoC'])
+
 import fpoc.ansible as ansible
 from fpoc.deploy import device_URL, device_URL_console
 
@@ -61,7 +64,7 @@ def dashboard(request: WSGIRequest) -> HttpResponse:
         }
 
     # Render and deploy the dashboard
-    return render(poc.request, f'fpoc/dashboard.html', {'devices': devices})
+    return render(poc.request, f'fpoc/{poc.template_folder}/dashboard.html', {'devices': devices})
 
 
 def bootstrap(request: WSGIRequest) -> HttpResponse:
