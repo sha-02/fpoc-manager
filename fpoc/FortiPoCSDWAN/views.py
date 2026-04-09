@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN, FabricStudioSDWAN
+from fpoc.FortiPoCSDWAN import FortiLabSDWAN, FabricStudioSDWAN # required for eval(context['Class_PoC'])
 from fpoc import FortiGate, LXC, VyOS, fortipoc_instances
 
 APPNAME = "fpoc/FortiPoCSDWAN"
@@ -43,21 +43,11 @@ class HomePageView(TemplateView):
             context['fortipoc_instances'] = fortipoc_instances()
 
         # List of devices for the PoC
-        if 'fortipoc' in self.request.path:
-            context['Class_PoC'] = 'FortiPoCSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
-            context['lxces'] = FortiPoCSDWAN.devices_of_type(LXC).keys()
-            context['vyoses'] = FortiPoCSDWAN.devices_of_type(VyOS).keys()
-            context['fortigates'] = list(FortiPoCSDWAN.devices_of_type(FortiGate).keys()) # convert to list so that elements can be deleted
-            if '7.0_7.2' not in self.request.path:  # remove legacy devices
-                context['fortigates'].remove('EAST-DC'); context['fortigates'].remove('EAST-BR')
-            else:
-                context['fortigates'].remove('EAST-DC1'); context['fortigates'].remove('EAST-BR1')
-
         if 'fabric' in self.request.path:
             context['Class_PoC'] = 'FabricStudioSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
-            context['lxces'] = FabricStudioSDWAN.devices_of_type(LXC).keys()
-            context['vyoses'] = FabricStudioSDWAN.devices_of_type(VyOS).keys()
-            context['fortigates'] = list(FabricStudioSDWAN.devices_of_type(FortiGate).keys()) # convert to list so that elements can be deleted
+            context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
+            context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
+            context['fortigates'] = list(eval(context['Class_PoC']).devices_of_type(FortiGate).keys()) # convert to list so that elements can be deleted
             if '7.0_7.2' not in self.request.path:  # remove legacy devices
                 context['fortigates'].remove('EAST-DC'); context['fortigates'].remove('EAST-BR')
             else:
@@ -65,7 +55,7 @@ class HomePageView(TemplateView):
 
         if 'hardware' in self.request.path:
             context['Class_PoC'] = 'FortiLabSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
-            context['fortigates'] = FortiLabSDWAN.devices_of_type(FortiGate).keys()
+            context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
 
         # Defines the minimum FOS version proposed in the dropdown list
         minimum_fortios = '7.0.0'

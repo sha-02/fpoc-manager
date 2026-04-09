@@ -6,7 +6,7 @@ import copy
 
 import fpoc
 from fpoc.devices import Interface, FortiGate, LXC
-from fpoc.FortiPoCSDWAN import FortiPoCSDWAN, FortiLabSDWAN, FabricStudioSDWAN
+from fpoc.FortiPoCSDWAN import FortiLabSDWAN, FabricStudioSDWAN
 from fpoc.typing import TypePoC
 import typing
 
@@ -46,9 +46,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     }
 
     # Create the poc
-    if 'fortipoc' in request.path:  # poc is running in FortiPoC
-        poc = FortiPoCSDWAN(request)
-    elif 'fabric'  in request.path:  # poc is running in FabricStudio
+    if 'fabric'  in request.path:  # poc is running in FabricStudio
         poc = FabricStudioSDWAN(request)
     else:  # poc is running in Hardware Lab
         poc = FortiLabSDWAN(request)
@@ -388,10 +386,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     devices = {
         'WEST-DC1': west_dc1,
         'WEST-DC2': west_dc2,
-        'EAST-DC': east_dc,     # 'DC' and not 'DC1' because it references the device in class FortiPoCSDWAN
+        'EAST-DC': east_dc,     # 'DC' and not 'DC1' because it references the device in class FabricStudioSDWAN
         'WEST-BR1': west_br1,
         'WEST-BR2': west_br2,
-        'EAST-BR': east_br,     # 'BR' and not 'BR1' because it references the device in class FortiPoCSDWAN
+        'EAST-BR': east_br,     # 'BR' and not 'BR1' because it references the device in class FabricStudioSDWAN
 
         'PC-WEST-DC1': LXC(name="PC-WEST-DC1", template_context={'hosts': hosts}),
         'PC-WEST-DC2': LXC(name="PC-WEST-DC2",template_context={'hosts': hosts}),

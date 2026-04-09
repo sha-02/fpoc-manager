@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import FortiPoCFoundation1, FortiGate, LXC, VyOS, fortipoc_instances
+from fpoc import StudioVPN, FortiGate, LXC, VyOS, fortipoc_instances
 
 #
 # return render(request, 'fpoc/fpoc01/snr01/_FGT.conf', {'FGT': 'B'})
@@ -25,7 +25,7 @@ from fpoc import FortiPoCFoundation1, FortiGate, LXC, VyOS, fortipoc_instances
 #
 #     return output
 
-APPNAME = "fpoc/FortiPoCFoundation1"
+APPNAME = "fpoc/PoC_VPN"
 
 
 class HomePageView(TemplateView):
@@ -34,12 +34,12 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
 
-        context['Class_PoC'] = 'FortiPoCFoundation1'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+        context['Class_PoC'] = 'StudioVPN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+        context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
+        context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
+        context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
         context['firmware'] = fortios_firmware()
         context['fortipoc_instances'] = fortipoc_instances()
-        context['fortigates'] = FortiPoCFoundation1.devices_of_type(FortiGate).keys()
-        context['lxces'] = FortiPoCFoundation1.devices_of_type(LXC).keys()
-        context['vyoses'] = FortiPoCFoundation1.devices_of_type(VyOS).keys()
         return context
 
 

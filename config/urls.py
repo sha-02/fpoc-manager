@@ -12,8 +12,8 @@ sites = {
     'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    'Foundation1/': {'urls': 'fpoc.FortiPoCFoundation1.urls', 'selected': False},
-    'PoC.One-Off/': {'urls': 'fpoc.FortiPoCOnce.urls', 'selected': False}
+    'VPN/': {'urls': 'fpoc.PoC_VPN.urls', 'selected': False},
+    'One-Off/': {'urls': 'fpoc.FortiPoCOnce.urls', 'selected': False}
 }
 
 # The first line of file 'site.txt' contains the URL of the site to start (kind of equivalent to index.html principle)
@@ -44,8 +44,8 @@ urlpatterns = [
 urlpatterns += [path(site_name, include(site['urls'])) for site_name, site in sites.items()]
 
 # path('', include('fpoc.urls')),
-# path('', RedirectView.as_view(url='FortiPoCFoundation1/')),
-# path('FortiPoCFoundation1/', include('fpoc.FortiPoCFoundation1.urls')),
+# path('', RedirectView.as_view(url='PoC_VPN/')),
+# path('PoC_VPN/', include('fpoc.PoC_VPN.urls')),
 
 
 #

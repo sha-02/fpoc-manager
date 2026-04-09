@@ -4,14 +4,19 @@ from fpoc import FortiLab
 from fpoc.devices import FortiGate
 from fpoc.fortilab import Mgmt
 
-class FortiPoC(FortiLab):
+
+class FabricStudio(FortiLab):
+    # Fabric Studio has a reverse proxy which blocks API call on the default HTTPS redirection ports (13000 + devid)
+    # So I configured additional HTTPS redirections with a base port of 20000
+    # BASE_PORT_HTTPS = 13000  # default HTTPS ports for FabricStudio devices (13000 + devid): 13000, 13001, 13002, ...
+    BASE_PORT_HTTPS = 20000
     BASE_PORT_SSH = 11000  # SSH ports for FortiPoC devices are 11000 + poc-devid: 11001, 11002, 11003, ...
-    BASE_PORT_HTTPS = 14000  # HTTPS ports for FortiPoC devices are 14000 + poc-devid: 14001, 14002, 14003, ...
+
     mgmt = Mgmt(vrfid=10, gw='172.16.31.254', gw2='172.16.31.251', dns='172.16.31.254')
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Call parent class to store the WSGI request and merge the class-level devices with the instance-level devices
-        super(FortiPoC, self).__init__(request, poc_id)
+        super().__init__(request, poc_id)
 
         # IP of FortiPoC is retrieved from the WSGI request: either from the fpoc selection or from a provided IP
         fpoc_ip = request.POST.get('fpocIP') if request.POST.get('fpocIP') else request.POST.get('pocInstance')
@@ -40,7 +45,7 @@ class FortiPoC(FortiLab):
         for each device which is kept: merge the class-level attributes with the instance-level attributes
         """
         # Call parent class to do the device filtering and the class-level/device-level attribute merge
-        super(FortiPoC, self).members(devices, devnames)
+        super().members(devices, devnames)
 
         # configure access attributes for each device (name, IP@, SSH/HTTPS ports) depending on whether it is accessed
         # from within the FortiPoC (direct) or from the FortiPoC public IP (external NAT)
@@ -65,11 +70,3 @@ class FortiPoC(FortiLab):
         Return the name of the Class itself
         """
         return cls.__name__
-
-
-class FabricStudio(FortiPoC):
-    # BASE_PORT_HTTPS = 13000  # default HTTPS ports for FabricStudio devices (13000 + devid): 13000, 13001, 13002, ...
-
-    # Fabric Studio has a reverse proxy which blocks API call on the default HTTPS redirection ports (13000 + devid)
-    # So I configured additional HTTPS redirections with a base port of 20000
-    BASE_PORT_HTTPS = 20000

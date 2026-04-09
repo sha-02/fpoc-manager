@@ -1,7 +1,7 @@
 import copy
 
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc import FortiPoC, FortiGate, LXC, VyOS, WAN, Interface, Network, FabricStudio
+from fpoc import FortiGate, LXC, VyOS, WAN, Interface, Network, FabricStudio
 
 
 class FabricStudioSDWAN(FabricStudio):
@@ -70,15 +70,15 @@ class FabricStudioSDWAN(FabricStudio):
                             mgmt=Interface('eth0', 0, '172.16.31.6/24'),
                             ),
 
-        'WAN': FortiGate(offset=9, nameid='fgt007',
-                            mgmt=Interface('port10', 0, '172.16.31.251/24'),
-                            lan=Interface('port5', 0, ''),
-                            wan=WAN(
-                                inet=Interface('port9', 0, '198.18.8.1/24', 'INTERNET'),
-                                inet1=Interface('port1', 0, '203.0.113.254/24', 'ISP1'),
-                                inet2=Interface('port2', 0, '198.51.100.254/24', 'ISP2'),
-                                mpls1=Interface('port3', 0, '10.71.0.254/24', 'MPLS_SP1'),
-                            )),
+        # 'WAN': FortiGate(offset=9, nameid='fgt007',
+        #                     mgmt=Interface('port10', 0, '172.16.31.251/24'),
+        #                     lan=Interface('port5', 0, ''),
+        #                     wan=WAN(
+        #                         inet=Interface('port9', 0, '198.18.8.1/24', 'INTERNET'),
+        #                         inet1=Interface('port1', 0, '203.0.113.254/24', 'ISP1'),
+        #                         inet2=Interface('port2', 0, '198.51.100.254/24', 'ISP2'),
+        #                         mpls1=Interface('port3', 0, '10.71.0.254/24', 'MPLS_SP1'),
+        #                     )),
 
         'WEST-DC1-LXC': LXC(offset=11, mgmt=Interface('eth9', 0, '172.16.31.111/24')),
         'WEST-DC2-LXC': LXC(offset=13, mgmt=Interface('eth9', 0, '172.16.31.121/24')),
@@ -98,7 +98,7 @@ class FabricStudioSDWAN(FabricStudio):
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Go up the parent chain to store the WSGI request, merge class-level devices with instance-level devices
         # and configure device access info (from within fortipoc or from fortipoc public IP)
-        super(FabricStudioSDWAN, self).__init__(request, poc_id)
+        super().__init__(request, poc_id)
 
         # Add password and MPLS summary subnet to each FortiGate
         for device in self.devices.values():

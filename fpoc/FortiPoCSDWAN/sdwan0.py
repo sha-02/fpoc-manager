@@ -4,7 +4,7 @@ from django.http import HttpResponse
 
 import fpoc
 from fpoc import FortiGate, FortiGate_HA, LXC
-from fpoc.FortiPoCSDWAN import FortiPoCSDWAN
+from fpoc.FortiPoCSDWAN import FabricStudioSDWAN
 
 APPNAME = "fpoc/FortiPoCSDWAN"
 
@@ -48,7 +48,7 @@ def singlehub(request: WSGIRequest, poc_id: int) -> HttpResponse:
             del devices[cluster[1]]  # delete the secondary device from the list of devices to be configured
 
     # Check request, render and deploy configs
-    return fpoc.start(request, poc_id, devices, class_=FortiPoCSDWAN)
+    return fpoc.start(request, poc_id, devices, class_=FabricStudioSDWAN)
 
 
 def singlehub_fos70(request: WSGIRequest) -> tuple:
@@ -57,9 +57,9 @@ def singlehub_fos70(request: WSGIRequest) -> tuple:
         'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
 
         # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
-        'hub_inet1': FortiPoCSDWAN.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
-        'hub_inet2': FortiPoCSDWAN.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
-        'hub_mpls': FortiPoCSDWAN.devices['FGT-A'].wan.mpls1.subnet + '.3',  # 10.0.14.3
+        'hub_inet1': FabricStudioSDWAN.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
+        'hub_inet2': FabricStudioSDWAN.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
+        'hub_mpls': FabricStudioSDWAN.devices['FGT-A'].wan.mpls1.subnet + '.3',  # 10.0.14.3
     }
 
     devices = {
@@ -112,10 +112,10 @@ def singlehub_fos62(request: WSGIRequest) -> tuple:
         'feasible_routes': request.POST.get('feasible_routes'), # 'none', 'rfc1918', 'remote_internet_all', 'remote_internet_mpls'
 
         # Underlay IPs of the Hub which are used as IPsec remote-gw by the branches
-        'hub_inet1': FortiPoCSDWAN.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
-        'hub_inet2': FortiPoCSDWAN.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
-        'hub_lte': FortiPoCSDWAN.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
-        'hub_mpls': FortiPoCSDWAN.devices['FGT-A'].wan.mpls1.subnet + '.3',  # 10.0.14.3
+        'hub_inet1': FabricStudioSDWAN.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
+        'hub_inet2': FabricStudioSDWAN.devices['FGT-A'].wan.inet2.subnet + '.3',  # 100.64.12.3
+        'hub_lte': FabricStudioSDWAN.devices['FGT-A'].wan.inet1.subnet + '.3',  # 100.64.11.3
+        'hub_mpls': FabricStudioSDWAN.devices['FGT-A'].wan.mpls1.subnet + '.3',  # 10.0.14.3
     }
 
     # Most common set of configuration settings should be:
