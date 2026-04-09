@@ -68,10 +68,10 @@
     <!-- Studio VMs, FortiOS versions-->
     <div class="d-flex justify-content-between ">
     <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
-      {% if fortipoc_instances %}
+      {% if studio_instances %}
         <div class="p-2 bd-highlight">
           Studio VM <select id="pocInstance" name="pocInstance">
-              {% for name, fpoc in fortipoc_instances.items %}
+              {% for name, fpoc in studio_instances.items %}
                 {% if fpoc.selected %}
                   <option value="{{fpoc.ip}}" selected>{{name}}</option>
                 {% else %}

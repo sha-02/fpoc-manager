@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import StudioVPN, FortiGate, LXC, VyOS, fortipoc_instances
+from fpoc import StudioVPN, FortiGate, LXC, VyOS, studio_instances
 
 #
 # return render(request, 'fpoc/fpoc01/snr01/_FGT.conf', {'FGT': 'B'})
@@ -39,7 +39,7 @@ class HomePageView(TemplateView):
         context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
         context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
         context['firmware'] = fortios_firmware()
-        context['fortipoc_instances'] = fortipoc_instances()
+        context['studio_instances'] = studio_instances()
         return context
 
 

@@ -3,7 +3,7 @@ from django.http import HttpResponse
 
 import fpoc
 from fpoc.devices import Interface, FortiGate, WAN
-from fpoc.PoC_SDWAN import FabricStudioSDWAN, FortiLabSDWAN
+from fpoc.PoC_SDWAN import FabricStudioSDWAN, AgoraSDWAN
 
 
 class PoCOnce(FabricStudioSDWAN):

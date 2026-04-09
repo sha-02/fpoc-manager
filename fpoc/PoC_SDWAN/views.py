@@ -5,8 +5,8 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc.PoC_SDWAN import FortiLabSDWAN, FabricStudioSDWAN # required for eval(context['Class_PoC'])
-from fpoc import FortiGate, LXC, VyOS, fortipoc_instances
+from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN # required for eval(context['Class_PoC'])
+from fpoc import FortiGate, LXC, VyOS, studio_instances
 
 APPNAME = "fpoc/PoC_SDWAN"
 
@@ -38,9 +38,9 @@ class HomePageView(TemplateView):
         context['sdwan_sites'] = sdwan_sites
 
         # Add FortiPoC instances (eg, almodo10,...) to context if applicable
-        context['fortipoc_instances'] = False
+        context['studio_instances'] = False
         if 'fortipoc' in self.request.path or 'fabric' in self.request.path:
-            context['fortipoc_instances'] = fortipoc_instances()
+            context['studio_instances'] = studio_instances()
 
         # List of devices for the PoC
         if 'fabric' in self.request.path:
@@ -54,7 +54,7 @@ class HomePageView(TemplateView):
                 context['fortigates'].remove('EAST-DC1'); context['fortigates'].remove('EAST-BR1')
 
         if 'hardware' in self.request.path:
-            context['Class_PoC'] = 'FortiLabSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+            context['Class_PoC'] = 'AgoraSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
             context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
 
         # Defines the minimum FOS version proposed in the dropdown list

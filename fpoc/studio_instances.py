@@ -2,7 +2,7 @@ from fpoc.json import json_to_dict
 from config.settings import BASE_DIR
 
 
-def fortipoc_instances() -> dict:
+def studio_instances() -> dict:
     """
     Load the Studio VM dictionary from JSON file
     :return: dict of VM instances

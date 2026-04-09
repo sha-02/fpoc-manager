@@ -77,7 +77,7 @@ EAST_BR1.update(SDW_50G_A)
 EAST_BR2.update(SDW_50G_B)
 
 
-class FortiLabSDWAN(FortiLab):
+class AgoraSDWAN(FortiLab):
     """
     """
     template_folder = 'PoC_SDWAN'
@@ -97,7 +97,7 @@ class FortiLabSDWAN(FortiLab):
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Go up the parent chain to store the WSGI request, merge class-level devices with instance-level devices
         # and configure device access info
-        super(FortiLabSDWAN, self).__init__(request, poc_id)
+        super().__init__(request, poc_id)
 
         # Add MPLS summary subnet to each FortiGate
         for device in self.devices.values():

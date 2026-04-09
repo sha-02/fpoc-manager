@@ -1,5 +1,5 @@
 from .fortilab import *
-from .fortipoc import *
+from .fabric_studio import *
 from .studio_instances import *
 from .devices import *
 from .typing import *
