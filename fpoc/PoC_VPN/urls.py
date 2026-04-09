@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, pocs, agora_lab
+from . import views, pocs, agora
 import fpoc
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
@@ -29,6 +29,6 @@ urlpatterns = [
 
     path('dialup/', pocs.vpn_dialup, {'poc_id': 2}, name='vpn_dialup'),
     path('site2site/', pocs.vpn_site2site, {'poc_id': 3}, name='vpn_site2site'),
-    path('site2site/fortilab/', agora_lab.vpn_site2site_fortilab, {'poc_id': 3}, name='vpn_site2site_fortilab'),
+    path('site2site/fortilab/', agora.vpn_site2site_fortilab, {'poc_id': 3}, name='vpn_site2site_fortilab'),
     path('l2vpn/', pocs.l2vpn, {'poc_id': 1}, name='l2vpn'),
 ]
