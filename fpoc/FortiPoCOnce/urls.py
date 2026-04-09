@@ -1,8 +1,8 @@
 from django.urls import path
 
-from . import views, poc
-from config.urls import sites
+from . import views
 import fpoc
+from config.urls import sites
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
 # By registering a name for this app with variable 'app_name' it creates a context
@@ -30,5 +30,5 @@ urlpatterns = [
     path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
     path('dashboard/', fpoc.views.dashboard, name='dashboard'),
 
-    path('poc/', poc.poc, name='poc'),
+    path('poc/', fpoc.FortiPoCOnce.poc, name='poc'),
 ]

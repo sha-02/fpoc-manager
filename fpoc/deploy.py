@@ -18,7 +18,7 @@ from django.http import HttpResponse
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS
+from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS, FabricStudio, FortiPoC
 from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
 
 
@@ -113,16 +113,16 @@ def start2(poc: TypePoC) -> list:
 
 def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
     """
-    returns URL to access the device via the FortiPoC (HTTPS for FGT/FMG, SSH for LXC/VyOS)
+    returns URL to access the device via the FortiPoC or FabricStudio (HTTPS for FGT/FMG, SSH for LXC/VyOS)
     """
-    if 'fabric' in poc.request.path:
+    if isinstance(poc, FabricStudio):
         ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
         if isinstance(device, FortiGate):
             return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
         if isinstance(device, LXC) or isinstance(device, VyOS):
             return 'SSH', f'https://{ip}/ttyd/ssh/{device.nameid}/'
 
-    if 'fortipoc' in poc.request.path:
+    if isinstance(poc, FortiPoC):
         ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
         if isinstance(device, FortiGate):
             return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
@@ -134,14 +134,13 @@ def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
 
 def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     """
-    returns URL to access the device via its FortiPoC console
+    returns URL to access the device via its FortiPoC/FabricStudio console
     """
-    if 'fabric' in poc.request.path:
+    if isinstance(poc, FabricStudio):
         ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
         return f'https://{ip}/ttyd/con/{device.nameid}/'
-        # return f'https://{ip}/console/spice/{device.nameid}'
 
-    if 'fortipoc' in poc.request.path:
+    if isinstance(poc, FortiPoC):
         ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
         if isinstance(device, FortiGate) or isinstance(device, VyOS):
             return f'https://{ip}/term/dev_i_{device.offset:02}_{device.name_fpoc}/cons'

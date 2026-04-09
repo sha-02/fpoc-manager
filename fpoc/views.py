@@ -9,7 +9,7 @@ import fpoc
 from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
 from fpoc.FortiPoCSDWAN.fabric_studio import FabricStudioSDWAN  # required for eval(request.POST['Class_PoC'])
 from fpoc.FortiPoCSDWAN.fortilab import FortiLabSDWAN           # required for eval(request.POST['Class_PoC'])
-from fpoc.FortiPoCOnce.fabric_studio import FabricStudioOnce    # required for eval(request.POST['Class_PoC'])
+from fpoc.FortiPoCOnce.poc import PoCOnce                       # required for eval(request.POST['Class_PoC'])
 
 import fpoc.ansible as ansible
 from fpoc.deploy import device_URL, device_URL_console
@@ -58,7 +58,7 @@ def dashboard(request: WSGIRequest) -> HttpResponse:
 
     devices = dict()
     for device in poc:
-        devices[device.name.replace('-', '_')] = {   # replace hypen by underscore in the key because django template does not support them
+        devices[device.name.replace('-', '_')] = {   # replace hyphen by underscore in the key because django template does not support them
             'URL': device_URL(poc, device),
             'console': device_URL_console(poc, device)
         }

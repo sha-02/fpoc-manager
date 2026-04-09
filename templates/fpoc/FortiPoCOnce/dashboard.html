@@ -23,20 +23,16 @@
 </main>
 
 <div class="container">
-
-    <!--    <div class="row">-->
-    <!--      <div class="p-3 mb-2 bg-info text-white">WEST REGION</div>-->
-    <!--    </div>-->
-
-    {% for device in devices %}
-    <br>
+    {% for name, device in devices.items %}
     <div class="row">
         <div class="col">
-            {{device.name}}
+            {{name}}
             [<a href="{{device.URL.1}}" target="_blank">{{device.URL.0}}</a>]
             [<a href="{{device.console}}" target="_blank">console</a>]
         </div>
     </div>
     {% endfor %}
+</div>
+</body>
 
 </html>

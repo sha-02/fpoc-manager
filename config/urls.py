@@ -10,12 +10,10 @@ sites = {
     'SDWAN/8.0/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    # 'SDWAN/7.4_7.6/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
-    # 'SDWAN/fortipoc/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/hardware/': {'urls': 'fpoc.FortiPoCSDWAN.urls', 'selected': False},
     'Foundation1/': {'urls': 'fpoc.FortiPoCFoundation1.urls', 'selected': False},
-    'One-Off/fabric/': {'urls': 'fpoc.FortiPoCOnce.urls', 'selected': False}
+    'PoC.One-Off/': {'urls': 'fpoc.FortiPoCOnce.urls', 'selected': False}
 }
 
 # The first line of file 'site.txt' contains the URL of the site to start (kind of equivalent to index.html principle)
