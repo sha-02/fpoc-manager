@@ -6,7 +6,7 @@ from fpoc.fortios import fortios_firmware
 from fpoc import FortiGate, LXC, VyOS, fortipoc_instances
 from .poc import PoCOnce
 
-APPNAME = "fpoc/FortiPoCOnce"
+APPNAME = "fpoc/PoC_Once"
 
 
 class HomePageView(TemplateView):

@@ -13,7 +13,7 @@ sites = {
     'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'VPN/': {'urls': 'fpoc.PoC_VPN.urls', 'selected': False},
-    'One-Off/': {'urls': 'fpoc.FortiPoCOnce.urls', 'selected': False}
+    'One-Off/': {'urls': 'fpoc.PoC_Once.urls', 'selected': False}
 }
 
 # The first line of file 'site.txt' contains the URL of the site to start (kind of equivalent to index.html principle)

@@ -1,1 +1,0 @@
-/home/shamelin/Documents/FABRICstudio/fpoc-manager/fpoc/FortiPoCOnce/poc01.py

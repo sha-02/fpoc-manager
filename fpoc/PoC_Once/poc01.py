@@ -9,7 +9,7 @@ from fpoc.PoC_SDWAN import FabricStudioSDWAN, FortiLabSDWAN
 class PoCOnce(FabricStudioSDWAN):
     """
     """
-    template_folder = 'FortiPoCOnce'
+    template_folder = 'PoC_Once'
     devices = {
         'HUB': FortiGate(offset=0, nameid='fgt000',
                             mgmt=Interface('port10', 0, '172.16.31.11/24'),
