@@ -30,5 +30,5 @@ urlpatterns = [
     path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
     path('dashboard/', fpoc.views.dashboard, name='dashboard'),
 
-    path('poc/', fpoc.FortiPoCOnce.poc, name='poc'),
+    path('poc/', fpoc.PoC_Once.poc, name='poc'),
 ]
