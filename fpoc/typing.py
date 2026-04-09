@@ -2,7 +2,7 @@ import typing
 
 from fpoc import FortiLab, FortiGate, LXC, VyOS
 from fpoc.PoC_VPN import StudioVPN
-from fpoc.FortiPoCSDWAN import FabricStudioSDWAN, FortiLabSDWAN
+from fpoc.PoC_SDWAN import FabricStudioSDWAN, FortiLabSDWAN
 
 # Type Hint:
 

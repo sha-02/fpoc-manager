@@ -1,6 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 from fpoc import FortiGate, LXC, VyOS, WAN, Interface
-from fpoc.FortiPoCSDWAN import FabricStudioSDWAN
+from fpoc.PoC_SDWAN import FabricStudioSDWAN
 
 
 class StudioVPN(FabricStudioSDWAN):

@@ -6,8 +6,8 @@ from django.http import HttpResponse
 
 import fpoc
 from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
-from fpoc.FortiPoCSDWAN.fabric_studio import FabricStudioSDWAN  # required for eval(request.POST['Class_PoC'])
-from fpoc.FortiPoCSDWAN.fortilab import FortiLabSDWAN           # required for eval(request.POST['Class_PoC'])
+from fpoc.PoC_SDWAN.fabric_studio import FabricStudioSDWAN  # required for eval(request.POST['Class_PoC'])
+from fpoc.PoC_SDWAN.fortilab import FortiLabSDWAN           # required for eval(request.POST['Class_PoC'])
 from fpoc.FortiPoCOnce.poc import PoCOnce                       # required for eval(request.POST['Class_PoC'])
 
 import fpoc.ansible as ansible

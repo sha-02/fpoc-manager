@@ -1,0 +1,41 @@
+from django.urls import path, reverse
+
+from . import views, sdwan1, sdwan2, sdwan3
+from config.urls import sites
+import fpoc
+
+# The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
+# By registering a name for this app with variable 'app_name' it creates a context
+# In the templates, the name must be referenced with {% url '<app_name>:<path.name>' %}
+app_name = 'sdwan'
+
+urlpatterns = [
+    path('', views.HomePageView.as_view(), {'sites': sites}, name='home'),
+
+    path('about/', views.AboutPageView.as_view(), name='about'),
+    # path('test/', views.display_request_parameters, name='display_request_parameters'),
+
+    # Class instance (FabricStudioSDWAN()) must not be created here because it is created as a default argument of the function
+    # Python evaluates default arguments when the function is defined and is NOT re-evaluated when the function is called
+    # Which means that the exact same class instance is passed to the function each time
+    # I must therefore create the class instance inside the function itself by passing the class name here
+    # Creating the instance in this file (before the urlpatterns) does not work either
+    # path('poweron/', fpoc.views.poweron, {'Class_PoC': FabricStudioSDWAN}, name='poweron'),
+    # path('upgrade/', fpoc.views.upgrade, {'Class_PoC': FabricStudioSDWAN}, name='upgrade'),
+    # path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FabricStudioSDWAN}, name='bootstrap'),
+
+    # New strategy for common views: the class required for the view is passed via the form
+    path('poweron/', fpoc.views.poweron, name='poweron'),
+    path('upgrade/', fpoc.views.upgrade, name='upgrade'),
+    path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
+    path('dashboard/', fpoc.views.dashboard, name='dashboard'),
+
+    path('dualdc_dualregion/', sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10 (FOS 7.0+)
+    path('dualdc_dualregion2/', sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11 (FOS 7.4+)
+    path('dualdc_dualregion3/', sdwan3.dualdc, name='dualdc_dualregion3'),  # poc_id 12 (FOS 8.0+)
+
+    # path('singlehub/bgp_per_overlay/fos62/', sdwan0.singlehub, {'poc_id': 5}, name='singlehub_fos62'),
+    # poc6 = SDWAN+ADVPN Dual-DC with bgp-per-overlay for FOS 6.4
+    # path('singlehub/bgp_per_overlay/fos70/', sdwan0.singlehub, {'poc_id': 8}, name='singlehub_fos70'),
+]
+
