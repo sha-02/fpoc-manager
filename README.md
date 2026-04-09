@@ -3,7 +3,7 @@
 In LXC:
 
 ```
-$ cd /fortipoc
+$ cd /fabric
 $ git clone https://github.com/sha-02/fpoc-manager.git
 $ cd fpoc-manager
 ```

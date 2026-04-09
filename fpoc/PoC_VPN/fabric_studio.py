@@ -17,7 +17,7 @@ class StudioVPN(FabricStudioSDWAN):
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Go up the parent chain to store the WSGI request, merge class-level devices with instance-level devices
-        # and configure device access info (from within fortipoc or from fortipoc public IP)
+        # and configure device access info (from within studio or from studio public IP)
         super().__init__(request, poc_id)
 
         # Add password to each FortiGate

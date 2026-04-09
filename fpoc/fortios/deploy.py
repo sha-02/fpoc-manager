@@ -219,10 +219,10 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     return not is_running_bootstrap(device)  # Returns False if FGT is not running bootstrap config, True otherwise.
 
 
-def save_config(fortipoc_name: str, device: FortiGate, poc_id: int) -> str:
+def save_config(studio_name: str, device: FortiGate, poc_id: int) -> str:
     """
     """
-    filepath = f'{PATH_FPOC_CONFIG_SAVE}/{fortipoc_name}_poc{poc_id:02}_{device.name}.conf'
+    filepath = f'{PATH_FPOC_CONFIG_SAVE}/{studio_name}_poc{poc_id:02}_{device.name}.conf'
     with open(filepath, 'w') as f:
         if is_config_snippets(device.config):
             f.write(f'# fpoc{poc_id:02} {device.name} FortiOS {device.fos_version}')

@@ -39,7 +39,7 @@ class HomePageView(TemplateView):
 
         # Add FortiPoC instances (eg, almodo10,...) to context if applicable
         context['studio_instances'] = False
-        if 'fortipoc' in self.request.path or 'fabric' in self.request.path:
+        if 'fabric' in self.request.path:
             context['studio_instances'] = studio_instances()
 
         # List of devices for the PoC

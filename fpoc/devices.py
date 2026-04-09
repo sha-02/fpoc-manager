@@ -161,7 +161,7 @@ class Device:
     offset: int = None  # Offset of this device if inside a FortiPoC (used to derive SSH/HTTPS external port)
     nameid: str = None  # name used by Fabric-Studio for the console access
 
-    ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/fortipoc IP)
+    ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/studio IP)
     ssh_port: int = None  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
     https_port: int = None  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
 
