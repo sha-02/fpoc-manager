@@ -6,6 +6,7 @@ import fpoc
 from fpoc.fortilab import FortiLab
 from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
 from fpoc.FortiPoCFoundation1 import FortiPoCFoundation1
+from fpoc.fortilab import Mgmt
 
 # Define each physical FGT in the hardware Lab
 
@@ -121,9 +122,7 @@ class FortiLabVpnSite2Site(FortiLab):
     """
     """
     template_folder = 'FortiPoCFoundation1'
-    mgmt_gw = '10.210.1.254'  # Gateway for OOB mgmt network
-    mgmt_dns = '96.45.45.45'  # DNS from the OOB mgmt
-    mgmt_vrf = 10
+    mgmt = Mgmt(vrfid=10, dns='96.45.45.45', gw='10.210.1.254')
 
     devices = {
         'FGT-A': FGT_A,
