@@ -6,54 +6,12 @@ import fpoc
 from fpoc.fortilab import FortiLab
 from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
 from fpoc.fortilab import Mgmt
-from fpoc.agora import *
-
-# Update with the underlay IP addresses
-
-SDW_1001F_A.update(FortiGate(wan=WAN(
-    inet1=Interface(address='100.64.11.1/24'),
-    inet2=Interface(address='100.64.12.1/24'),
-    mpls1=Interface(address='10.71.14.1/24'),
-)))
-
-SDW_1001F_B.update(FortiGate(wan=WAN(
-    inet1=Interface(address='100.64.21.2/24'),
-    inet2=Interface(address='100.64.22.2/24'),
-    mpls1=Interface(address='10.71.24.2/24'),
-)))
-
-SDW_3301E_A.update(FortiGate(wan=WAN(
-    inet1=Interface(address='100.64.51.3/24'),
-    inet2=Interface(address='100.64.52.3/24'),
-    mpls1=Interface(address='10.71.54.3/24'),
-)))
-
-SDW_3301E_B.update(FortiGate(wan=WAN(
-    inet1=Interface(address='dhcp'),
-    inet2=Interface(address='dhcp'),
-    mpls1=Interface(address='dhcp'),
-)))
-
-SDW_101F_A.update(FortiGate(wan=WAN(
-    inet1=Interface(address='dhcp'),
-    inet2=Interface(address='dhcp'),
-    mpls1=Interface(address='dhcp'),
-)))
-
-SDW_101F_B.update(FortiGate(wan=WAN(
-    inet1=Interface(address='dhcp'),
-    inet2=Interface(address='dhcp'),
-    mpls1=Interface(address='dhcp'),
-)))
+from fpoc.agora import SDW_agora
 
 # Define which physical FGT is assigned to FGT-A and to FGT-B
 
-FGT_A = SDW_1001F_A
-FGT_B = SDW_1001F_B
-
-# SDW_101F_A.wan.inet1.update(Interface(address='100.64.31.1/24'))
-# SDW_101F_A.wan.inet2.update(Interface(address='100.64.32.1/24'))
-# FGT_B = SDW_101F_A
+FGT_A = SDW_agora['SDW_1001F_A']['no-impairment']
+FGT_B = SDW_agora['SDW_1001F_B']['no-impairment']
 
 
 class FortiLabVpnSite2Site(FortiLab):

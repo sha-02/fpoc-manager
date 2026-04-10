@@ -1,4 +1,6 @@
 from __future__ import annotations  # Allows to reference a class as a type hint during the declaration of the class itself
+
+import copy
 from dataclasses import dataclass
 import ipaddress
 from enum import Enum
@@ -271,6 +273,7 @@ class FortiGate(Device):
 
     def update(self, fortigate: FortiGate):
         # Update (Override) this FortiGate instance with not-None attributes from another FortiGate passed as argument
+        # Also returns an independent instance (deepcopy())
         for k, v in fortigate.__dict__.items():
             if v is None:
                 continue
@@ -287,6 +290,7 @@ class FortiGate(Device):
             else:
                 self.__dict__[k] = v  # update the local FortiGate attribute with the 'fortigate' attribute
 
+        return copy.deepcopy(self)  # return an independent instance
 
 @dataclass
 class LXC(Device):

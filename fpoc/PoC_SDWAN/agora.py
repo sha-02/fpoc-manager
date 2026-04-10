@@ -1,80 +1,26 @@
 from django.core.handlers.wsgi import WSGIRequest
 from fpoc import FortiLab, FortiGate, WAN, Interface, Network
 from fpoc.fortilab import Mgmt
-from fpoc.agora import *
+from fpoc.agora import SDW_agora
 
-# Define each role for the PoC
-
-WEST_DC1 = FortiGate(name='WEST-DC1',
-                            wan=WAN(
-                                # inet1=Interface(address='100.64.11.1/24'),
-                                # inet2=Interface(address='100.64.12.1/24'),
-                                # mpls1=Interface(address='10.71.14.1/24'),
-                                inet1=Interface(address='100.64.71.1/24'),
-                                inet2=Interface(address='100.64.72.1/24'),
-                                mpls1=Interface(address='10.71.74.1/24'),
-                            ))
-
-WEST_DC2 = FortiGate(name='WEST-DC2',
-                            wan=WAN(
-                                # inet1=Interface(address='100.64.21.2/24'),
-                                # inet2=Interface(address='100.64.22.2/24'),
-                                # mpls1=Interface(address='10.71.24.2/24'),
-                                inet1=Interface(address='100.64.71.2/24'),
-                                inet2=Interface(address='100.64.72.2/24'),
-                                mpls1=Interface(address='10.71.74.2/24'),
-                            ))
-
-EAST_DC1 = FortiGate(name='EAST-DC1',
-                            wan=WAN(
-                                # inet1=Interface(address='100.64.51.3/24'),
-                                # inet2=Interface(address='100.64.52.3/24'),
-                                # mpls1=Interface(address='10.71.54.3/24'),
-                                inet1=Interface(address='100.64.71.3/24'),
-                                inet2=Interface(address='100.64.72.3/24'),
-                                mpls1=Interface(address='10.71.74.3/24'),
-                            ))
-
-EAST_BR1 = FortiGate(name='EAST-BR1',
-                            wan=WAN(
-                                inet1=Interface(address='dhcp'),
-                                inet2=Interface(address='dhcp'),
-                                mpls1=Interface(address='dhcp'),
-                            ))
-
-EAST_BR2 = FortiGate(name='EAST-BR2',
-                            wan=WAN(
-                                inet1=Interface(address='dhcp'),
-                                inet2=Interface(address='dhcp'),
-                                mpls1=Interface(address='dhcp'),
-                            ))
-
-WEST_BR1 = FortiGate(name='WEST-BR1',
-                            wan=WAN(
-                                inet1=Interface(address='dhcp'),
-                                inet2=Interface(address='dhcp'),
-                                mpls1=Interface(address='dhcp'),
-                            ))
-
-WEST_BR2 = FortiGate(name='WEST-BR2',
-                            wan=WAN(
-                                inet1=Interface(address='dhcp'),
-                                inet2=Interface(address='dhcp'),
-                                mpls1=Interface(address='dhcp'),
-                            ))
+wan_DHCP = FortiGate(wan=WAN(
+                    inet1=Interface(address='dhcp'),
+                    inet2=Interface(address='dhcp'),
+                    mpls1=Interface(address='dhcp'),
+                    ))
 
 # Define which physical FGT is assigned which role
 
-WEST_DC1.update(SDW_1001F_A)
-WEST_DC2.update(SDW_1001F_B)
+WEST_DC1 = SDW_agora['SDW_1001F_A']['no-impairment']
+WEST_DC2 = SDW_agora['SDW_1001F_B']['no-impairment']
+EAST_DC1 = SDW_agora['SDW_3301E_A']['no-impairment']
 
-WEST_BR1.update(SDW_101F_A)
-WEST_BR2.update(SDW_101F_B)
+WEST_BR1 = SDW_agora['SDW_101F_A']['no-impairment'].update(wan_DHCP)
+WEST_BR2 = SDW_agora['SDW_101F_B']['no-impairment'].update(wan_DHCP)
 
-EAST_DC1.update(SDW_3301E_A)
-# EAST_BR1.update(SDW_3301E_B)
-EAST_BR1.update(SDW_50G_A)
-EAST_BR2.update(SDW_50G_B)
+# EAST_BR1 = SDW_agora['SDW_3301E_B']['no-impairment'].update(wan_DHCP)
+EAST_BR1 = SDW_agora['SDW_50G_A']['no-impairment'].update(wan_DHCP)
+EAST_BR2 = SDW_agora['SDW_50G_B']['no-impairment'].update(wan_DHCP)
 
 
 class AgoraSDWAN(FortiLab):
