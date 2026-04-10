@@ -1,10 +1,15 @@
+from ansible_collections.ansible.posix.plugins.action.synchronize import PODMAN
 from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import FortiGate, LXC, VyOS, studio_instances
-from .poc import PoCOnce
+from fpoc import studio_instances
+
+######### CURRENT POC = POC01  ##############################################
+from .once01 import devices
+POC_ID=1
+#############################################################################
 
 APPNAME = "fpoc/PoC_Once"
 
@@ -14,11 +19,10 @@ class HomePageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
-
-        context['Class_PoC'] = 'PoCOnce'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
-        context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
-        context['firmware'] = fortios_firmware()
+        context['poc_id']= POC_ID
+        context['fortigates'] = devices
         context['studio_instances'] = studio_instances()
+        context['firmware'] = fortios_firmware()
         return context
 
 

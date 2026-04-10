@@ -9,8 +9,8 @@ from config.settings import BASE_DIR
 sites = {
     'SDWAN/8.0/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
-    'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
+    'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'VPN/': {'urls': 'fpoc.PoC_VPN.urls', 'selected': False},
     'One-Off/': {'urls': 'fpoc.PoC_Once.urls', 'selected': False}

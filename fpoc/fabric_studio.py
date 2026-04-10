@@ -49,8 +49,8 @@ class FabricStudio(FortiLab):
 
         # configure access attributes for each device (name, IP@, SSH/HTTPS ports) depending on whether it is accessed
         # from within the Fabric-Studio (direct) or from the Fabric-Studio public IP (external NAT)
-        for phy_name, device in self.devices.items():
-            device.name_phy = phy_name
+        for key_name, device in self.devices.items():
+            device.name_phy = device.name_phy or key_name   # init to 'key_name' if 'name_phy' is None
             device.name = device.name or device.name_phy  # init to 'name_phy' if 'name' is None
             if self.manager_inside_studio:  # fpoc-manager is running inside the Fabric-Studio
                 # device is accessed via its mgmt-ip inside the Fabric-Studio OOB

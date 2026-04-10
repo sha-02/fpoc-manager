@@ -3,45 +3,10 @@ from django.http import HttpResponse
 
 import fpoc
 from fpoc.devices import Interface, FortiGate, WAN
-from fpoc.PoC_SDWAN import FabricStudioSDWAN, AgoraSDWAN
+from .once import FabricStudioPoCOnce
 
 
-class PoCOnce(FabricStudioSDWAN):
-    """
-    """
-    template_folder = 'PoC_Once'
-    devices = {
-        'HUB': FortiGate(offset=0, nameid='fgt000',
-                            mgmt=Interface('port10', 0, '172.16.31.11/24'),
-                            lan=Interface('port5', 0, ''),
-                            wan=WAN(
-                                inet1=Interface('port1', 0, '100.64.11.1/24', 'Internet_1'),
-                                inet2=Interface('port2', 0, '100.64.12.1/24', 'Internet_2'),
-                                mpls1=Interface('port3', 0, '10.71.14.1/24', 'MPLS'),
-                            )),
-
-        'BRANCH1': FortiGate(offset=4, nameid='fgt002',
-                              mgmt=Interface('port10', 0, '172.16.31.31/24'),
-                              lan=Interface('port5', 0, ''),
-                              wan=WAN(
-                                  inet1=Interface('port1', 0, '100.64.41.1/24', 'Internet_1'),
-                                  inet2=Interface('port2', 0, '100.64.42.1/24', 'Internet_2'),
-                                  mpls1=Interface('port3', 0, '10.71.44.1/24', 'MPLS'),
-                              )),
-
-        'BRANCH2': FortiGate(offset=6, nameid='fgt003',
-                              mgmt=Interface('port10', 0, '172.16.31.41/24'),
-                              lan=Interface('port5', 0, ''),
-                              wan=WAN(
-                                  inet1=Interface('port1', 0, '100.64.51.1/24', 'Internet_1'),
-                                  inet2=Interface('port2', 0, '100.64.52.1/24', 'Internet_2'),
-                                  mpls1=Interface('port3', 0, '10.71.54.1/24', 'MPLS'),
-                              )),
-
-    }
-
-
-def poc(request: WSGIRequest) -> HttpResponse:
+def poc01(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     Single Hub, Two Branches
     """
@@ -49,9 +14,9 @@ def poc(request: WSGIRequest) -> HttpResponse:
     #
     # Create the poc
     #
-    poc = PoCOnce(request)
+    poc = FabricStudioPoCOnce(request)
 
-    poc.id = 1
+    poc.id = poc_id
     poc.minimum_FOS_version = 8_000_000
     poc.messages = []
     poc.mgmt.vrfid = 0

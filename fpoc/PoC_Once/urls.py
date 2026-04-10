@@ -30,5 +30,7 @@ urlpatterns = [
     path('bootstrap/', fpoc.views.bootstrap, name='bootstrap'),
     path('dashboard/', fpoc.views.dashboard, name='dashboard'),
 
-    path('poc/', fpoc.PoC_Once.poc, name='poc'),
+    # path('01/', fpoc.PoC_Once.poc01, {'poc_id': 1}, name='poc'),
+    # 'name' is not used, the submit URL is built using the POC_ID defined in views.py
+    path('01/', fpoc.PoC_Once.poc01, {'poc_id': 1}),
 ]
