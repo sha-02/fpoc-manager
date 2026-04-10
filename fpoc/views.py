@@ -20,14 +20,14 @@ from fpoc.deploy import device_URL, device_URL_console
 
 def request_sanity(request: WSGIRequest) -> str:
     """
-    If fpoc_manager is started from local host (i.e., does not run inside FortiPoC) then a FortiPoC instance must
+    If fpoc_manager is started from local host (i.e., does not run inside Fabric-Studio) then a Fabric-Studio instance must
     be specified
     """
     if not request.POST.get('targetedFOSversion'):
         return 'The FortiOS version must be specified'
 
-    if '127.0.0.1' in request.get_host() and request.POST.get('pocInstance')=='0.0.0.0' \
-            and request.POST['fpocIP'] == '' \
+    if '127.0.0.1' in request.get_host() and request.POST.get('vmInstance')=='0.0.0.0' \
+            and request.POST['vmIP'] == '' \
             and bool(request.POST.get('previewOnly', False)) == False:
         return "Select a PoC instance from the list, 'internal' is not a valid choice from 127.0.0.1"
 
@@ -82,12 +82,12 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
 
     fortigates = poc.devices_of_type(FortiGate)  # All FortiGate devices
 
-    for fpoc_fgtname, fortigate in fortigates.items():
+    for phy_name, fortigate in fortigates.items():
         fortigate.template_filename = request.POST.get('targetedFOSversion') + '.conf'  # e.g. '6.4.6.conf'
 
         fortigate.template_context = {
-            'name': fpoc_fgtname,
-            'mgmt': poc.devices[fpoc_fgtname].mgmt,
+            'name': phy_name,
+            'mgmt': poc.devices[phy_name].mgmt,
             'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
             'fmg_sn': request.POST.get('fmg_sn'),
             'corporate_summary': request.POST.get('corporate_summary'),  # 'rfc1918', 'net10'
@@ -99,10 +99,10 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
             fortigate.template_context['WAN_underlays'] = False
 
         if request.POST.get('HA') == 'FGCP':
-            fortigate.HA = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=fpoc_fgtname,
+            fortigate.HA = FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, group_id=1, group_name=phy_name,
                                      hbdev=[('port6', 0)], sessyncdev=['port6'],
                                      monitordev=['port1', 'port2', 'port5'], priority=128)
-            if fpoc_fgtname in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
+            if phy_name in ('FGT-A_sec', 'FGT-B_sec', 'FGT-C_sec', 'FGT-D_sec'):
                 fortigate.HA.role = FortiGate_HA.Roles.SECONDARY
             else:
                 fortigate.HA.role = FortiGate_HA.Roles.PRIMARY
@@ -183,7 +183,6 @@ def poweron(request: WSGIRequest) -> HttpResponse:
         return render(request, f'fpoc/message.html',
                       {'title': 'Power-On', 'header': 'Power-On preview', 'message': devices_to_start})
 
-    # TODO: admin & pwd should be stored in DB so that it can be customized per FortiPoC (like WAN_CTRL)
     _, result = ansible.poweron_devices(devices_to_start, host=poc.ip, admin='admin', pwd='')
     result = '<pre> ' + result + ' </pre>'
 

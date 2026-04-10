@@ -1,1 +1,1 @@
-/home/shamelin/Documents/FORTIscripts/django_fpoc-manager/templates/fpoc/script.js
+../script.js

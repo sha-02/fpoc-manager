@@ -28,7 +28,7 @@ def inspect(poc: TypePoC) -> list:
     import ipaddress
     errors = []   # List of error messages to return
 
-    for ipaddr in (poc.request.POST.get('fpocIP'),):
+    for ipaddr in (poc.request.POST.get('vmIP'),):
         if ipaddr:  # Ensure a valid IP address is provided
             try:
                 ipaddress.ip_address(ipaddr)  # throws an exception if the IP address is not valid
@@ -38,8 +38,8 @@ def inspect(poc: TypePoC) -> list:
     if poc.request.POST.get('previewOnly') and not poc.request.POST.get('targetedFOSversion'):
         errors.append('FOS version must be specified when preview-only is selected')
 
-    if '127.0.0.1' in poc.request.get_host() and poc.request.POST.get('pocInstance')=='0.0.0.0' \
-            and poc.request.POST['fpocIP'] == '' \
+    if '127.0.0.1' in poc.request.get_host() and poc.request.POST.get('vmInstance')=='0.0.0.0' \
+            and poc.request.POST['vmIP'] == '' \
             and bool(poc.request.POST.get('previewOnly', False)) == False:
         errors.append("Select a PoC instance from the list, 'internal' is not a valid choice from 127.0.0.1")
 
@@ -65,14 +65,14 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
 
     # the intersection of the keys of request.POST dict and the keys of 'devices' dict produces the keys of each
     # device to be used for this poc.
-    fpoc_devnames = poc.request.POST.keys() & devices.keys()
+    phy_names = poc.request.POST.keys() & devices.keys()
 
     # Delete devices from 'devices' which do not need to be started
     # +--> do not use dict comprehension because it creates an unordered list of devices due to using set()
-    for fpoc_devname in list(devices.keys()):  # use list of keys() otherwise exception raised bcse
+    for phy_name in list(devices.keys()):  # use list of keys() otherwise exception raised bcse
         # the dict changes size during iteration
-        if fpoc_devname not in fpoc_devnames:
-            del(devices[fpoc_devname])  # this device was not requested to be started for this PoC
+        if phy_name not in phy_names:
+            del(devices[phy_name])  # this device was not requested to be started for this PoC
 
     # Only keep the 'devices' that are active members for the poc
     poc.members(devices=devices)
@@ -102,7 +102,7 @@ def start2(poc: TypePoC) -> list:
 
     # List of all config settings rendered from template
     status_devices = [
-        {'name': device.name, 'name_fpoc': device.name_fpoc,
+        {'name': device.name, 'name_phy': device.name_phy,
          'deployment_status': device.deployment_status,
          'URL': device_URL(poc, device),
          'URL_console': device_URL_console(poc, device),
@@ -113,10 +113,10 @@ def start2(poc: TypePoC) -> list:
 
 def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
     """
-    returns URL to access the device via the FortiPoC or FabricStudio (HTTPS for FGT/FMG, SSH for LXC/VyOS)
+    returns URL to access the device (HTTPS for FGT/FMG, SSH for LXC/VyOS)
     """
     if isinstance(poc, FabricStudio):
-        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_studio else device.ip
         if isinstance(device, FortiGate):
             return 'HTTPS', f'https://{ip}:{poc.BASE_PORT_HTTPS + device.offset}/'
         if isinstance(device, LXC) or isinstance(device, VyOS):
@@ -127,10 +127,10 @@ def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
 
 def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     """
-    returns URL to access the device via its FortiPoC/FabricStudio console
+    returns URL to access the device console
     """
     if isinstance(poc, FabricStudio):
-        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_fpoc else device.ip
+        ip = poc.request.headers['Host'].split(':')[0] if poc.manager_inside_studio else device.ip
         return f'https://{ip}/ttyd/con/{device.nameid}/'
 
     return ''  # no console, empty string returned

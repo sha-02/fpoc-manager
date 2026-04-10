@@ -37,7 +37,7 @@ class HomePageView(TemplateView):
 
         context['sdwan_sites'] = sdwan_sites
 
-        # Add FortiPoC instances (eg, almodo10,...) to context if applicable
+        # Add VM Studio instances (eg, almodo10,...) to context if applicable
         context['studio_instances'] = False
         if 'fabric' in self.request.path:
             context['studio_instances'] = studio_instances()

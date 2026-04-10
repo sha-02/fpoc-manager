@@ -160,20 +160,19 @@ class WAN:
 @dataclass
 class Device:
     # All attributes must default to None due to the update() method used by FortiGate class
-    offset: int = None  # Offset of this device if inside a FortiPoC (used to derive SSH/HTTPS external port)
+    offset: int = None  # Offset of this device if inside Fabric-Studio (used to derive SSH/HTTPS external port)
     nameid: str = None  # name used by Fabric-Studio for the console access
 
     ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/studio IP)
-    ssh_port: int = None  # direct access (22) or from external NAT (eg, FortiPoC 10100+offset)
-    https_port: int = None  # direct access (443) or from external NAT (eg, FortiPoC 10400+offset)
+    ssh_port: int = None  # direct access (22) or from external NAT (eg, Fabric-Studio 10100+offset)
+    https_port: int = None  # direct access (443) or from external NAT (eg, Fabric-Studio 10400+offset)
 
     reboot_delay: int = None     # number of seconds to wait for the device to perform a full reboot
 
     mgmt: Interface = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
-    # mgmt_fpoc_ipmask: str = None  # IP@ of the FortiPoC in the mgmt subnet inside FortiPoC (eg, '172.16.31.254/24')
 
     name: str = None  # Name configured on the device
-    name_fpoc: str = None  # Name of the device in the FortiPoC or name of the device in the hardware Lab
+    name_phy: str = None  # "Physical" Name of the device in the Fabric-Studio or in the Hardware Lab
     username: str = None  # username for SSH session
     password: str = None  # password for SSH session
 
@@ -239,7 +238,7 @@ class FortiGate(Device):
     fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
 
     lan: Interface = None  # used to define the LAN connectivity (eg, "port5")
-    wan: WAN = None  # hardcoded WAN subnets (underlays) defined in the FortiPoC
+    wan: WAN = None  # WAN underlays
     HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
 
     apiv2auth: bool = False  # True= Use APIv2 authentication based on admin/password ; False= Use API admin

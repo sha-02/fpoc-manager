@@ -29,7 +29,7 @@
   <div id="collapse-0" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
     <div class="card-body">
       <!-- 'Bootstrap' form -->
-      <form id="formVPN" method="post" onsubmit="collectFortiPoCElements(this.id)">
+      <form id="formVPN" method="post" onsubmit="collectElements(this.id)">
         {% csrf_token %}
         <fieldset>
           <div class="container">
@@ -90,7 +90,7 @@
     </div>
     <div id="collapse-2" class="collapse" aria-labelledby="heading-2" data-parent="#accordionPoC">
       <div class="card-body">
-        <form id="formSinglePathIPsec" method="post" action="{% url 'fpoc:vpn_dialup' %}" onsubmit="collectFortiPoCElements(this.id)">
+        <form id="formSinglePathIPsec" method="post" action="{% url 'fpoc:vpn_dialup' %}" onsubmit="collectElements(this.id)">
           {% csrf_token %}
           <fieldset>
             FGT
@@ -183,7 +183,7 @@
     <div id="collapse-3" class="collapse" aria-labelledby="heading-3" data-parent="#accordionPoC">
       <div class="card-body">
         <h5>Two redundant static tunnels</h5>
-        <form id="formStaticIPsec" method="post" action="{% url 'fpoc:vpn_site2site' %}" onsubmit="collectFortiPoCElements(this.id)">
+        <form id="formStaticIPsec" method="post" action="{% url 'fpoc:vpn_site2site' %}" onsubmit="collectElements(this.id)">
           {% csrf_token %}
           <fieldset>
             Devices
@@ -248,7 +248,7 @@
     </div>
     <div id="collapse-1" class="collapse" aria-labelledby="heading-1" data-parent="#accordionPoC">
       <div class="card-body">
-        <form id="formL2VPN" method="post" action="{% url 'fpoc:l2vpn' %}" onsubmit="collectFortiPoCElements(this.id)">
+        <form id="formL2VPN" method="post" action="{% url 'fpoc:l2vpn' %}" onsubmit="collectElements(this.id)">
           {% csrf_token %}
           <fieldset>
             Devices

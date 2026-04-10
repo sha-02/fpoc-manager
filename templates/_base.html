@@ -70,7 +70,7 @@
     <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
       {% if studio_instances %}
         <div class="p-2 bd-highlight">
-          Studio VM <select id="pocInstance" name="pocInstance">
+          Studio VM <select id="vmInstance" name="vmInstance">
               {% for name, fpoc in studio_instances.items %}
                 {% if fpoc.selected %}
                   <option value="{{fpoc.ip}}" selected>{{name}}</option>
@@ -81,7 +81,7 @@
         </select>
         </div>
         <div class="p-2 bd-highlight">
-          or IP<input type="text" id="fpocIP" name="fpocIP" maxlength="15" size="15">
+          or IP<input type="text" id="vmIP" name="vmIP" maxlength="15" size="15">
         </div>
       {% endif %}
     </div>

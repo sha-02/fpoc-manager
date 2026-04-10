@@ -7,7 +7,7 @@
 
 {% for device in devices %}
     {{device.name}}
-    ({{device.name_fpoc}})
+    ({{device.name_phy}})
     [<a href="{{device.URL.1}}" target="_blank">{{device.URL.0}}</a>]
     {% if device.URL_console %}[<a href="{{device.URL_console}}" target="_blank">console</a>]{% endif %}
     =>

@@ -179,7 +179,6 @@ def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
         'advpn': bool(request.POST.get('advpn', False)),  # True or False
         'nat_hub': request.POST.get('Hub_NAT'),  # Type of NAT for Hub = 'None', 'DNAT'
 
-        # Hub is FGT-A from FortiPoC "Fundation1"
         # 'hub': StudioVPN.devices['FGT-A'].wan.inet.subnet + '.1',  # IP when not DNATed: 198.51.100.1
         # 'hub_dnat': StudioVPN.devices['FGT-A'].wan.inet.subnet + '.201',  # IP when DNATed: 198.51.100.201
         'hub': StudioVPN.devices['FGT-A'].wan.inet1.ip,  # IP when not DNATed: 198.51.100.1

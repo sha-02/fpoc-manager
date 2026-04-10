@@ -58,7 +58,7 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
         print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED'")
-        fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_fpoc}')  # FortiPoC device name is used here
+        fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_phy}')  # Fabric-Studio device name is used here
         print(f"{device.name} : Hostname changed")
         update_fortios_version(device, fos_version_target, lock)
         device.apikey = ''  # Reset the API key

@@ -1,11 +1,11 @@
 <script>
-function collectFortiPoCElements(formID)
+function collectElements(formID)
 {
-  // Assign all the global FortiPoC Elements to the form being submitted
+  // Assign all the global Elements to the form being submitted
 
-  {% if fortipoc_instances %}
-    document.getElementById('pocInstance').setAttribute('form', formID);
-    document.getElementById('fpocIP').setAttribute('form', formID);
+  {% if studio_instances %}
+    document.getElementById('vmInstance').setAttribute('form', formID);
+    document.getElementById('vmIP').setAttribute('form', formID);
   {% endif %}
 
   document.getElementById('scpDeploy').setAttribute('form', formID);
