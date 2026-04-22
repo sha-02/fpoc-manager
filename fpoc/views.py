@@ -51,15 +51,26 @@ def dashboard(request: WSGIRequest) -> HttpResponse:
     # device to be used for this poc. Only keep these devices (this call allows to complete attributes for the devices like ip, etc...)
     # poc.members(devices={ k: poc.devices[k] for k in poc.request.POST.keys() & poc.devices.keys() })
 
-    # Keep all 'devices' (this call allows to complete attributes for the devices like ip, etc...)
-    poc.members(devices=poc.devices)
+    # the intersection of the keys of request.POST dict and the keys of poc.devices dict produces the keys of each
+    # device to be listed in the dashboard
+    device_names = list(poc.request.POST.keys() & poc.devices.keys())
+    device_names.sort()
 
-    devices = dict()
-    for device in poc:
-        devices[device.name.replace('-', '_')] = {   # replace hyphen by underscore in the key because django template does not support them
-            'URL': device_URL(poc, device),
-            'console': device_URL_console(poc, device)
-        }
+    # Only keep the desired 'devices' (this call allows to complete attributes for the devices like ip, etc...)
+    poc.members(devnames=device_names)
+
+    devices = {'WEST': list(), 'EAST': list()}
+    for devname in device_names:
+        region = 'WEST'
+        if 'EAST' in devname:
+            region='EAST'
+
+        devices[region].append({
+            'name': devname,
+            'name_phy': poc.devices[devname].name_phy,
+            'URL': device_URL(poc, poc.devices[devname]),
+            'console': device_URL_console(poc, poc.devices[devname])
+        })
 
     # Render and deploy the dashboard
     return render(poc.request, f'fpoc/{poc.template_folder}/dashboard.html', {'devices': devices})

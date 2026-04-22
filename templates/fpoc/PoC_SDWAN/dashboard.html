@@ -26,120 +26,22 @@
 
   <div class="container">
 
+    {% for region, device_list in devices.items %}
     <div class="row">
-      <div class="p-3 mb-2 bg-info text-white">WEST REGION</div>
+      <div class="p-3 mb-2 bg-info text-white">{{region}} REGION</div>
     </div>
 
-    <div class="row">
-      <div class="col">
-        WEST-BR1
-        [<a href="{{devices.WEST_BR1.URL.1}}" target="_blank">{{devices.WEST_BR1.URL.0}}</a>]
-        [<a href="{{devices.WEST_BR1.console}}" target="_blank">console</a>]
+      {% for device in device_list %}
+      <div class="row">
+          <div class="col">
+              {{device.name}}
+              {% if device.name_phy != device.name %}({{device.name_phy}}){% endif %}
+              [<a href="{{device.URL.1}}" target="_blank">{{device.URL.0}}</a>]
+              {% if device.console %}[<a href="{{device.console}}" target="_blank">console</a>]{% endif %}
+          </div>
       </div>
-<!--      <div class="col">-->
-<!--        WEST-BR1-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_15_PC-WEST-BR1/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_15_PC-WEST-BR1/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
-
-    <div class="row">
-      <div class="col">
-        WEST-BR2
-        [<a href="{{devices.WEST_BR2.URL.1}}" target="_blank">{{devices.WEST_BR2.URL.0}}</a>]
-        [<a href="{{devices.WEST_BR2.console}}" target="_blank">console</a>]
-      </div>
-<!--      <div class="col">-->
-<!--        WEST-BR2-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_17_PC-WEST-BR2/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_17_PC-WEST-BR2/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
-
+      {% endfor %}
     <br>
-    <div class="row">
-      <div class="col">
-        WEST-DC1
-        [<a href="{{devices.WEST_DC1.URL.1}}" target="_blank">{{devices.WEST_DC1.URL.0}}</a>]
-        [<a href="{{devices.WEST_DC1.console}}" target="_blank">console</a>]
-      </div>
-<!--      <div class="col">-->
-<!--        WEST-DC1-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_11_PC-WEST-DC1/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_11_PC-WEST-DC1/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
+    {% endfor %}
 
-    <div class="row">
-      <div class="col">
-        WEST-DC2
-        [<a href="{{devices.WEST_DC2.URL.1}}" target="_blank">{{devices.WEST_DC2.URL.0}}</a>]
-        [<a href="{{devices.WEST_DC2.console}}" target="_blank">console</a>]
-      </div>
-<!--      <div class="col">-->
-<!--        WEST-DC2-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_13_PC-WEST-DC2/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_13_PC-WEST-DC2/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
-
-{% if devices.WEST_EXT %}
-    <br>
-    <div class="row">
-      <div class="col">
-        WEST-EXT
-        [<a href="{{devices.WEST_EXT.URL.1}}" target="_blank">{{devices.WEST_EXT.URL.0}}</a>]
-        [<a href="{{devices.WEST_EXT.console}}" target="_blank">console</a>]
-      </div>
-<!--      <div class="col">-->
-<!--        WEST-CORE-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_21_PC-WEST-CORE/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_21_PC-WEST-CORE/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
-{% endif %}
-
-    <br>
-    <div class="row">
-      <div class="p-3 mb-2 bg-info text-white">EAST REGION</div>
-    </div>
-
-    <div class="row">
-      <div class="col">
-        EAST-BR1
-        [<a href="{{devices.EAST_BR1.URL.1}}" target="_blank">{{devices.EAST_BR1.URL.0}}</a>]
-        [<a href="{{devices.EAST_BR1.console}}" target="_blank">console</a>]
-      </div>
-<!--      <div class="col">-->
-<!--        EAST-BR-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_18_PC-EAST-BR1/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_18_PC-EAST-BR1/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
-
-    <div class="row">
-      <div class="col">
-        EAST-DC1
-        [<a href="{{devices.EAST_DC1.URL.1}}" target="_blank">{{devices.EAST_DC1.URL.0}}</a>]
-        [<a href="{{devices.EAST_DC1.console}}" target="_blank">console</a>]
-      </div>
-<!--      <div class="col">-->
-<!--        EAST-DC-LXC-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_14_PC-EAST-DC1/ssh" target="_blank">SSH</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_14_PC-EAST-DC1/lxcbash" target="_blank">console</a>]-->
-<!--      </div>-->
-    </div>
-
-<!--    <br>-->
-<!--    <div class="row">-->
-<!--      <div class="p-3 mb-2 bg-info text-white">FORTIMANAGER</div>-->
-<!--    </div>-->
-
-<!--    <div class="row">-->
-<!--      <div class="col">-->
-<!--        FMG-->
-<!--        [<a href="https://<?=$server_ip?>:14027/" target="_blank">HTTPS</a>]-->
-<!--        [<a href="https://<?=$server_ip?>/term/dev_i_98_fortimanager/cons" target="_blank">console</a>]-->
-<!--      </div>-->
-<!--    </div>-->
 </html>
