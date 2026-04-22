@@ -160,6 +160,7 @@ def upgrade(request: WSGIRequest) -> HttpResponse:
 
     threads = list()
     for fgt in poc:
+        fgt.name  = fgt.name or fgt.name_phy    # if name is None then name=name_phy
         print(f'{fgt.name} : Upgrading to FortiOS', fos_version_target, ' ...')
         thread = threading.Thread(target=_upgrade_fgt, args=(fgt, fos_version_target, poc.lock))
         threads.append(thread)
