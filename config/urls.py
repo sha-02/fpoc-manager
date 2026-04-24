@@ -8,6 +8,7 @@ from config.settings import BASE_DIR
 
 sites = {
     'SDWAN/8.0/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
+    'SDWAN/8.0/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},

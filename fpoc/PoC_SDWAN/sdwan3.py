@@ -34,9 +34,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'dualHub_failover': request.POST.get('dualHub_failover'),  # 'lowest-cost', 'best-link'
         'multicast': bool(request.POST.get('multicast', False)),  # True or False
         'corporate_summary': request.POST.get('corporate_summary'),  # 'rfc1918', 'net10'
+        'dia': bool(request.POST.get('dia', False)),
+        'sia': bool(request.POST.get('sia', False)),
+        'ria': bool(request.POST.get('ria', False)),
 
         # VRF segmentation
-        'vrf_aware_overlay': bool(request.POST.get('vrf_aware_overlay', False)),  # True or False
+        'vrf_segmentation': bool(request.POST.get('vrf_segmentation', False)),  # True or False
         'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-511] VRF for Internet and MPLS links
         'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-511] VRF for IPsec tunnels
         'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-511] port5 (no vlan) segment
@@ -47,12 +50,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         # FMG
         'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
         'fmg_sn': request.POST.get('fmg_sn'),
-
-        # These context are no longer use, they were used for design choices in previous FOS versions
-        # They are still in the HTML form, but as hidden, with a fixed value. They are just kept "just in case".
-        'bgp_design': request.POST.get('bgp_design'),  # 'on_loopback'
-        'bidir_sdwan_bgp_priority': request.POST.get('bidir_sdwan_bgp_priority'),  # 'remote_sla_priority'
-        'remote_signaling': request.POST.get('remote_signaling'),  # 'branch_MED'
     }
 
     # Define the poc_id based on the options which were selected
@@ -66,41 +63,42 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     minimumFOSversion = 8_000_000
 
     #
-    # central-management - sanity checks
-    if context['fortimanager'] and not context['fmg_sn'].startswith('FMG-'):
-        errors.append('central-management is requested by the FMG S/N is incorrect')
+    # Additional context info
+
+    context['ria_only'] = not context['dia'] and not context['sia'] and context['ria']
 
     #
     # Sanity checks
 
-    if not context['multicast']:
-        context['overlay'] = 'no_ip'   # Unnumbered IPsec tunnels are used if there is no need for multicast routing
-        messages.append("Multicast is not requested: unnumbered IPsec tunnels are used")
-    else:
-        if context['overlay'] == 'no_ip':
-            messages.append("Unnumbered overlay was requested but this is not possible for multicast so <b>forcing static IP</b> for overlays")
-            context['overlay'] = 'static_ip'
+    if context['fortimanager'] and not context['fmg_sn'].startswith('FMG-'):
+        errors.append('central-management is requested by the FMG S/N is incorrect')
 
-        if context['overlay'] == 'mode_cfg':
-            messages.append("Multicast is requested and IPsec tunnels are requested to be numbered with 'mode-cfg'. "
-                "As a side note: 'static' overlay IPs could be a better choice since it allows to "
-                "configure 'independent' shortcuts due to having independent BGP routing over shortcuts (dynamic BGP)")
+    if context['overlay'] == 'mode_cfg':
+        messages.append("IPsec tunnels are requested to be numbered with 'mode-cfg'. "
+            "As a side note: 'static' overlay IPs could be a better choice since it allows to "
+            "configure 'independent' shortcuts due to having independent BGP routing over shortcuts (dynamic BGP)"
+            "while 'dependent' shortcuts are mandatory if mode-cfg overlays are used (0778974/0793117)")
 
+    if context['ria'] and (context['dia'] or context['sia']):
+        messages.append("Hub RIA is not supported (yet) along with DIA or SIA. <b>Disabling RIA</b>")
+        context['ria'] = False
 
-    if context['vrf_aware_overlay']: # VRF segmentation
+    if context['vrf_segmentation']: # VRF segmentation
         ce_vrfs = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red'], context['vrf_grey']]  # List of VRF IDs of all CEs
         for vrfid in [context['vrf_wan'], context['vrf_pe']] + ce_vrfs:
             if vrfid > 511 or vrfid < 0:
                 errors.append('VRF id must be within [0-511]')
 
         if context['vrf_wan'] != context['vrf_pe']:
-            errors.append('vrf_wan and vrf_pe must be identical in current jinja code (TBD)')
+            errors.append('vrf_wan and vrf_pe must be identical in current PoC')
 
         vrfids = [context['vrf_pe']] + ce_vrfs # list of all PE+CE VRF IDs
         if len(set(vrfids)) != len(vrfids):  # check if the VRF IDs are all unique
             errors.append('VRF IDs for PE and CE must all be unique. Current List of IDs='+repr(vrfids))
 
-        messages.append("design choice: All CE VRFs from all Branches in all Regions have DIA + SSE RIA (no RIA via HUB)")
+        if context['sia']:
+            messages.append("design choice: Origin IP for SIA is preserved")
+
         messages.append("design choice: WEST-EXT resources (10.12.0.0/24) are leaked from VRF GREY to all CE VRFs (BLUE, RED, YELLOW)")
 
     else: # no VRF segmentation: underlay and overlay traffic goes to VRF WAN
@@ -111,11 +109,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         context['vrf_pe'] = context['vrf_wan']
         messages.append(f"Underlay and Overlay are configured in VRF WAN: {context['vrf_wan']}")
 
-
-    #
-    # Final cleanup
-
-    if not context['vrf_aware_overlay']:    # only keep vrf_wan and vrf_pe which are always used, regardless of vrf-segmentation
+        # only keep vrf_wan and vrf_pe which are always used, regardless of vrf-segmentation
         del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']); del(context['vrf_grey'])
 
 
@@ -319,7 +313,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     # Add VRF segmentation information to the poc
     #
-    if context['vrf_aware_overlay']:
+    if context['vrf_segmentation']:
         vrf_segmentation(context, poc, devices)
 
     # Update the poc (monkey patching)

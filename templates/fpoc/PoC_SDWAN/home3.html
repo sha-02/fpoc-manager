@@ -27,7 +27,7 @@
   <div class="card-header" id="heading-0">
     <h2 class="mb-0">
       <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-0" aria-expanded="true" aria-controls="collapse-0">
-        SDWAN/ADVPNv2.0 with dynamic BGP on loopback for shortcuts
+        SDWAN/ADVPNv2.0 (8.0+)
       </button>
     </h2>
   </div>
@@ -106,23 +106,25 @@
             &nbsp; &nbsp;
             <input type="checkbox" name="full_mesh_ipsec" value=1 title="Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels"> Full-mesh IPsec
 
-<!--          <br><br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(only bgp-on-loopback implemented)"> VRF segmentation-->
-<!--          <input type="hidden" name="vrf_wan" maxlength="3" size="3" value="1">-->
-<!--          <input type="hidden" name="vrf_pe" maxlength="3" size="3" value="1">-->
-<!--          <input type="hidden" name="vrf_blue" maxlength="3" size="3" value="13">-->
-<!--          <input type="hidden" name="vrf_yellow" maxlength="3" size="3" value="11">-->
-<!--          <input type="hidden" name="vrf_red" maxlength="3" size="3" value="12">-->
+          <br><br>
+          Branch Internet Breakout
+          <input type="checkbox" name="dia" value=1 title="Direct Internet Access" checked> DIA
+          <input type="checkbox" name="sia" value=1 title="Remote Internet Access via SSE" checked> SIA
+          <input type="checkbox" name="ria" value=1 title="Remote Internet Access via Hub"> RIA
 
-          <br><br><input type="checkbox" name="vrf_aware_overlay" value=1 title="(BGP VPNv4 + vpn-id-ipip)"> VRF segmentation:
-          Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="0">
-          Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="0">
-          port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">
-          YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">
-          RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">
-          GREY <input type="text" name="vrf_red" maxlength="3" size="3" value="10" disabled>
+          <br><br><input type="checkbox" name="vrf_segmentation" value=1 title="(BGP VPNv4 + vpn-id-ipip)"> VRF segmentation
+          <ul>
+            <li>
+              Underlay/WAN <input type="text" name="vrf_wan" maxlength="3" size="3" value="1">
+              Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">
+              port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">
+              YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">
+              RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">
+              GREY <input type="text" name="vrf_grey" maxlength="3" size="3" value="14" disabled>
+            </li>
+          </ul>
 
-<!--          <br><input type="checkbox" name="multicast" value=0 title="(only BLUE VRF if VRF segmentation)"> Multicast routing-->
-          <br><input type="checkbox" name="multicast" value=0> Multicast routing
+          <input type="checkbox" name="multicast" value=1> Multicast routing
 
             <br><br>
             Corporate summary <select name="corporate_summary">
