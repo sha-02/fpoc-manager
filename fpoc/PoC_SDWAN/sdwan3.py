@@ -66,6 +66,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Additional context info
 
     context['ria_only'] = not context['dia'] and not context['sia'] and context['ria']
+    context['dia_only'] = context['dia'] and not context['sia'] and not context['ria']
 
     #
     # Sanity checks

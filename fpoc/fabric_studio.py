@@ -35,9 +35,10 @@ class FabricStudio(FortiLab):
                 device.reboot_delay = 120
                 if device.lan is not None:
                     device.lan.speed = 'auto'
-                for intf_name, intf in device.wan:
-                    if intf is not None:
-                        intf.speed = 'auto'
+                if device.wan is not None:
+                    for intf_name, intf in device.wan:
+                        if intf is not None:
+                            intf.speed = 'auto'
 
     def members(self, devices: dict = None, devnames: list = None):
         """
