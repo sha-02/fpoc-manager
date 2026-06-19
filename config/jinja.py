@@ -1,5 +1,6 @@
 import os
 import jinja2
+import ipaddress
 
 from django.urls import reverse
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -51,4 +52,80 @@ def environment(**options):
     env.filters['ipaddr'] = ipaddr
     env.filters['ipmath'] = ipmath
 
+    # Add my own Jinja2 filters
+    env.filters['ipv4_to_ipv6'] = ipv4_to_ipv6
+
+
     return env
+
+
+# def ipv4_to_ipv6(ipv4addr):
+#     """
+#     Converts an IPv4 address (for eg, 10.1.2.3) into an IPv6 address (2000:10:1:2::3)
+#     The resulting IPv6 address always starts with 2000
+#     """
+#     a, b, c, d = ipv4addr.split('.')
+#     return f"2000:{a}:{b}:{c}::{d}"
+
+def ipv4_to_ipv6(ipv4:str)-> str:
+    """
+    Convert an ipv4 address into an ipv6 address
+        10.1.2.3                       -> 2000:10:1:2::3
+        10.1.2.3/32                    -> 2000:10:1:2::3/128
+        10.1.2.3/31                    -> 2000:10:1:2::3/127
+        10.1.2.3/30                    -> 2000:10:1:2::3/126
+        10.1.2.3/24                    -> 2000:10:1:2::3/64
+        10.1.2.3/16                    -> 2000:10:1:2::3/48
+        10.1.2.3/8                     -> 2000:10:1:2::3/32
+        10.1.2.3 255.255.255.255       -> 2000:10:1:2::3/128
+        10.1.2.3 255.255.255.254       -> 2000:10:1:2::3/127
+        10.1.2.3 255.255.255.252       -> 2000:10:1:2::3/126
+        10.1.2.3 255.255.255.0         -> 2000:10:1:2::3/64
+        10.1.2.3 255.255.0.0           -> 2000:10:1:2::3/48
+        10.1.2.3 255.0.0.0             -> 2000:10:1:2::3/32
+
+        Mask or prefix-length which are not listed in the PREFIX_MAP are converted to /128
+        10.1.2.3/20                    -> 2000:10:1:2::3/128
+        10.1.2.3 255.255.240.0         -> 2000:10:1:2::3/128
+    """
+    # IPv4 prefix -> IPv6 prefix mapping
+    PREFIX_MAP = {
+        32: 128,
+        31: 127,
+        30: 126,
+        24: 64,
+        16: 48,
+        8: 32,
+    }
+
+    ipv4 = ipv4.strip()
+
+    ip_part = None
+    prefix = None
+
+    # Format: a.b.c.d/prefix
+    if "/" in ipv4:
+        iface = ipaddress.IPv4Interface(ipv4)
+        ip_part = str(iface.ip)
+        prefix = iface.network.prefixlen
+
+    # Format: a.b.c.d mask
+    elif " " in ipv4:
+        ip_part, mask = ipv4.split(None, 1)
+        prefix = ipaddress.IPv4Network(f"0.0.0.0/{mask}").prefixlen
+
+    # Format: a.b.c.d
+    else:
+        ip_part = ipv4
+
+    # Validate IPv4 address and extract octets
+    a, b, c, d = map(int, ip_part.split("."))
+    ipaddress.IPv4Address(ip_part)  # validation
+
+    ipv6 = f"2000:{a}:{b}:{c}::{d}"
+
+    if prefix is None:
+        return ipv6
+
+    ipv6_prefix = PREFIX_MAP.get(prefix, 128)
+    return f"{ipv6}/{ipv6_prefix}"
