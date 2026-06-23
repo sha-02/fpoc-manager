@@ -47,7 +47,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'vrf_grey': int(request.POST.get('vrf_grey', 10)),  # VRF between WEST-DCs and WEST-EXT
 
         # IPv6
-        'ipv6': False,
+        'ipv6': bool(request.POST.get('ipv6', False)),  # True or False,
 
         # FMG
         'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
