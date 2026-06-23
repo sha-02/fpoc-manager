@@ -9,6 +9,8 @@ from config.settings import BASE_DIR
 sites = {
     'SDWAN/8.0/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/8.0/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
+    'SDWAN/7.6/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
+    'SDWAN/7.6/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.4_7.6/hardware/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
     'SDWAN/7.0_7.2/fabric/': {'urls': 'fpoc.PoC_SDWAN.urls', 'selected': False},
@@ -23,10 +25,10 @@ try:    # Check if there is a config file indicating which site is desired (firs
     with open(f"{BASE_DIR}/config/site.txt") as f:
         startup_site = f.readline().strip('\n')
 except:  # something went wrong when attempting to read the config file
-    startup_site = "SDWAN/7.4_7.6/fabric/"
+    startup_site = "SDWAN/7.6/fabric/"
 
 if sites.get(startup_site) is None:  # the site retrieved from config file is undefined
-    startup_site = "SDWAN/7.4_7.6/fabric/"
+    startup_site = "SDWAN/7.6/fabric/"
 
 #
 # Register the default URLs

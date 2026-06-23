@@ -20,6 +20,8 @@ class HomePageView(TemplateView):
             template_name = f'{APPNAME}/home3.html'
         elif '7.4_7.6' in self.request.path:
             template_name = f'{APPNAME}/home2.html'
+        elif '/7.6/' in self.request.path:
+            template_name = f'{APPNAME}/home2B.html'
 
         return [template_name]
 
@@ -63,6 +65,8 @@ class HomePageView(TemplateView):
             minimum_fortios = '8.0.0'
         elif '7.4_7.6' in self.request.path:
             minimum_fortios = '7.4.4'
+        elif '/7.6/' in self.request.path:
+            minimum_fortios = '7.6.7'
 
         context['firmware'] = fortios_firmware(minimum_fortios)
 

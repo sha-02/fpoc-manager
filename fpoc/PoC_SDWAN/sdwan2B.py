@@ -1,0 +1,438 @@
+from django.core.handlers.wsgi import WSGIRequest
+from django.shortcuts import render
+from django.http import HttpResponse
+
+import copy
+
+import fpoc
+from fpoc import AbortDeployment
+from fpoc.devices import Interface, FortiGate, LXC
+from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
+from fpoc.typing import TypePoC
+import typing
+
+import ipaddress
+
+
+def dualdc(request: WSGIRequest) -> HttpResponse:
+    """
+    PoC12, FortiOS >= 7.6.7
+        BGP on loopback, SDWAN+ADVPN v2.0, ADVPN routing with dynamic BGP on loopback
+        Hub-side Steering with BGP priority from embedded priority in per-overlay SD-WAN probes
+
+    Dual-Region WEST/EAST
+        WEST: EXT, Dual DC, Two Branches
+            no SNAT to WEST-EXT: Remote Signaling with BGP MED automatically derived from link priority
+        EAST: Single DC, One Branch
+    """
+    context = {
+        # From HTML form
+        'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
+        'full_mesh_ipsec': bool(request.POST.get('full_mesh_ipsec', False)),  # True or False
+        'dualHub_failover': request.POST.get('dualHub_failover'),  # 'lowest-cost', 'best-link'
+        'multicast': bool(request.POST.get('multicast', False)),  # True or False
+        'corporate_summary': request.POST.get('corporate_summary'),  # 'rfc1918', 'net10'
+        'dia': bool(request.POST.get('dia', False)),
+        'sia': bool(request.POST.get('sia', False)),
+        'ria': bool(request.POST.get('ria', False)),
+
+        # VRF segmentation
+        'vrf_segmentation': bool(request.POST.get('vrf_segmentation', False)),  # True or False
+        'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-511] VRF for Internet and MPLS links
+        'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-511] VRF for IPsec tunnels
+        'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-511] port5 (no vlan) segment
+        'vrf_yellow': int(request.POST.get('vrf_yellow')),  # [0-511] vlan segment
+        'vrf_red': int(request.POST.get('vrf_red')),  # [0-511] vlan segment
+        'vrf_grey': int(request.POST.get('vrf_grey', 14)),  # VRF between WEST-DCs and WEST-EXT
+
+        # IPv6
+        'ipv6': False,
+
+        # FMG
+        'fortimanager': bool(request.POST.get('fortimanager', False)),  # True or False
+        'fmg_sn': request.POST.get('fmg_sn'),
+    }
+
+    # For aliases in boostrap config
+    if context['vrf_segmentation']:
+        context |= { 'vpnv4': True,
+            'vrfs': [ ('pe', context['vrf_pe']), ('blue', context['vrf_blue']), ('yellow', context['vrf_yellow']),
+                      ('red', context['vrf_red']), ('grey', context['vrf_grey']) ],
+        }
+        if context['ipv6']:
+            context |= { 'vpnv6': context['ipv6'] } # vpnv6 if ipv6
+        if context['multicast']:
+            context |= {'mcgroups': [('blue', f"239.{context['vrf_blue']}.{context['vrf_blue']}.{context['vrf_blue']}"),
+                                     ('yellow', f"239.{context['vrf_yellow']}.{context['vrf_yellow']}.{context['vrf_yellow']}"),
+                                     ('red', f"239.{context['vrf_red']}.{context['vrf_red']}.{context['vrf_red']}")]
+                        }
+    if context['multicast'] and not context['vrf_segmentation']:
+        context |= { 'mcgroups': [ ('wdc1', '239.1.1.0'), ('wdc2', '239.1.2.0'), ('edc1', '239.2.1.0') ] }
+
+
+    # Define the poc_id based on the options which were selected
+    poc_id = 7
+    messages = []    # list of messages displayed along with the rendered configurations
+    errors = []     # List of errors
+
+    targetedFOSversion = FortiGate.FOS_int(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
+
+    # Minimum FOS version
+    minimumFOSversion = 7_006_007
+
+    # OOB
+    if context['vrf_segmentation']:
+        management_vrf = 0  # VRF 0 is not used by PoC so it can be used for OOB
+    else:
+        management_vrf = 10
+    messages.append(f"Management in VRF {management_vrf}")
+
+    #
+    # Additional context info
+
+    context['ria_only'] = not context['dia'] and not context['sia'] and context['ria']
+    context['dia_only'] = context['dia'] and not context['sia'] and not context['ria']
+
+    #
+    # Sanity checks
+
+    if context['fortimanager'] and not context['fmg_sn'].startswith('FMG-'):
+        errors.append('central-management is requested but the FMG S/N is incorrect')
+
+    if context['overlay'] == 'mode_cfg':
+        messages.append("IPsec tunnels are requested to be numbered with 'mode-cfg'. "
+            "As a side note: 'static' overlay IPs could be a better choice since it allows to "
+            "configure 'independent' shortcuts due to having independent BGP routing over shortcuts (dynamic BGP) "
+            "while 'dependent' shortcuts are mandatory if mode-cfg overlays are used (0778974/0793117)")
+
+    if context['ria'] and (context['dia'] or context['sia']):
+        messages.append("Hub RIA is not supported (yet) along with DIA or SIA. <b>Disabling RIA</b>")
+        context['ria'] = False
+
+    if context['vrf_segmentation']: # VRF segmentation
+        ce_vrfs = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red'], context['vrf_grey']]  # List of VRF IDs of all CEs
+        for vrfid in [context['vrf_wan'], context['vrf_pe']] + ce_vrfs:
+            if vrfid > 511 or vrfid < 0:
+                errors.append('VRF id must be within [0-511]')
+
+        if context['vrf_wan'] != context['vrf_pe']:
+            errors.append('vrf_wan and vrf_pe must be identical in current PoC')
+
+        vrfids = [context['vrf_pe']] + ce_vrfs # list of all PE+CE VRF IDs
+        if len(set(vrfids)) != len(vrfids):  # check if the VRF IDs are all unique
+            errors.append('VRF IDs for PE and CE must all be unique. Current List of IDs='+repr(vrfids))
+
+        # Should always be 'True' due to PE and CEs must be unique. But boolean is used for convenience in code just in
+        # case this rule is relaxed for some PoCs.
+        context['vrf_pe_no_data'] = context['vrf_pe'] not in (context['vrf_blue'], context['vrf_yellow'], context['vrf_red'])
+
+        if context['sia']:
+            messages.append("design choice: Origin IP for SIA is preserved")
+
+        messages.append(f"VRF WAN = {context['vrf_wan']}")
+        messages.append(f"VRF segmentation = {context['vrfs']}")
+
+    else: # no VRF segmentation: underlay and overlay traffic goes to VRF WAN
+        context['vrf_pe'] = context['vrf_wan'] = 0
+        messages.append(f"Underlays and Overlays in VRF WAN: {context['vrf_wan']}")
+
+        del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red'])
+        del(context['vrf_pe']); del(context['vrf_wan'])
+
+
+    messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
+
+    #
+    # Display errors and Stop
+
+    if errors:
+        return render(request, f'fpoc/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': errors})
+
+    if targetedFOSversion and minimumFOSversion > targetedFOSversion:
+        return render(request, f'fpoc/message.html',
+                      {'title': 'Error', 'header': 'Error', 'message': f'The minimum version for the selected options is {minimumFOSversion:_}'})
+
+    #
+    # Create the poc
+    #
+    if 'fabric'  in request.path:  # poc is running in FabricStudio
+        poc = FabricStudioSDWAN(request)
+    elif 'hardware' in request.path:  # poc is running in Hardware Lab
+        poc = AgoraSDWAN(request)
+    else:
+        print('\nError: Cannot create the poc based on the request PATH')
+        raise AbortDeployment
+
+    poc.mgmt.vrfid = management_vrf
+
+
+    # LAN underlays
+    #
+
+    LAN = {
+        'WEST-DC1': Interface(address='10.1.0.1/24', alias='DC'),
+        'WEST-DC2': Interface(address='10.2.0.1/24', alias='DC'),
+        'WEST-BR1': Interface(address='10.0.1.1/24', alias='LAN'),
+        'WEST-BR2': Interface(address='10.0.2.1/24', alias='LAN'),
+        'EAST-DC1': Interface(address='10.4.0.1/24', alias='DC'),
+        'EAST-BR1': Interface(address='10.4.1.1/24', alias='LAN'),
+        'EAST-BR2': Interface(address='10.4.2.1/24', alias='LAN'),
+    }
+
+    # DataCenters info used:
+    # - by DCs:
+    #   - as underlay interfaces IP@ for inter-regional tunnels (inet1/inet2/mpls)
+    # - by the Branches:
+    #   - as IPsec remote-gw IP@ (inet1/inet2/mpls)
+    # - by both DCs and Branches:
+    #   - as part of the computation of the networkid for Edge IPsec tunnels (id)
+
+    dc_loopbacks = {
+        'WEST-DC1': '10.200.1.251',
+        'WEST-DC2': '10.200.1.252',
+        'EAST-DC1': '10.200.2.251',
+        'EAST-DC2': '10.200.2.252',
+    }
+
+    # For simplicity of Hubs' definition, rendez-vous points are always defined even if multicast is not requested
+    rendezvous_points = dc_loopbacks     # no VRF segmentation: BGP loopbacks can be used as rendez-vous points
+    if context['vrf_segmentation']:
+        rendezvous_points = {           # VRF segmentation: dedicated loopback IPs are required for rendez-vous points
+            'WEST-DC1': '10.200.1.239',
+            'WEST-DC2': '10.200.1.238',
+            'EAST-DC1': '10.200.2.239',
+            'EAST-DC2': '10.200.2.238',
+        }
+    context.update({'rendezvous_points': rendezvous_points})
+
+    # We don't need that the 'id' of each Hub in the 'datacenters' dict be globally unique, it just needs to be unique
+    # within its region
+
+    west_dc1_ = {
+                    'id': 1,
+                    'inet1': poc.devices['WEST-DC1'].wan.inet1,
+                    'inet2': poc.devices['WEST-DC1'].wan.inet2,
+                    'mpls': poc.devices['WEST-DC1'].wan.mpls1,
+                    'lan': LAN['WEST-DC1'],
+                    'loopback': dc_loopbacks['WEST-DC1'],
+                    'loopback_RP': rendezvous_points['WEST-DC1']
+                }
+
+    west_dc2_ = {
+                    'id': 2,
+                    'inet1': poc.devices['WEST-DC2'].wan.inet1,
+                    'inet2': poc.devices['WEST-DC2'].wan.inet2,
+                    'mpls': poc.devices['WEST-DC2'].wan.mpls1,
+                    'lan': LAN['WEST-DC2'],
+                    'loopback': dc_loopbacks['WEST-DC2'],
+                    'loopback_RP': rendezvous_points['WEST-DC2']
+                }
+
+    east_dc1_ = {
+                    'id': 1,
+                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
+                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
+                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
+                    'lan': LAN['EAST-DC1'],
+                    'loopback': dc_loopbacks['EAST-DC1'],
+                    'loopback_RP': rendezvous_points['EAST-DC1']
+                }
+
+    east_dc2_ = {  # Fictitious second DC for East region
+                    'id': 2,
+                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
+                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
+                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
+                    'lan': '0.0.0.0/0',
+                    'loopback': dc_loopbacks['EAST-DC2'],
+                    'loopback_RP': rendezvous_points['EAST-DC2']
+                }
+
+    datacenters = {
+            'west': {
+                'first': west_dc1_,
+                'second': west_dc2_,
+            },
+            'east': {
+                'first': east_dc1_,
+                'second': east_dc2_,  # Fictitious second DC for East region
+            }
+        }
+
+
+    #
+    # FortiGate Devices
+
+    west_dc1 = FortiGate(name='WEST-DC1', template_group='DATACENTERS',
+                         lan=LAN['WEST-DC1'],
+                         template_context=context | {'region': 'West', 'region_id': 1, 'dc_id': 1, 'gps': (48.856614, 2.352222),
+                                'loopback': dc_loopbacks['WEST-DC1'],
+                                'loopback_RP': rendezvous_points['WEST-DC1'],
+                                'datacenter': datacenters
+                                })
+    west_dc2 = FortiGate(name='WEST-DC2', template_group='DATACENTERS',
+                         lan=LAN['WEST-DC2'],
+                         template_context=context | {'region': 'West', 'region_id': 1, 'dc_id': 2, 'gps': (50.1109221, 8.6821267),
+                                'loopback': dc_loopbacks['WEST-DC2'],
+                                'loopback_RP': rendezvous_points['WEST-DC2'],
+                                'datacenter': datacenters
+                                })
+    west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
+                         lan=LAN['WEST-BR1'],
+                         template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
+                                'loopback': '10.200.1.1',
+                                'datacenter': datacenters['west']
+                             })
+    west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
+                         lan=LAN['WEST-BR2'],
+                         template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
+                                'loopback': '10.200.1.2',
+                                'datacenter': datacenters['west']
+                                 })
+    east_dc1 = FortiGate(name='EAST-DC1', template_group='DATACENTERS',
+                        lan=LAN['EAST-DC1'],
+                        template_context=context | {'region': 'East', 'region_id': 2, 'dc_id': 1, 'gps': (52.2296756, 21.0122287),
+                                'loopback': dc_loopbacks['EAST-DC1'],
+                                'loopback_RP': rendezvous_points['EAST-DC1'],
+                                'datacenter': datacenters
+                                })
+    east_br1 = FortiGate(name='EAST-BR1', template_group='BRANCHES',
+                        lan=LAN['EAST-BR1'],
+                        template_context=context | {'region': 'East', 'region_id': 2, 'branch_id': 1, 'gps': (47.497912, 19.040235),
+                                'loopback': '10.200.2.1',
+                                'datacenter': datacenters['east']
+                                })
+    east_br2 = FortiGate(name='EAST-BR2', template_group='BRANCHES',
+                        lan=LAN['EAST-BR2'],
+                        template_context=context | {'region': 'East', 'region_id': 2, 'branch_id': 2, 'gps': (44.4323, 26.1063),
+                                'loopback': '10.200.2.2',
+                                'datacenter': datacenters['east']
+                                })
+
+    #
+    # Host Devices used to build the /etc/hosts file
+
+    hosts = {
+        'WEST-DC1-LXC': {'rank': 7, 'gateway': LAN['WEST-DC1'].ipprefix},
+        'WEST-DC2-LXC': {'rank': 7, 'gateway': LAN['WEST-DC2'].ipprefix},
+        'EAST-DC1-LXC': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
+        'WEST-BR1-LXC': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
+        'WEST-BR2-LXC': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
+        'EAST-BR1-LXC': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
+        'EAST-BR2-LXC': {'rank': 101, 'gateway': LAN['EAST-BR2'].ipprefix},
+    }
+
+    devices = {
+        'WEST-DC1': west_dc1,
+        'WEST-DC2': west_dc2,
+        'EAST-DC1': east_dc1,
+        'WEST-BR1': west_br1,
+        'WEST-BR2': west_br2,
+        'EAST-BR1': east_br1,
+        # 'EAST-BR2': east_br2,
+
+        # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
+
+        'WEST-DC1-LXC': LXC(name="WEST-DC1-LXC", template_context={'hosts': hosts}),
+        'WEST-DC2-LXC': LXC(name="WEST-DC2-LXC",template_context={'hosts': hosts}),
+        'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),
+        'WEST-BR1-LXC': LXC(name="WEST-BR1-LXC",template_context={'hosts': hosts}),
+        'WEST-BR2-LXC': LXC(name="WEST-BR2-LXC",template_context={'hosts': hosts}),
+        'EAST-BR1-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),
+        'EAST-BR2-LXC': LXC(name="EAST-BR2-LXC", template_context={'hosts': hosts}),
+        'INTERNET-SERVER': LXC(name="INTERNET-SERVER", template_filename='lxc.SRVINET.conf')
+    }
+
+    # Add VRF segmentation information to the poc
+    #
+    if context['vrf_segmentation']:
+        vrf_segmentation(context, poc, devices)
+
+    # Update the poc (monkey patching)
+    poc.id = poc_id
+    poc.minimum_FOS_version = minimumFOSversion
+    poc.messages = messages
+
+    # Check request, render and deploy configs
+    return fpoc.start(poc, devices)
+
+
+###############################################################################################################
+#
+# VRF segmentation
+#
+
+# About VRF IDs (from Dmitry 'Managed SDWAN' workshop):
+#
+# The choice of PE VRF=1 is not completely arbitrary. While generally any non-zero PE VRF would work, we
+# recommend using PE VRF=1 whenever possible, because it optimizes local-out traffic flows in some
+# scenarios. While the detailed discussion is not in scope of this lab, we will simply mention that in certain
+# situations the local-out traffic (such as the communication with FortiManager, FortiGuard and so on) may
+# be taking an extra hop inside the FortiGate device, if the Internet VRF (which is the PE VRF!) has an ID
+# higher than a CE VRF.
+# Exactly for this reason the optimal configuration is when VRF=0 is not used, VRF=1 is configured as PE
+# and the rest is left to CEs.
+#
+
+def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+    segments = {
+        'WEST-DC1': {
+            'BLUE': Interface(address='10.1.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.1.1.1/24', port='port5', vlanid=16, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.1.2.1/24', port='port5', vlanid=17, name='LAN_RED', vrfid=context['vrf_red']),
+            # 'GREY': Interface(address='10.1.255.1/24', port='port5', vlanid=18, name='LAN_GREY', vrfid=context['vrf_grey']),
+        },
+        'WEST-DC2': {
+            'BLUE': Interface(address='10.2.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.2.1.1/24', port='port5', vlanid=26, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.2.2.1/24', port='port5', vlanid=27, name='LAN_RED', vrfid=context['vrf_red']),
+            # 'GREY': Interface(address='10.2.255.1/24', port='port5', vlanid=28, name='LAN_GREY', vrfid=context['vrf_grey']),
+        },
+        'WEST-BR1': {
+            'BLUE': Interface(address='10.0.1.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.0.11.1/24', port='port5', vlanid=36, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.0.12.1/24', port='port5', vlanid=37, name='LAN_RED', vrfid=context['vrf_red']),
+        },
+        'WEST-BR2': {
+            'BLUE': Interface(address='10.0.2.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.0.21.1/24', port='port5', vlanid=46, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.0.22.1/24', port='port5', vlanid=47, name='LAN_RED', vrfid=context['vrf_red']),
+        },
+        'EAST-DC1': {
+            'BLUE': Interface(address='10.4.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.4.1.1/24', port='port5', vlanid=56, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.4.2.1/24', port='port5', vlanid=57, name='LAN_RED', vrfid=context['vrf_red']),
+        },
+        'EAST-BR1': {
+            'BLUE': Interface(address='10.4.1.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.4.11.1/24', port='port5', vlanid=66, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.4.12.1/24', port='port5', vlanid=67, name='LAN_RED', vrfid=context['vrf_red']),
+        },
+        'EAST-BR2': {
+            'BLUE': Interface(address='10.4.2.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.4.21.1/24', port='port5', vlanid=76, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.4.22.1/24', port='port5', vlanid=77, name='LAN_RED', vrfid=context['vrf_red']),
+        },
+    }
+
+    # 'inter_segments' describes the inter-vrf links
+
+    inter_segments = {
+        'BLUE_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.2', 'mask':'255.255.255.254'},
+                        {'vrfid': context['vrf_blue'], 'ip': '10.254.254.3', 'mask':'255.255.255.254'} ],
+        'YELLOW_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.4', 'mask':'255.255.255.254'},
+                        {'vrfid': context['vrf_yellow'], 'ip': '10.254.254.5', 'mask':'255.255.255.254'} ],
+        'RED_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.6', 'mask':'255.255.255.254'},
+                        {'vrfid': context['vrf_red'], 'ip': '10.254.254.7', 'mask':'255.255.255.254'} ],
+    }
+
+    # Update FortiGate devices
+
+    for device in devices.values():
+        if isinstance(device,FortiGate):
+            # LAN segments
+            device.lan.update(segments[device.name]['BLUE'])    # default LAN interface
+            device.template_context['vrf_segments'] = segments[device.name]
+            # inter_segments
+            device.template_context['inter_segments'] = inter_segments

@@ -1,6 +1,6 @@
 from django.urls import path, reverse
 
-from . import views, sdwan1, sdwan2, sdwan3
+from . import views, sdwan1, sdwan2, sdwan2B, sdwan3
 from config.urls import sites
 import fpoc
 
@@ -32,6 +32,7 @@ urlpatterns = [
 
     path('dualdc_dualregion/', sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10 (FOS 7.0+)
     path('dualdc_dualregion2/', sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11 (FOS 7.4+)
+    path('dualdc_dualregion2B/', sdwan2B.dualdc, name='dualdc_dualregion2B'),  # poc_id 7 (FOS 7.6.7+)
     path('dualdc_dualregion3/', sdwan3.dualdc, name='dualdc_dualregion3'),  # poc_id 12 (FOS 8.0+)
 
     # path('singlehub/bgp_per_overlay/fos62/', sdwan0.singlehub, {'poc_id': 5}, name='singlehub_fos62'),
