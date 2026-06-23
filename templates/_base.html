@@ -87,21 +87,24 @@
     </div>
     <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
       <div class="p-2 bd-highlight">
-        <input type="checkbox" id="scpDeploy" name="scpDeploy" checked> scp-deploy
+        <input type="checkbox" id="scpDeploy" name="scpDeploy" title="Deploy config with SCP instead of API" checked> scp-deploy
       </div>
       <div class="p-2 bd-highlight">
-        <input type="checkbox" id="singlePassDeploy" name="singlePassDeploy" checked> single-pass-deploy
+        <input type="checkbox" id="singlePassDeploy" name="singlePassDeploy" title="Deploy config in a single pass: CLI snippets are appended to the bootrap config" checked> single-pass-deploy
       </div>
       <div class="p-2 bd-highlight">
         <input type="checkbox" id="previewOnly" name="previewOnly" checked> preview-only
       </div>
       <div class="p-2 bd-highlight">
-        <select id="targetedFOSversion" name="targetedFOSversion">
+        <select id="targetedFOSversion" name="targetedFOSversion" title="FortiOS version used to render the config">
           <option value="">-</option>
           {% for build in firmware %}
             <option value="{{build}}">{{build}}</option>
           {% endfor %}
         </select> FOS version
+      </div>
+      <div class="p-2 bd-highlight">
+        <input type="checkbox" id="enforceFOSversion" name="enforceFOSversion" title="<i>FortiOS version</i> must run on the FGT"> enforce
       </div>
     </div>
   </div>

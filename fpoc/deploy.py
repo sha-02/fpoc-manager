@@ -35,13 +35,17 @@ def inspect(poc: TypePoC) -> list:
             except:
                 errors.append(f"This is not a valid IP address: {ipaddr}")
 
-    if poc.request.POST.get('previewOnly') and not poc.request.POST.get('targetedFOSversion'):
-        errors.append('FOS version must be specified when preview-only is selected')
-
-    if '127.0.0.1' in poc.request.get_host() and poc.request.POST.get('vmInstance')=='0.0.0.0' \
-            and poc.request.POST['vmIP'] == '' \
-            and bool(poc.request.POST.get('previewOnly', False)) == False:
+    if ('127.0.0.1' in poc.request.get_host()                    # running from localhost (ie, not from FS)
+            and poc.request.POST.get('vmInstance')=='0.0.0.0'    # with no FS specified
+            and poc.request.POST['vmIP'] == ''
+            and not poc.request.POST.get('previewOnly')):        # and not a preview
         errors.append("Select a PoC instance from the list, 'internal' is not a valid choice from 127.0.0.1")
+
+    if poc.request.POST.get('previewOnly') and not poc.request.POST.get('targetedFOSversion'):
+        errors.append('FOS version must be specified when <i>preview-only</i> is selected')
+
+    if poc.request.POST.get('enforceFOSversion') and not poc.request.POST.get('targetedFOSversion'):
+        errors.append('FOS version must be specified when <i>enforce</i> is selected')
 
     if poc.request.POST.get('scpDeploy') and not poc.request.POST.get('singlePassDeploy'):
         errors.append('scp-deploy is used to deploy full config files so single-pass-deploy must be enabled as well')

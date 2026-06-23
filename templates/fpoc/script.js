@@ -12,6 +12,7 @@ function collectElements(formID)
   document.getElementById('singlePassDeploy').setAttribute('form', formID);
   document.getElementById('previewOnly').setAttribute('form', formID);
   document.getElementById('targetedFOSversion').setAttribute('form', formID);
+  document.getElementById('enforceFOSversion').setAttribute('form', formID);
 }
 
 function selectDeselectFgt(selectDeselectCheckbox)

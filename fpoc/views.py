@@ -123,6 +123,7 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
 
 def upgrade(request: WSGIRequest) -> HttpResponse:
     """
+    Unconditional upgrade to the requested FOS version
     """
 
     # Check the request
@@ -145,16 +146,6 @@ def upgrade(request: WSGIRequest) -> HttpResponse:
         return render(request, f'fpoc/message.html',
                       {'title': 'Upgrade', 'header': 'Upgrade preview', 'message': fortigates})
 
-    def _upgrade_fgt(device: FortiGate, fos_target: str, lock: threading.Lock):
-        fortios.prepare_api(device)  # create API admin and key if needed
-        device.fos_version = fortios.retrieve_fos_version(device)  # Update info about the version running on FGT (string, for e.g. '7.2.5')
-        if fos_version_target != device.fos_version:
-            print(f"{device.name} : FGT is running FOS {device.fos_version}", end='')
-            print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
-            fortios.update_fortios_version(device, fos_target, lock)  # Upgrade/Downgrade FortiGate
-        else:
-            print(f"{device.name} : FGT is already running FOS {device.fos_version}. No upgrade needed.")
-
     # Only keep the 'devices' that are active members for the poc
     poc.members(devnames=fortigates)
 
@@ -162,7 +153,9 @@ def upgrade(request: WSGIRequest) -> HttpResponse:
     for fgt in poc:
         fgt.name  = fgt.name or fgt.name_phy    # if name is None then name=name_phy
         print(f'{fgt.name} : Upgrading to FortiOS', fos_version_target, ' ...')
-        thread = threading.Thread(target=_upgrade_fgt, args=(fgt, fos_version_target, poc.lock))
+        thread = threading.Thread(target=fortios.update_fortios_version,
+                                  args=(fgt, request.POST.get('scpDeploy', False),
+                                        fos_version_target, poc.lock))
         threads.append(thread)
         thread.start()
 

@@ -67,10 +67,11 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
     print('')  # because of the print("... is running FOS ...", end='')
 
 
-def update_fortios_version(device: FortiGate, fos_version_target: str, lock: threading.Lock):
+def update_fortios_version(device: FortiGate, scp: bool, fos_version_target: str, lock: threading.Lock):
     """
     Update (upgrade or downgrade) the FOS version running on this FGT
     :param device:
+    :param scp: should upgrade be done with SCP or not (ie, API)
     :param fos_version_target: FOS version requested by user (e.g. "6.4.6")
     :param lock: mutual exclusion (mutex) lock used to download and store missing firmware
     :return:
@@ -104,8 +105,14 @@ def update_fortios_version(device: FortiGate, fos_version_target: str, lock: thr
     # release the lock so that other treads can now check for the existence of the firmware file
     lock.release()
 
-    print(f'{device.name} : Uploading firmware... ')
-    fortios.api.upload_firmware(device, str(path))
+    print(f'{device.name} : Uploading firmware ', end='')
+    if scp:
+        print('via SCP...')
+        fortios.ssh.upload_firmware(device, str(path))
+    else:
+        print('via API...')
+        fortios.api.upload_firmware(device, str(path))
+
     print(f'{device.name} : Firmware uploaded.')
 
 
@@ -249,16 +256,26 @@ def deploy(poc: TypePoC, device: FortiGate):
     :return:
     """
 
-    # Prepare the FGT: API admin, API key and FortiOS version
+    # Config preview
+    if poc.request.POST.get('previewOnly'):
+        device.fos_version = poc.request.POST['targetedFOSversion']  # FOS version used for config rendering
+
+    # Not a preview:
+    # When FortiOS version is explicitly indicated and must be enforced:
+    # - use this FOS version to render the config and, if needed, upgrade the FGT to this version
+    # When no FortiOS version is specified:
+    # - get the FOS version from the FGT and use this version for config rendering
     #
-    if poc.request.POST.get('previewOnly') and poc.request.POST.get('targetedFOSversion'):
-        device.fos_version = poc.request.POST['targetedFOSversion']  # FOS version assigned to FGTs for config rendering
-    else:
+    # For cases: prepare the FGT (API admin, API key) and, if needed, load the desired FortiOS version
+    #
+    elif poc.request.POST.get('enforceFOSversion') or not poc.request.POST['targetedFOSversion']:
         prepare_api(device)  # create API admin and key if needed
         # ensure FGT runs the desired FortiOS version if user asked for a specific FOS version
         prepare_fortios_version(device, fos_version_target=poc.request.POST['targetedFOSversion'],
                                 FOS_minimum=poc.minimum_FOS_version,
                                 lock=poc.lock)
+    else:   # Not preview, and no need to connect to the device (FOS version not enforced)
+        device.fos_version = poc.request.POST['targetedFOSversion']  # FOS version used for config rendering
 
     # Update the template context of this device
     #
@@ -288,10 +305,16 @@ def deploy(poc: TypePoC, device: FortiGate):
     #
     if poc.id == 0:
         render_bootstrap_config(poc, device)    # config is stored in device.config
-        save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
+        config_filepath = save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if not poc.request.POST.get('previewOnly'):
-            print(f'{device.name} : Uploading bootstrap configuration... ')
-            fortios.api.upload_config(device)
+            print(f'{device.name} : Uploading bootstrap configuration ', end='')
+            if poc.request.POST.get('scpDeploy'):
+                print('via SCP...')
+                fortios.ssh.upload_config(device, filepath=config_filepath)
+            else:
+                print('via API...')
+                fortios.api.upload_config(device)
+
             print(f'{device.name} : bootstrap configuration uploaded.')
 
         raise CompletedDeviceProcessing
