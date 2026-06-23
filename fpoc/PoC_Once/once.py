@@ -1,7 +1,7 @@
 from fpoc.PoC_SDWAN import FabricStudioSDWAN, AgoraSDWAN
 
-######### CURRENT POC = POC01  #############################
-from .once01 import devices
+######### CURRENT POC = POC02  #############################
+from .once02 import devices
 ############################################################
 
 class FabricStudioPoCOnce(FabricStudioSDWAN):

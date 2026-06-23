@@ -6,9 +6,9 @@ from django.shortcuts import render
 from fpoc.fortios import fortios_firmware
 from fpoc import studio_instances
 
-######### CURRENT POC = POC01  ##############################################
-from .once01 import devices
-POC_ID=1
+######### CURRENT POC = POC02  ##############################################
+from .once02 import devices
+POC_ID=2
 #############################################################################
 
 APPNAME = "fpoc/PoC_Once"

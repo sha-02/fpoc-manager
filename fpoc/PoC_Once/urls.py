@@ -33,4 +33,5 @@ urlpatterns = [
     # path('01/', fpoc.PoC_Once.poc01, {'poc_id': 1}, name='poc'),
     # 'name' is not used, the submit URL is built using the POC_ID defined in views.py
     path('01/', fpoc.PoC_Once.poc01, {'poc_id': 1}),
+    path('02/', fpoc.PoC_Once.poc02, {'poc_id': 2}),
 ]
