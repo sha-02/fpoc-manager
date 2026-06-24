@@ -16,7 +16,7 @@ import ipaddress
 
 def dualdc(request: WSGIRequest) -> HttpResponse:
     """
-    PoC12, FortiOS >= 8.0
+    PoC01, Dual Branch: FortiOS 7.6.7+ and 8.0+
         BGP on loopback, SDWAN+ADVPN v2.0, ADVPN routing with dynamic BGP on loopback
         Hub-side Steering with BGP priority from embedded priority in per-overlay SD-WAN probes
         VRF segmentation with new 8.0 VRF design
@@ -44,7 +44,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-511] port5 (no vlan) segment
         'vrf_yellow': int(request.POST.get('vrf_yellow')),  # [0-511] vlan segment
         'vrf_red': int(request.POST.get('vrf_red')),  # [0-511] vlan segment
-        'vrf_grey': int(request.POST.get('vrf_grey', 10)),  # VRF between WEST-DCs and WEST-EXT
+        'vrf_grey': int(request.POST.get('vrf_grey', 14)),  # VRF between WEST-DCs and WEST-EXT
 
         # IPv6
         'ipv6': bool(request.POST.get('ipv6', False)),  # True or False,
@@ -72,18 +72,22 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
 
     # Define the poc_id based on the options which were selected
-    poc_id = 12
+    poc_id = 1
     messages = []    # list of messages displayed along with the rendered configurations
     errors = []     # List of errors
 
     targetedFOSversion = FortiGate.FOS_int(request.POST.get('targetedFOSversion') or '0.0.0') # use '0.0.0' if empty targetedFOSversion string, FOS version becomes 0
+    if targetedFOSversion == 0:
+        errors.append("This PoC supports multiple FOS branches so it mandates specifying the FOS version for config rendering")
 
     # Minimum FOS version
-    minimumFOSversion = 8_000_000
+    minimumFOSversion = 7_006_007
 
-    # FOS 8.0+ new VRF design, VRF 0 is no longer a union of all VRFs for local-out
-    # So, in this PoC, OOB is in VRF 0 (instead of 10 in previous PoCs)
-    management_vrf = 0
+    # OOB
+    if targetedFOSversion >= 8_000_000 or context['vrf_segmentation']:
+        management_vrf = 0  # VRF 0 is not used by PoC so it can be used for OOB
+    else:
+        management_vrf = 10
 
     #
     # Additional context info
@@ -94,10 +98,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     #
     # Sanity checks
 
-    if context['multicast'] and context['overlay'] == 'no_ip':  # 1262907
+    if targetedFOSversion >= 8_000_000 and context['multicast'] and context['overlay'] == 'no_ip':  # 1262907
         minimumFOSversion = 8_000_001
 
-    if context['vrf_segmentation'] and context['vrf_pe']!=0 : # no shortcut monitoring - fixed in 8.0.1 by 1226222
+    if targetedFOSversion >= 8_000_000 and context['vrf_segmentation'] and context['vrf_pe']!=0 : # no shortcut monitoring - fixed in 8.0.1 by 1226222
         minimumFOSversion = 8_000_001
 
     if context['fortimanager'] and not context['fmg_sn'].startswith('FMG-'):
@@ -112,6 +116,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     if context['ria'] and (context['dia'] or context['sia']):
         messages.append("Hub RIA is not supported (yet) along with DIA or SIA. <b>Disabling RIA</b>")
         context['ria'] = False
+
+    if context['sia']:
+        messages.append("Origin IP for SIA is preserved")
 
     if context['vrf_segmentation']: # VRF segmentation
         ce_vrfs = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red'], context['vrf_grey']]  # List of VRF IDs of all CEs
@@ -130,30 +137,32 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         # case this rule is relaxed for some PoCs.
         context['vrf_pe_no_data'] = context['vrf_pe'] not in (context['vrf_blue'], context['vrf_yellow'], context['vrf_red'])
 
-        if context['sia']:
-            messages.append("design choice: Origin IP for SIA is preserved")
+        if targetedFOSversion >= 8_000_000:
+            messages.append("design choice: WEST-EXT resources (10.12.0.0/24) are leaked from VRF GREY to all CE VRFs (BLUE, RED, YELLOW)")
 
-        messages.append("design choice: WEST-EXT resources (10.12.0.0/24) are leaked from VRF GREY to all CE VRFs (BLUE, RED, YELLOW)")
         messages.append(f"VRF WAN = {context['vrf_wan']}")
         messages.append(f"VRF segmentation = {context['vrfs']}")
 
     else: # no VRF segmentation: underlay and overlay traffic goes to VRF WAN
-        if context['multicast']:
+        if targetedFOSversion >= 8_000_000:  # FOS 8.0, WAN VRF is configurable (PE is forced to same VRF)
+            if context['multicast']:
+                context['vrf_wan'] = 0
+                management_vrf = 10  # Set OOB Management in a different VRF than the WAN VRF
+                messages.append("Multicast without VRF segmentation: <b>forcing VRF WAN to 0</b>")
+            if context['vrf_wan'] > 511 or context['vrf_wan'] < 0:
+                messages.append('Incorrect VRF id for VRF WAN, <b>forcing to 1</b>')
+                context['vrf_wan'] = 1
+        else:   # FOS 7.6, WAN and PE are forced to VRF 0
+            messages.append('VRF WAN is forced to 0 for FOS 7.6')
             context['vrf_wan'] = 0
-            management_vrf = 10     # Set OOB Management in a different VRF than the WAN VRF
-            messages.append("Multicast without VRF segmentation: <b>forcing VRF WAN to 0</b>")
-
-        if context['vrf_wan'] > 511 or context['vrf_wan'] < 0:
-            messages.append('Incorrect VRF id for VRF WAN, <b>forcing to 1</b>')
-            context['vrf_wan'] = 1
 
         context['vrf_pe'] = context['vrf_wan']
         messages.append(f"Underlays and Overlays in VRF WAN: {context['vrf_wan']}")
 
-        # only keep vrf_wan and vrf_pe which are always used, regardless of vrf-segmentation
+        # only keep vrf_wan and vrf_pe which are always used, even with no vrf-segmentation
         del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']); del(context['vrf_grey'])
 
-    # Must be set here since it can forced to 10 when there is multicast without vrf segmentation
+    # Must append the message here since mgmt_vrf can be forced to 10 when there is multicast without vrf segmentation
     messages.append(f"Management in VRF {management_vrf}")
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
@@ -363,7 +372,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Add VRF segmentation information to the poc
     #
     if context['vrf_segmentation']:
-        vrf_segmentation(context, poc, devices)
+        vrf_segmentation(targetedFOSversion, context, poc, devices)
 
     # Update the poc (monkey patching)
     poc.id = poc_id
@@ -379,7 +388,19 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 # VRF segmentation
 #
 
-def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+# About VRF IDs (from Dmitry 'Managed SDWAN' workshop):
+#
+# The choice of PE VRF=1 is not completely arbitrary. While generally any non-zero PE VRF would work, we
+# recommend using PE VRF=1 whenever possible, because it optimizes local-out traffic flows in some
+# scenarios. While the detailed discussion is not in scope of this lab, we will simply mention that in certain
+# situations the local-out traffic (such as the communication with FortiManager, FortiGuard and so on) may
+# be taking an extra hop inside the FortiGate device, if the Internet VRF (which is the PE VRF!) has an ID
+# higher than a CE VRF.
+# Exactly for this reason the optimal configuration is when VRF=0 is not used, VRF=1 is configured as PE
+# and the rest is left to CEs.
+#
+
+def vrf_segmentation(fos_target:int, context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     segments = {
         'WEST-DC1': {
             'BLUE': Interface(address='10.1.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
@@ -420,10 +441,24 @@ def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, t
         },
     }
 
-    #
+    # FOS 7.6 'inter_segments' describes the inter-vrf links
+
+    inter_segments = {
+        'BLUE_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.2', 'mask':'255.255.255.254'},
+                        {'vrfid': context['vrf_blue'], 'ip': '10.254.254.3', 'mask':'255.255.255.254'} ],
+        'YELLOW_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.4', 'mask':'255.255.255.254'},
+                        {'vrfid': context['vrf_yellow'], 'ip': '10.254.254.5', 'mask':'255.255.255.254'} ],
+        'RED_': [ {'vrfid': context['vrf_wan'], 'ip': '10.254.254.6', 'mask':'255.255.255.254'},
+                        {'vrfid': context['vrf_red'], 'ip': '10.254.254.7', 'mask':'255.255.255.254'} ],
+    }
+
     # Update FortiGate devices
-    #
+
     for device in devices.values():
         if isinstance(device,FortiGate):
-            device.lan.update(segments[device.name]['BLUE'])
+            # LAN segments
+            device.lan.update(segments[device.name]['BLUE'])    # default LAN interface
             device.template_context['vrf_segments'] = segments[device.name]
+            # inter_segments for FOS 7.6
+            if fos_target < 8_000_000:
+                device.template_context['inter_segments'] = inter_segments

@@ -16,12 +16,17 @@ class HomePageView(TemplateView):
 
     def get_template_names(self):
         template_name = f'{APPNAME}/home.html'
-        if '8.0' in self.request.path:
+        if '7.6_8.0' in self.request.path:
             template_name = f'{APPNAME}/home3.html'
         elif '7.4_7.6' in self.request.path:
             template_name = f'{APPNAME}/home2.html'
-        elif '/7.6/' in self.request.path:
-            template_name = f'{APPNAME}/home2B.html'
+
+        # if '8.0' in self.request.path:
+        #     template_name = f'{APPNAME}/home3.html'
+        # elif '7.4_7.6' in self.request.path:
+        #     template_name = f'{APPNAME}/home2.html'
+        # elif '/7.6/' in self.request.path:
+        #     template_name = f'{APPNAME}/home2B.html'
 
         return [template_name]
 
@@ -61,12 +66,17 @@ class HomePageView(TemplateView):
 
         # Defines the minimum FOS version proposed in the dropdown list
         minimum_fortios = '7.0.0'
-        if '8.0' in self.request.path:
-            minimum_fortios = '8.0.0'
+        if '7.6_8.0' in self.request.path:
+            minimum_fortios = '7.6.7'
         elif '7.4_7.6' in self.request.path:
             minimum_fortios = '7.4.4'
-        elif '/7.6/' in self.request.path:
-            minimum_fortios = '7.6.7'
+
+        # if '8.0' in self.request.path:
+        #     minimum_fortios = '8.0.0'
+        # elif '7.4_7.6' in self.request.path:
+        #     minimum_fortios = '7.4.4'
+        # elif '/7.6/' in self.request.path:
+        #     minimum_fortios = '7.6.7'
 
         context['firmware'] = fortios_firmware(minimum_fortios)
 
