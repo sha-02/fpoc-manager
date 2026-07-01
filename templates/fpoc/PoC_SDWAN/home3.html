@@ -26,13 +26,13 @@
     <div class="card">
         <div class="card-header" id="heading-0">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapse-0" aria-expanded="true" aria-controls="collapse-0">
+                <button aria-controls="collapse-0" aria-expanded="true" class="btn btn-link btn-block text-left"
+                        data-target="#collapse-0" data-toggle="collapse" type="button">
                     SDWAN/ADVPNv2.0 (7.6.7+ & 8.0)
                 </button>
             </h2>
         </div>
-        <div id="collapse-0" class="collapse show" aria-labelledby="heading-0" data-parent="#accordionPoC">
+        <div aria-labelledby="heading-0" class="collapse show" data-parent="#accordionPoC" id="collapse-0">
             <!-- 'show' in class to ensure it is opened by default -->
             <div class="card-body">
                 <!-- 'Bootstrap' form -->
@@ -42,27 +42,27 @@
                         <div class="container">
                             <div class="row">
                                 <div class="col">
-                                    <input type="checkbox" name="fgtCheckbox" onclick="selectDeselectFgt(this)" checked>
+                                    <input checked name="fgtCheckbox" onclick="selectDeselectFgt(this)" type="checkbox">
                                     <b>FortiGates</b>
                                     {% for fgt in fortigates %}
-                                    <br><input type="checkbox" name="{{fgt}}" checked> {{fgt}}
+                                    <br><input checked name="{{fgt}}" type="checkbox"> {{fgt}}
                                     {% endfor %}
                                 </div>
                                 {% if lxces %}
                                 <div class="col">
-                                    <input type="checkbox" name="lxcCheckbox" onclick="selectDeselectLxc(this)">
+                                    <input name="lxcCheckbox" onclick="selectDeselectLxc(this)" type="checkbox">
                                     <b>LXC</b>
                                     {% for lxc in lxces %}
-                                    <br><input type="checkbox" name="{{lxc}}"> {{lxc}}
+                                    <br><input name="{{lxc}}" type="checkbox"> {{lxc}}
                                     {% endfor %}
                                 </div>
                                 {% endif %}
                                 {% if vyoses %}
                                 <div class="col">
-                                    <input type="checkbox" name="vyosCheckbox" onclick="selectDeselectVyos(this)">
+                                    <input name="vyosCheckbox" onclick="selectDeselectVyos(this)" type="checkbox">
                                     <b>VyOS</b>
                                     {% for vyos in vyoses %}
-                                    <br><input type="checkbox" name="{{vyos}}"> {{vyos}}
+                                    <br><input name="{{vyos}}" type="checkbox"> {{vyos}}
                                     {% endfor %}
                                 </div>
                                 {% endif %}
@@ -71,27 +71,27 @@
                     </fieldset>
 
                     <hr>
-                    <input type="checkbox" name="WAN_underlays"> WAN underlays
+                    <input name="WAN_underlays" type="checkbox"> WAN underlays
                     HA <select name="HA">
-                    <option value="standalone" selected>standalone</option>
+                    <option selected value="standalone">standalone</option>
                     <option value="FGCP">FGCP</option>
                 </select>
 
                     {% if studio_instances %}
-                    <button type="submit" class="btn btn-warning btn-sm" title="Power on the selected devices"
-                            formaction="{% url 'sdwan:poweron' %}">Power-On Devices
+                    <button class="btn btn-warning btn-sm" formaction="{% url 'sdwan:poweron' %}" title="Power on the selected devices"
+                            type="submit">Power-On Devices
                     </button>
                     {% endif %}
-                    <button type="submit" class="btn btn-warning btn-sm" title="Upgrade/Downgrade FortiGates"
-                            formaction="{% url 'sdwan:upgrade' %}">Upgrade FortiGates
+                    <button class="btn btn-warning btn-sm" formaction="{% url 'sdwan:upgrade' %}" title="Upgrade/Downgrade FortiGates"
+                            type="submit">Upgrade FortiGates
                     </button>
                     <!--        <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration" formaction="{% url 'sdwan:bootstrap' %}" >Deploy Bootstrap Config to FortiGates</button>-->
-                    <button type="submit" class="btn btn-info btn-sm" title="Deploy bootstrap configuration"
-                            formaction="bootstrap/">Deploy Bootstrap Config to FortiGates
+                    <button class="btn btn-info btn-sm" formaction="bootstrap/" title="Deploy bootstrap configuration"
+                            type="submit">Deploy Bootstrap Config to FortiGates
                     </button>
 
-                    <br><input type="checkbox" name="fortimanager"> FortiManager S/N <input type="text" name="fmg_sn"
-                                                                                            maxlength="16" size="16">
+                    <br><input name="fortimanager" type="checkbox"> FortiManager S/N <input maxlength="16" name="fmg_sn"
+                                                                                            size="16" type="text">
                     <br><br>
                     <fieldset>
                         <!--            <input type="hidden" name="bgp_design" value="on_loopback">-->
@@ -107,61 +107,72 @@
                             </li>
                         </ul>
 
-                        Dual-Hub Failover strategy <select name="dualHub_failover">
-                        <option value='lowest-cost'>SLA Lowest Cost</option>
-                        <option value='best-link' selected>SLA Best Link</option>
-                    </select>
-
-                        <br>Overlays:
                         <select name="overlay">
-                            <option value='no_ip' selected>unnumbered</option>
+                            <option selected value='no_ip'>unnumbered</option>
                             <option value='static_ip'>static (exchange-interface-ip)</option>
                             <option value='mode_cfg'>dynamic (Mode-Config)</option>
-                        </select>
+                        </select> Overlays
                         &nbsp; &nbsp;
-                        <input type="checkbox" name="full_mesh_ipsec" value=1
-                               title="Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels">
+                        <input name="full_mesh_ipsec" title="Cross-underlay IPsec tunnels for Edge tunnels and for inter-region tunnels" type="checkbox"
+                               value=1>
                         Full-mesh IPsec
+
+                        <input name="ipv6" type="checkbox" value=1> IPv6 overlays
+
+                        <select name="corporate_summary">
+                            <option selected value='net10'>10.0.0.0/8</option>
+                            <option value='rfc1918'>RFC1918</option>
+                        </select> Corporate summary
+
+                        <br>
+                        <select name="dualHub_failover">
+                            <option value='lowest-cost'>SLA Lowest Cost</option>
+                            <option selected value='best-link'>SLA Best Link</option>
+                        </select> Dual-Hub Failover strategy
 
                         <br><br>
                         Branch Internet Breakout
-                        <input type="checkbox" name="dia" value=1 title="Direct Internet Access" checked> DIA
-                        <input type="checkbox" name="sia" value=1 title="Remote Internet Access via SSE" checked> SIA
-                        <input type="checkbox" name="ria" value=1 title="Remote Internet Access via Hub"> RIA
+                        <input checked name="dia" title="Direct Internet Access" type="checkbox" value=1> DIA
+                        <input checked name="sia" title="Remote Internet Access via SSE" type="checkbox" value=1> SIA
+                        <input name="ria" title="Remote Internet Access via Hub" type="checkbox" value=1> RIA
                         <br>
-                        <input type="text" name="vrf_wan" maxlength="3" size="3" value="1"> Underlay/WAN VRF
+                        <table>
+                            <tr>
+                                <td>
+                                    <input maxlength="3" name="vrf_wan" size="3" type="text" value="1"> Underlay/WAN VRF
+                                </td>
+                                <td>
+                                    <input name="vrf_segmentation" title="(BGP VPNv4/VPNv6 + vpn-id-ipip)" type="checkbox"
+                                   value=1> VRF segmentation
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>
+                                    Overlay/PE <input maxlength="3" name="vrf_pe" size="3" type="text" value="1">
+                                    port5/BLUE <input maxlength="3" name="vrf_blue" size="3" type="text" value="13">
+                                    YELLOW <input maxlength="3" name="vrf_yellow" size="3" type="text" value="11">
+                                    RED <input maxlength="3" name="vrf_red" size="3" type="text" value="12">
+                                    GREY <input disabled maxlength="3" name="vrf_grey" size="3" type="text" value="14">
+                                </td>
+                            </tr>
+                        </table>
 
-                        <br><br><input type="checkbox" name="ipv6" value=1> IPv6 (overlay only)
-                        <br><input type="checkbox" name="vrf_segmentation" value=1
-                                   title="(BGP VPNv4/VPNv6 + vpn-id-ipip)"> VRF segmentation
-                        <ul>
-                            <li>
-                                Overlay/PE <input type="text" name="vrf_pe" maxlength="3" size="3" value="1">
-                                port5/BLUE <input type="text" name="vrf_blue" maxlength="3" size="3" value="13">
-                                YELLOW <input type="text" name="vrf_yellow" maxlength="3" size="3" value="11">
-                                RED <input type="text" name="vrf_red" maxlength="3" size="3" value="12">
-                                GREY <input type="text" name="vrf_grey" maxlength="3" size="3" value="14" disabled>
-                            </li>
-                        </ul>
+                        <input name="multicast" type="checkbox" value=1> Multicast routing
+                        <br><input name="evpn" title="limited to VRF 0" type="checkbox" value=1> EVPN
+                        <input name="evpn_anycast_gw" type="checkbox" value=1 title="FOS 8.0+"> AnyCast GW
 
-                        <input type="checkbox" name="multicast" value=1> Multicast routing
-
-                        <br><br>
-                        Corporate summary <select name="corporate_summary">
-                        <option value='net10' selected>10.0.0.0/8</option>
-                        <option value='rfc1918'>RFC1918</option>
-                    </select>
                         <br><br>
 
                     </fieldset>
 
-                    <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
+                    <input name="Class_PoC" type="hidden" value="{{Class_PoC}}">
 
                     <!--        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion3' %}" formaction="{% url 'sdwan:dualdc_dualregion3' %}" >Start</button>-->
-                    <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion3"
-                            formaction="dualdc_dualregion3/">Deploy
+                    <button class="btn btn-info btn-sm" formaction="dualdc_dualregion3/" title="dualdc_dualregion3"
+                            type="submit">Deploy
                     </button>
-                    <button type="submit" class="btn btn-success btn-sm" title="Dashboard" formaction="dashboard/">
+                    <button class="btn btn-success btn-sm" formaction="dashboard/" title="Dashboard" type="submit">
                         Dashboard
                     </button>
                 </form>
@@ -175,16 +186,16 @@
     <div class="card">
         <div class="card-header" id="heading-10">
             <h2 class="mb-0">
-                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse"
-                        data-target="#collapse-10" aria-expanded="true" aria-controls="collapse-10">
+                <button aria-controls="collapse-10" aria-expanded="true" class="btn btn-link btn-block text-left"
+                        data-target="#collapse-10" data-toggle="collapse" type="button">
                     Network Diagram
                 </button>
             </h2>
         </div>
-        <div id="collapse-10" class="collapse" aria-labelledby="heading-0" data-parent="#accordionPoC">
+        <div aria-labelledby="heading-0" class="collapse" data-parent="#accordionPoC" id="collapse-10">
             <div class="card-body">
                 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-                    <img src="{% static 'images/poc_11.png' %}" class="img-fluid" alt="BGP-on-loopback design"/>
+                    <img alt="BGP-on-loopback design" class="img-fluid" src="{% static 'images/poc_11.png' %}"/>
                     <p class="lead">SDWAN ADVPNv2.0 with dynamic BGP on-loopback for shortcuts</p>
                 </div>
             </div>

@@ -46,6 +46,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'vrf_red': int(request.POST.get('vrf_red')),  # [0-511] vlan segment
         'vrf_grey': int(request.POST.get('vrf_grey', 14)),  # VRF between WEST-DCs and WEST-EXT
 
+        # EVPN
+        'vrf_evpn': 0,         # vrf_evpn must be 0 and, from my test results, it forces using vrf_pe as 0 as well
+        'evpn': bool(request.POST.get('evpn', False)),
+        'evpn_anycast_gw': bool(request.POST.get('evpn_anycast_gw', False)),  # Use same GW IP on all leafs of the same segment
+
         # IPv6
         'ipv6': bool(request.POST.get('ipv6', False)),  # True or False,
 
@@ -153,7 +158,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                 messages.append('Incorrect VRF id for VRF WAN, <b>forcing to 1</b>')
                 context['vrf_wan'] = 1
         else:   # FOS 7.6, WAN and PE are forced to VRF 0
-            messages.append('VRF WAN is forced to 0 for FOS 7.6')
+            messages.append('VRF WAN is <b>forced to 0</b> for FOS 7.6')
             context['vrf_wan'] = 0
 
         context['vrf_pe'] = context['vrf_wan']
@@ -161,6 +166,16 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         # only keep vrf_wan and vrf_pe which are always used, even with no vrf-segmentation
         del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']); del(context['vrf_grey'])
+
+    # EVPN
+    if context['evpn']:
+        if targetedFOSversion >= 8_000_000:
+            errors.append("Symmetric IRB EVPN for 8.0 is not yet available")
+        if context['evpn_anycast_gw']:
+            minimumFOSversion = 8_000_000
+        if context['vrf_pe']:
+            # vrf_evpn must be 0 and, from my test results, it forces using vrf_pe as 0 as well
+            errors.append("MP-BGP EVPN is only supported in VRF 0, please set the WAN/PE VRF to VRF 0")
 
     # Must append the message here since mgmt_vrf can be forced to 10 when there is multicast without vrf segmentation
     messages.append(f"Management in VRF {management_vrf}")
@@ -374,6 +389,10 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     if context['vrf_segmentation']:
         vrf_segmentation(targetedFOSversion, context, poc, devices)
 
+    # Add EVPN information to the poc
+    if context['evpn']:
+        evpn(targetedFOSversion, context, poc, devices)
+
     # Update the poc (monkey patching)
     poc.id = poc_id
     poc.minimum_FOS_version = minimumFOSversion
@@ -462,3 +481,49 @@ def vrf_segmentation(fos_target:int, context: dict, poc: TypePoC, devices: typin
             # inter_segments for FOS 7.6
             if fos_target < 8_000_000:
                 device.template_context['inter_segments'] = inter_segments
+
+
+###############################################################################################################
+#
+# EVPN
+#
+
+# Extended LANs can only be in VRF 0 since FOS MP-BGP EVPN can only run in VRF 0
+# If vrf_segmentation is done, PE VRF must be in VRF 0 as well per my tests
+#
+
+def evpn(fos_target:int, context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+    extended_lans = {
+            # Extended LAN between WEST BR1<->BR2
+            'WEST-BR1': {
+                'evpnid': 10,
+                'l2vni': 10000 + 10,
+                'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=101, name='LAN_XTD', vrfid=context['vrf_evpn']),
+            },
+            'WEST-BR2': {
+                'evpnid': 10,
+                'l2vni': 10000 + 10,
+                'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=102, name='LAN_XTD', vrfid=context['vrf_evpn']),
+            },
+
+            # Extended LAN between EAST BR1<->BR2
+            'EAST-BR1': {
+                'evpnid': 20,
+                'l2vni': 10000 + 20,
+                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=103, name='LAN_XTD', vrfid=context['vrf_evpn']),
+            },
+            'EAST-BR2': {
+                'evpnid': 20,
+                'l2vni': 10000 + 20,
+                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=104, name='LAN_XTD', vrfid=context['vrf_evpn']),
+            },
+        }
+
+    if not context['evpn_anycast_gw']:  # Different GW IP must be used on BR2
+        extended_lans['WEST-BR2']['intf'].update(Interface(address='10.99.12.2/24'))
+        extended_lans['EAST-BR2']['intf'].update(Interface(address='10.99.34.2/24'))
+
+    # Update Branches FortiGates (FGTs with a branch_id)
+    for device in devices.values():
+        if isinstance(device,FortiGate) and device.template_context.get('branch_id', False):
+            device.template_context['lan_xtd'] = extended_lans[device.name]
