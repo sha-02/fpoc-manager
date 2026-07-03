@@ -12,6 +12,20 @@ import typing
 
 import ipaddress
 
+#
+# PoC mappings
+#
+mapping = {
+    'WEST-DC1': 'HUB1',
+    'WEST-DC2': 'HUB2',
+    'EAST-DC1': 'HUB3',
+    'EAST-DC': 'HUB3',
+    'WEST-BR1': 'BR1',
+    'WEST-BR2': 'BR2',
+    'EAST-BR1': 'BR3',
+    'EAST-BR': 'BR3',
+}
+
 
 def dualdc(request: WSGIRequest) -> HttpResponse:
     """
@@ -19,6 +33,18 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     WEST: Dual DC, Two Branches
     EAST: Single DC, One Branch
     """
+
+    def _mapping(name: str) -> str:
+        # Perform device name mapping only for Fabric Studio (not for Agora Studio for eg)
+        if 'fabric' in request.path:  # poc is running in FabricStudio
+            return mapping[name]
+        return name
+
+    def _mapping_dict():
+        # Return the mapping dict only for Fabric Studio, otherwise returns None
+        if 'fabric' in request.path:  # poc is running in FabricStudio
+            return mapping
+        return None
 
     context = {
         # From HTML form
@@ -269,36 +295,36 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['WEST-DC1'].wan.inet1,
-                    'inet2': poc.devices['WEST-DC1'].wan.inet2,
-                    'mpls': poc.devices['WEST-DC1'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('WEST-DC1')].wan.inet1,
+                    'inet2': poc.devices[_mapping('WEST-DC1')].wan.inet2,
+                    'mpls': poc.devices[_mapping('WEST-DC1')].wan.mpls1,
                     'lan': LAN['WEST-DC1'],
                     'loopback': dc_loopbacks['WEST-DC1']
                 }
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': poc.devices['WEST-DC2'].wan.inet1,
-                    'inet2': poc.devices['WEST-DC2'].wan.inet2,
-                    'mpls': poc.devices['WEST-DC2'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('WEST-DC2')].wan.inet1,
+                    'inet2': poc.devices[_mapping('WEST-DC2')].wan.inet2,
+                    'mpls': poc.devices[_mapping('WEST-DC2')].wan.mpls1,
                     'lan': LAN['WEST-DC2'],
                     'loopback': dc_loopbacks['WEST-DC2']
                 }
 
     east_dc1_ = {
                     'id': 3,
-                    'inet1': poc.devices['EAST-DC'].wan.inet1,
-                    'inet2': poc.devices['EAST-DC'].wan.inet2,
-                    'mpls': poc.devices['EAST-DC'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('EAST-DC')].wan.inet1,
+                    'inet2': poc.devices[_mapping('EAST-DC')].wan.inet2,
+                    'mpls': poc.devices[_mapping('EAST-DC')].wan.mpls1,
                     'lan': LAN[east_dc_['name']],
                     'loopback': dc_loopbacks['EAST-DC1']
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 4,
-                    'inet1': poc.devices['EAST-DC'].wan.inet1,
-                    'inet2': poc.devices['EAST-DC'].wan.inet2,
-                    'mpls': poc.devices['EAST-DC'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('EAST-DC')].wan.inet1,
+                    'inet2': poc.devices[_mapping('EAST-DC')].wan.inet2,
+                    'mpls': poc.devices[_mapping('EAST-DC')].wan.mpls1,
                     'lan': '0.0.0.0',
                     'loopback': dc_loopbacks['EAST-DC2']
                 }
@@ -433,6 +459,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     poc.id = poc_id
     poc.minimum_FOS_version = minimumFOSversion
     poc.messages = messages
+    poc.mapping = _mapping_dict()
 
     # Check request, render and deploy configs
     return fpoc.start(poc, devices)

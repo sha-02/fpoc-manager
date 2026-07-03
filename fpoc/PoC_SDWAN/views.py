@@ -4,6 +4,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.shortcuts import render
 
+import fpoc.PoC_SDWAN.sdwan1, fpoc.PoC_SDWAN.sdwan2, fpoc.PoC_SDWAN.sdwan3
 from fpoc.fortios import fortios_firmware
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN # required for eval(context['Class_PoC'])
 from fpoc import FortiGate, LXC, VyOS, studio_instances
@@ -54,11 +55,20 @@ class HomePageView(TemplateView):
             context['Class_PoC'] = 'FabricStudioSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
             context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
             context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
-            context['fortigates'] = list(eval(context['Class_PoC']).devices_of_type(FortiGate).keys()) # convert to list so that elements can be deleted
-            if '7.0_7.2' not in self.request.path:  # remove legacy devices
-                context['fortigates'].remove('EAST-DC'); context['fortigates'].remove('EAST-BR')
-            else:
-                context['fortigates'].remove('EAST-DC1'); context['fortigates'].remove('EAST-BR1')
+
+            # Device names in the class are generic (HUB1, HUB2,..) while they are specific in the poc (WEST-DC1,...)
+            # A mapping dict is used to map the poc devname with the class devname
+            mapping={}
+            if '7.6_8.0' in self.request.path:
+                mapping = fpoc.PoC_SDWAN.sdwan3.mapping
+            elif '7.4_7.6' in self.request.path:
+                mapping = fpoc.PoC_SDWAN.sdwan2.mapping
+            elif '7.0_7.2' in self.request.path:
+                mapping = fpoc.PoC_SDWAN.sdwan1.mapping
+
+            fgt_keys = eval(context['Class_PoC']).devices_of_type(FortiGate).keys() # eg dict_keys(['HUB1', 'HUB2', ...])
+            reverse_mapping = {v: k for k, v in mapping.items()} # use the mapping dict to change the keys to...
+            context['fortigates'] = [reverse_mapping[k] for k in fgt_keys]  # ... ['WEST-DC1', 'WEST-DC2', ...]
 
         if 'hardware' in self.request.path:
             context['Class_PoC'] = 'AgoraSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
@@ -70,13 +80,6 @@ class HomePageView(TemplateView):
             minimum_fortios = '7.6.7'
         elif '7.4_7.6' in self.request.path:
             minimum_fortios = '7.4.4'
-
-        # if '8.0' in self.request.path:
-        #     minimum_fortios = '8.0.0'
-        # elif '7.4_7.6' in self.request.path:
-        #     minimum_fortios = '7.4.4'
-        # elif '/7.6/' in self.request.path:
-        #     minimum_fortios = '7.6.7'
 
         context['firmware'] = fortios_firmware(minimum_fortios)
 

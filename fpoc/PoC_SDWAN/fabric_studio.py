@@ -12,7 +12,7 @@ class FabricStudioSDWAN(FabricStudio):
     password = 'Fortinet123#'  # password assigned to each FGT of this PoC
 
     devices = {
-        'WEST-DC1': FortiGate(offset=0, nameid='fgt000', name_phy='HUB1',
+        'HUB1': FortiGate(offset=0, nameid='fgt000', name_phy='HUB1',
                             mgmt=Interface('port10', 0, '172.16.31.11/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -21,7 +21,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.14.1/24', 'MPLS'),
                             )),
 
-        'WEST-DC2': FortiGate(offset=2, nameid='fgt001', name_phy='HUB2',
+        'HUB2': FortiGate(offset=2, nameid='fgt001', name_phy='HUB2',
                             mgmt=Interface('port10', 0, '172.16.31.21/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -30,7 +30,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.24.1/24', 'MPLS'),
                             )),
 
-        'EAST-DC1': FortiGate(offset=3, nameid='fgt004', name_phy='HUB3',
+        'HUB3': FortiGate(offset=3, nameid='fgt004', name_phy='HUB3',
                             mgmt=Interface('port10', 0, '172.16.31.22/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -39,7 +39,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.34.1/24', 'MPLS'),
                             )),
 
-        'WEST-BR1': FortiGate(offset=4, nameid='fgt002',  name_phy='BR1',
+        'BR1': FortiGate(offset=4, nameid='fgt002',  name_phy='BR1',
                             mgmt=Interface('port10', 0, '172.16.31.31/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -48,7 +48,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.44.1/24', 'MPLS'),
                             )),
 
-        'WEST-BR2': FortiGate(offset=6, nameid='fgt003',  name_phy='BR2',
+        'BR2': FortiGate(offset=6, nameid='fgt003',  name_phy='BR2',
                             mgmt=Interface('port10', 0, '172.16.31.41/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -57,7 +57,7 @@ class FabricStudioSDWAN(FabricStudio):
                                 mpls1=Interface('port3', 0, '10.71.54.1/24', 'MPLS'),
                             )),
 
-        'EAST-BR1': FortiGate(offset=7, nameid='fgt005',  name_phy='BR3',
+        'BR3': FortiGate(offset=7, nameid='fgt005',  name_phy='BR3',
                             mgmt=Interface('port10', 0, '172.16.31.42/24'),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
@@ -87,12 +87,6 @@ class FabricStudioSDWAN(FabricStudio):
         'WEST-BR2-LXC': LXC(offset=17, mgmt=Interface('eth9', 0, '172.16.31.141/24')),
         'EAST-BR-LXC': LXC(offset=18, mgmt=Interface('eth9', 0, '172.16.31.142/24')),
         'INTERNET-SERVER': LXC(offset=23, mgmt=Interface('eth9', 0, '172.16.31.100/24')),
-    }
-
-    # Add dict entries for EAST-DC and EAST-BR for compatibility reasons with legacy poc9 and poc10
-    devices |= {
-        'EAST-DC': devices['EAST-DC1'],
-        'EAST-BR': devices['EAST-BR1']
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):

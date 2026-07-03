@@ -64,9 +64,6 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
         return render(poc.request, f'fpoc/message.html',
                       {'title': 'Error', 'header': 'Error', 'message': errors})
 
-    # Create the list of devices which must be used for this PoC
-    # devices = copy.deepcopy(devices)
-
     # the intersection of the keys of request.POST dict and the keys of 'devices' dict produces the keys of each
     # device to be used for this poc.
     phy_names = poc.request.POST.keys() & devices.keys()
@@ -77,6 +74,13 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
         # the dict changes size during iteration
         if phy_name not in phy_names:
             del(devices[phy_name])  # this device was not requested to be started for this PoC
+
+    # Make the list of poc.device keys consistent with the list of Class.keys
+    # If poc.mapping dict exists then it means that the poc devices keys are 'WEST-DC1', ...
+    # while the device keys in the SDWAN Class are 'HUB1',...
+    # The poc.mapping dict contains the mappings to replace the keys: 'WEST-DC1'->'HUB1', 'WEST-DC2'->'HUB2', ...
+    if poc.mapping:
+        devices = {poc.mapping.get(k, k): v for k, v in devices.items()}
 
     # Only keep the 'devices' that are active members for the poc
     poc.members(devices=devices)

@@ -13,7 +13,19 @@ import typing
 
 import ipaddress
 
+#
+# PoC mappings
+#
+mapping = {
+    'WEST-DC1': 'HUB1',
+    'WEST-DC2': 'HUB2',
+    'EAST-DC1': 'HUB3',
+    'WEST-BR1': 'BR1',
+    'WEST-BR2': 'BR2',
+    'EAST-BR1': 'BR3',
+}
 
+  
 def dualdc(request: WSGIRequest) -> HttpResponse:
     """
     PoC01, Dual Branch: FortiOS 7.6.7+ and 8.0+
@@ -26,6 +38,19 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             no SNAT to WEST-EXT: Remote Signaling with BGP MED automatically derived from link priority
         EAST: Single DC, One Branch
     """
+
+    def _mapping(name: str) -> str:
+        # Perform device name mapping only for Fabric Studio (not for Agora Studio for eg)
+        if 'fabric' in request.path:  # poc is running in FabricStudio
+            return mapping[name]
+        return name
+
+    def _mapping_dict():
+        # Return the mapping dict only for Fabric Studio, otherwise returns None
+        if 'fabric' in request.path:  # poc is running in FabricStudio
+            return mapping
+        return None
+
     context = {
         # From HTML form
         'overlay': request.POST.get('overlay'),  # 'no_ip' or 'static_ip' or 'mode_cfg'
@@ -251,9 +276,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['WEST-DC1'].wan.inet1,
-                    'inet2': poc.devices['WEST-DC1'].wan.inet2,
-                    'mpls': poc.devices['WEST-DC1'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('WEST-DC1')].wan.inet1,
+                    'inet2': poc.devices[_mapping('WEST-DC1')].wan.inet2,
+                    'mpls': poc.devices[_mapping('WEST-DC1')].wan.mpls1,
                     'lan': LAN['WEST-DC1'],
                     'loopback': dc_loopbacks['WEST-DC1'],
                     'loopback_RP': rendezvous_points['WEST-DC1']
@@ -261,9 +286,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': poc.devices['WEST-DC2'].wan.inet1,
-                    'inet2': poc.devices['WEST-DC2'].wan.inet2,
-                    'mpls': poc.devices['WEST-DC2'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('WEST-DC2')].wan.inet1,
+                    'inet2': poc.devices[_mapping('WEST-DC2')].wan.inet2,
+                    'mpls': poc.devices[_mapping('WEST-DC2')].wan.mpls1,
                     'lan': LAN['WEST-DC2'],
                     'loopback': dc_loopbacks['WEST-DC2'],
                     'loopback_RP': rendezvous_points['WEST-DC2']
@@ -271,9 +296,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     east_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
-                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
-                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('EAST-DC1')].wan.inet1,
+                    'inet2': poc.devices[_mapping('EAST-DC1')].wan.inet2,
+                    'mpls': poc.devices[_mapping('EAST-DC1')].wan.mpls1,
                     'lan': LAN['EAST-DC1'],
                     'loopback': dc_loopbacks['EAST-DC1'],
                     'loopback_RP': rendezvous_points['EAST-DC1']
@@ -281,9 +306,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 2,
-                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
-                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
-                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
+                    'inet1': poc.devices[_mapping('EAST-DC1')].wan.inet1,
+                    'inet2': poc.devices[_mapping('EAST-DC1')].wan.inet2,
+                    'mpls': poc.devices[_mapping('EAST-DC1')].wan.mpls1,
                     'lan': '0.0.0.0/0',
                     'loopback': dc_loopbacks['EAST-DC2'],
                     'loopback_RP': rendezvous_points['EAST-DC2']
@@ -387,16 +412,17 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Add VRF segmentation information to the poc
     #
     if context['vrf_segmentation']:
-        vrf_segmentation(targetedFOSversion, context, poc, devices)
+        vrf_segmentation(targetedFOSversion, context, devices)
 
     # Add EVPN information to the poc
     if context['evpn']:
-        evpn(targetedFOSversion, context, poc, devices)
+        evpn(targetedFOSversion, context, devices)
 
     # Update the poc (monkey patching)
     poc.id = poc_id
     poc.minimum_FOS_version = minimumFOSversion
     poc.messages = messages
+    poc.mapping = _mapping_dict()
 
     # Check request, render and deploy configs
     return fpoc.start(poc, devices)
@@ -419,7 +445,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 # and the rest is left to CEs.
 #
 
-def vrf_segmentation(fos_target:int, context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     segments = {
         'WEST-DC1': {
             'BLUE': Interface(address='10.1.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
@@ -492,7 +518,7 @@ def vrf_segmentation(fos_target:int, context: dict, poc: TypePoC, devices: typin
 # If vrf_segmentation is done, PE VRF must be in VRF 0 as well per my tests
 #
 
-def evpn(fos_target:int, context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     extended_lans = {
             # Extended LAN between WEST BR1<->BR2
             'WEST-BR1': {
