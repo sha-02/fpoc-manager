@@ -22,13 +22,6 @@ class HomePageView(TemplateView):
         elif '7.4_7.6' in self.request.path:
             template_name = f'{APPNAME}/home2.html'
 
-        # if '8.0' in self.request.path:
-        #     template_name = f'{APPNAME}/home3.html'
-        # elif '7.4_7.6' in self.request.path:
-        #     template_name = f'{APPNAME}/home2.html'
-        # elif '/7.6/' in self.request.path:
-        #     template_name = f'{APPNAME}/home2B.html'
-
         return [template_name]
 
     def get_context_data(self, **kwargs):
