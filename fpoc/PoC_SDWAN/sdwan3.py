@@ -45,11 +45,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
             return mapping[name]
         return name
 
-    def _mapping_dict():
+    def _mapping_dict() -> dict:
         # Return the mapping dict only for Fabric Studio, otherwise returns None
         if 'fabric' in request.path:  # poc is running in FabricStudio
             return mapping
-        return None
+        return {}
 
     context = {
         # From HTML form
