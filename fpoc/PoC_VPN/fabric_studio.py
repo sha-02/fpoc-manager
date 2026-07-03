@@ -9,10 +9,14 @@ class StudioVPN(FabricStudioSDWAN):
     template_folder = 'PoC_VPN'
 
     devices = {
-        'FGT-A': FabricStudioSDWAN.devices['WEST-DC1'],
-        'FGT-B': FabricStudioSDWAN.devices['WEST-DC2'],
-        'FGT-C': FabricStudioSDWAN.devices['WEST-BR1'],
-        'FGT-D': FabricStudioSDWAN.devices['WEST-BR2'],
+        # 'FGT-A': FabricStudioSDWAN.devices['WEST-DC1'],
+        # 'FGT-B': FabricStudioSDWAN.devices['WEST-DC2'],
+        # 'FGT-C': FabricStudioSDWAN.devices['WEST-BR1'],
+        # 'FGT-D': FabricStudioSDWAN.devices['WEST-BR2'],
+        'FGT-A': FabricStudioSDWAN.devices['HUB1'],
+        'FGT-B': FabricStudioSDWAN.devices['HUB2'],
+        'FGT-C': FabricStudioSDWAN.devices['BR1'],
+        'FGT-D': FabricStudioSDWAN.devices['BR2'],
     }
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
