@@ -14,7 +14,6 @@ class Mgmt: # poc mgmt network
 
 class FortiLab:
     devices: dict = {}  # The class-level dict containing all possible devices which can be used in this poc
-    mapping: dict = {}  # The keys in the class 'devices' may differ with the keys in the class instance, a mapping dict is used to map the differences
     mgmt = Mgmt(vrfid=0)
     template_folder = None  # Folder hosting the jinja templates
 

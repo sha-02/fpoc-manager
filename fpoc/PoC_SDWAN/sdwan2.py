@@ -23,6 +23,11 @@ mapping = {
     'EAST-BR1': 'BR3',
 }
 
+class SDWAN2(FabricStudioSDWAN):
+    # Change the name of the device for this PoC
+    # Create a list of devices based off the parent device list using the mapping dict
+    devices = { k:FabricStudioSDWAN.devices[v] for k,v in mapping.items()}
+
 
 def dualdc(request: WSGIRequest) -> HttpResponse:
     """
@@ -32,18 +37,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     WEST: Dual DC, Two Branches
     EAST: Single DC, One Branch
     """
-
-    def _mapping(name: str) -> str:
-        # Perform device name mapping only for Fabric Studio (not for Agora Studio for eg)
-        if 'fabric' in request.path:  # poc is running in FabricStudio
-            return mapping[name]
-        return name
-
-    def _mapping_dict() -> dict:
-        # Return the mapping dict only for Fabric Studio, otherwise returns None
-        if 'fabric' in request.path:  # poc is running in FabricStudio
-            return mapping
-        return {}
 
     context = {
         # From HTML form
@@ -208,9 +201,13 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Create the poc
     #
     if 'fabric'  in request.path:  # poc is running in FabricStudio
-        poc = FabricStudioSDWAN(request)
-    else:  # poc is running in Hardware Lab
+        poc = SDWAN2(request)
+    elif 'hardware' in request.path:  # poc is running in Hardware Lab
         poc = AgoraSDWAN(request)
+    else:
+        print('\nError: Cannot create the poc based on the request PATH')
+        raise AbortDeployment
+
 
     # OOB in VRF 10
     if context['vrf_aware_overlay']:
@@ -257,36 +254,36 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices[_mapping('WEST-DC1')].wan.inet1,
-                    'inet2': poc.devices[_mapping('WEST-DC1')].wan.inet2,
-                    'mpls': poc.devices[_mapping('WEST-DC1')].wan.mpls1,
+                    'inet1': poc.devices['WEST-DC1'].wan.inet1,
+                    'inet2': poc.devices['WEST-DC1'].wan.inet2,
+                    'mpls': poc.devices['WEST-DC1'].wan.mpls1,
                     'lan': LAN['WEST-DC1'],
                     'loopback': dc_loopbacks['WEST-DC1']
                 }
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': poc.devices[_mapping('WEST-DC2')].wan.inet1,
-                    'inet2': poc.devices[_mapping('WEST-DC2')].wan.inet2,
-                    'mpls': poc.devices[_mapping('WEST-DC2')].wan.mpls1,
+                    'inet1': poc.devices['WEST-DC2'].wan.inet1,
+                    'inet2': poc.devices['WEST-DC2'].wan.inet2,
+                    'mpls': poc.devices['WEST-DC2'].wan.mpls1,
                     'lan': LAN['WEST-DC2'],
                     'loopback': dc_loopbacks['WEST-DC2']
                 }
 
     east_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices[_mapping('EAST-DC1')].wan.inet1,
-                    'inet2': poc.devices[_mapping('EAST-DC1')].wan.inet2,
-                    'mpls': poc.devices[_mapping('EAST-DC1')].wan.mpls1,
+                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
+                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
+                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
                     'lan': LAN['EAST-DC1'],
                     'loopback': dc_loopbacks['EAST-DC1']
                 }
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 2,
-                    'inet1': poc.devices[_mapping('EAST-DC1')].wan.inet1,
-                    'inet2': poc.devices[_mapping('EAST-DC1')].wan.inet2,
-                    'mpls': poc.devices[_mapping('EAST-DC1')].wan.mpls1,
+                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
+                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
+                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
                     'lan': '0.0.0.0/0',
                     'loopback': dc_loopbacks['EAST-DC2']
                 }
@@ -396,7 +393,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     # Add VRF segmentation information to the poc
     #
     if context['vrf_aware_overlay']:
-        vrf_segmentation(context, poc, devices)
+        vrf_segmentation(context, devices)
 
         # Create a callback function to check if VDOMs must be enabled on FGT appliances with NPU ASIC
         # when VRF segmentation is done
@@ -426,7 +423,6 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     poc.id = poc_id
     poc.minimum_FOS_version = minimumFOSversion
     poc.messages = messages
-    poc.mapping = _mapping_dict()
 
     # Check request, render and deploy configs
     return fpoc.start(poc, devices)
@@ -449,7 +445,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 # and the rest is left to CEs.
 #
 
-def vrf_segmentation(context: dict, poc: TypePoC, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+def vrf_segmentation(context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     vrf = {
         'LAN': { 'vrfid': context['vrf_blue'], 'vlanid': 0, 'alias': 'LAN_BLUE' },
         'LAN_YELLOW': { 'vrfid': context['vrf_yellow'], 'alias': 'LAN_YELLOW' },

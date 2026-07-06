@@ -45,23 +45,18 @@ class HomePageView(TemplateView):
 
         # List of devices for the PoC
         if 'fabric' in self.request.path:
-            context['Class_PoC'] = 'FabricStudioSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+            if '7.6_8.0' in self.request.path:
+                context['Class_PoC'] = 'SDWAN3'
+            elif '7.4_7.6' in self.request.path:
+                context['Class_PoC'] = 'SDWAN2'
+            elif '7.0_7.2' in self.request.path:
+                context['Class_PoC'] = 'SDWAN1'
+
+            # List of devices to be displayed
+            context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
             context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
             context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
 
-            # Device names in the class are generic (HUB1, HUB2,..) while they are specific in the poc (WEST-DC1,...)
-            # A mapping dict is used to map the poc devname with the class devname
-            mapping={}
-            if '7.6_8.0' in self.request.path:
-                mapping = fpoc.PoC_SDWAN.sdwan3.mapping
-            elif '7.4_7.6' in self.request.path:
-                mapping = fpoc.PoC_SDWAN.sdwan2.mapping
-            elif '7.0_7.2' in self.request.path:
-                mapping = fpoc.PoC_SDWAN.sdwan1.mapping
-
-            fgt_keys = eval(context['Class_PoC']).devices_of_type(FortiGate).keys() # eg dict_keys(['HUB1', 'HUB2', ...])
-            reverse_mapping = {v: k for k, v in mapping.items()} # use the mapping dict to change the keys to...
-            context['fortigates'] = [reverse_mapping[k] for k in fgt_keys]  # ... ['WEST-DC1', 'WEST-DC2', ...]
 
         if 'hardware' in self.request.path:
             context['Class_PoC'] = 'AgoraSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
