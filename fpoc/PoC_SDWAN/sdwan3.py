@@ -2,16 +2,12 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render
 from django.http import HttpResponse
 
-import copy
-
+import typing
 import fpoc
-from fpoc import AbortDeployment
+from fpoc.exceptions import AbortDeployment
 from fpoc.devices import Interface, FortiGate, LXC
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
-from fpoc.typing import TypePoC
-import typing
 
-import ipaddress
 
 #
 # PoC mappings

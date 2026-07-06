@@ -1,4 +1,4 @@
-from fpoc import FortiGate, WAN, Interface
+from fpoc.devices import FortiGate, WAN, Interface
 
 # Define each FGT appliance in Agora Hardware Lab
 

@@ -3,7 +3,9 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import StudioVPN, FortiGate, LXC, VyOS, studio_instances
+from fpoc.devices import FortiGate, LXC, VyOS
+from fpoc.studio_instances import studio_instances
+from fpoc.PoC_VPN import StudioVPN  # required for the eval(context['Class_PoC'])
 
 #
 # return render(request, 'fpoc/fpoc01/snr01/_FGT.conf', {'FGT': 'B'})

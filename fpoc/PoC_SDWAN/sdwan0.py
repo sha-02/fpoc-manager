@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 import fpoc
-from fpoc import FortiGate, FortiGate_HA, LXC
+from fpoc.devices import FortiGate, FortiGate_HA, LXC
 from fpoc.PoC_SDWAN import FabricStudioSDWAN
 
 APPNAME = "fpoc/PoC_SDWAN"

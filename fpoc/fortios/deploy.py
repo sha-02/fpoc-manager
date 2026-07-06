@@ -5,8 +5,10 @@ import time
 from pathlib import Path
 
 import fpoc.fortios as fortios
-from fpoc import FortiGate, FortiGate_HA, TypePoC, json_to_dict
-from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice
+from fpoc.json import json_to_dict
+from fpoc.devices import FortiGate, FortiGate_HA
+from fpoc.typing import TypePoC
+from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice
 
 
 def prepare_api(device: FortiGate):

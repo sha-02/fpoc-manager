@@ -1,6 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 
-from fpoc import FortiLab
+from fpoc.fortilab import FortiLab
 from fpoc.devices import FortiGate
 from fpoc.fortilab import Mgmt
 

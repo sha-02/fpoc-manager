@@ -4,10 +4,10 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.views.generic import TemplateView
 from django.shortcuts import render
 
-import fpoc.PoC_SDWAN.sdwan1, fpoc.PoC_SDWAN.sdwan2, fpoc.PoC_SDWAN.sdwan3
 from fpoc.fortios import fortios_firmware
-from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN # required for eval(context['Class_PoC'])
-from fpoc import FortiGate, LXC, VyOS, studio_instances
+from fpoc.PoC_SDWAN import AgoraSDWAN, SDWAN1, SDWAN2, SDWAN3 # required for eval(context['Class_PoC'])
+from fpoc.devices import FortiGate, LXC, VyOS
+from fpoc.studio_instances import studio_instances
 
 APPNAME = "fpoc/PoC_SDWAN"
 

@@ -2,7 +2,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from fpoc import device_URL, device_URL_console, FortiGate
+from fpoc.devices import FortiGate
+from fpoc.deploy import device_URL, device_URL_console
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN    # Required for  eval(request.POST['Class_PoC'])
 import fpoc.PoC_SDWAN.sdwan2, fpoc.PoC_SDWAN.sdwan3
 

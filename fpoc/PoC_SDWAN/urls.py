@@ -1,6 +1,5 @@
 from django.urls import path, reverse
 
-# from . import views, sdwan1, sdwan2, sdwan2B, sdwan3
 from . import views, sdwan1, sdwan2, sdwan3, dashboard
 from config.urls import sites
 import fpoc

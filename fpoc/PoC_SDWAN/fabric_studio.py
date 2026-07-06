@@ -1,7 +1,8 @@
 import copy
 
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc import FortiGate, LXC, VyOS, WAN, Interface, Network, FabricStudio
+from fpoc.devices import FortiGate, LXC, VyOS, WAN, Interface, Network
+from fpoc.fabric_studio import FabricStudio
 
 
 class FabricStudioSDWAN(FabricStudio):

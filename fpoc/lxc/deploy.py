@@ -4,7 +4,8 @@ import os.path
 
 import fpoc.ssh
 from config.settings import PATH_FPOC_TEMPLATES
-from fpoc import TypePoC, LXC
+from fpoc.devices import LXC
+from fpoc.typing import TypePoC
 
 
 def deploy(poc: TypePoC, device: LXC):

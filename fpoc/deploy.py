@@ -18,8 +18,10 @@ from django.http import HttpResponse
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc import TypePoC, TypeDevice, FortiGate, LXC, VyOS, FabricStudio
-from fpoc import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
+from fpoc.devices import FortiGate, LXC, VyOS
+from fpoc.fabric_studio import FabricStudio
+from fpoc.typing import TypePoC, TypeDevice
+from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
 
 
 def inspect(poc: TypePoC) -> list:

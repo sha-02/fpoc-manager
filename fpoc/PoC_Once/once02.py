@@ -1,4 +1,4 @@
-from fpoc import FortiGate, Interface, WAN
+from fpoc.devices import FortiGate, Interface, WAN
 from fpoc.PoC_SDWAN import FabricStudioSDWAN
 
 # List of devices that is imported by once.py to build the class

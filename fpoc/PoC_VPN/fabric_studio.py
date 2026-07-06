@@ -1,5 +1,5 @@
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc import FortiGate, LXC, VyOS, WAN, Interface
+from fpoc.devices import FortiGate, LXC, VyOS, WAN, Interface
 from fpoc.PoC_SDWAN import FabricStudioSDWAN
 
 

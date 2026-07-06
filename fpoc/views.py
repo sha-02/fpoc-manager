@@ -5,7 +5,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 import fpoc
-from fpoc import FortiGate, FortiGate_HA, LXC, VyOS, fortios
+import fpoc.fortios as fortios
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS
 from fpoc.PoC_SDWAN.fabric_studio import FabricStudioSDWAN          # required for eval(request.POST['Class_PoC'])
 from fpoc.PoC_SDWAN.agora import AgoraSDWAN                         # required for eval(request.POST['Class_PoC'])
 

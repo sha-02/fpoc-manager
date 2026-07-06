@@ -5,8 +5,8 @@ import urllib3
 import sys, os
 
 import fpoc.fortios as fortios
-from fpoc import FortiGate
-from fpoc import StopProcessingDevice, RetryProcessingDevice
+from fpoc.devices import FortiGate
+from fpoc.exceptions import StopProcessingDevice, RetryProcessingDevice
 
 # FGT use self-signed certificate => De-activate the TLS warnings.
 urllib3.disable_warnings()
