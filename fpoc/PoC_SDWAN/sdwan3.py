@@ -53,11 +53,11 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         # VRF segmentation
         'vrf_segmentation': bool(request.POST.get('vrf_segmentation', False)),  # True or False
-        'vrf_wan': int(request.POST.get('vrf_wan')),  # [0-511] VRF for Internet and MPLS links
-        'vrf_pe': int(request.POST.get('vrf_pe')),  # [0-511] VRF for IPsec tunnels
-        'vrf_blue': int(request.POST.get('vrf_blue')),  # [0-511] port5 (no vlan) segment
-        'vrf_yellow': int(request.POST.get('vrf_yellow')),  # [0-511] vlan segment
-        'vrf_red': int(request.POST.get('vrf_red')),  # [0-511] vlan segment
+        'vrf_wan': int(request.POST.get('vrf_wan',0)),  # [0-511] VRF for Internet and MPLS links
+        'vrf_pe': int(request.POST.get('vrf_pe',0)),  # [0-511] VRF for IPsec tunnels
+        'vrf_blue': int(request.POST.get('vrf_blue', 13)),  # [0-511] port5 (no vlan) segment
+        'vrf_yellow': int(request.POST.get('vrf_yellow', 11)),  # [0-511] vlan segment
+        'vrf_red': int(request.POST.get('vrf_red', 12)),  # [0-511] vlan segment
         'vrf_grey': int(request.POST.get('vrf_grey', 14)),  # VRF between WEST-DCs and WEST-EXT
 
         # EVPN
@@ -183,13 +183,14 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     # EVPN
     if context['evpn']:
-        if targetedFOSversion >= 8_000_000:
-            errors.append("Symmetric IRB EVPN for 8.0 is not yet available")
         if context['evpn_anycast_gw']:
             minimumFOSversion = 8_000_000
         if context['vrf_pe']:
             # vrf_evpn must be 0 and, from my test results, it forces using vrf_pe as 0 as well
             errors.append("MP-BGP EVPN is only supported in VRF 0, please set the WAN/PE VRF to VRF 0")
+        if targetedFOSversion >= 8_000_000 and not context['evpn_anycast_gw']:
+            context['evpn_anycast_gw'] = True
+            messages.append("<b>Forcing anycast gateway</b> for FOS 8.0+")
 
     # Must append the message here since mgmt_vrf can be forced to 10 when there is multicast without vrf segmentation
     messages.append(f"Management in VRF {management_vrf}")
@@ -523,14 +524,19 @@ def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str,
 def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     extended_lans = {
             # Extended LAN between WEST BR1<->BR2
+            # L3VNI are not used in the context of SD-WAN design but they are kept for reference
             'WEST-BR1': {
                 'evpnid': 10,
                 'l2vni': 10000 + 10,
+                'l3evpnid': 50,
+                'l3vni': 50000,
                 'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=101, name='LAN_XTD', vrfid=context['vrf_evpn']),
             },
             'WEST-BR2': {
                 'evpnid': 10,
                 'l2vni': 10000 + 10,
+                'l3evpnid': 50,
+                'l3vni': 50000,
                 'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=102, name='LAN_XTD', vrfid=context['vrf_evpn']),
             },
 
@@ -538,11 +544,15 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
             'EAST-BR1': {
                 'evpnid': 20,
                 'l2vni': 10000 + 20,
+                'l3evpnid': 50,
+                'l3vni': 50000,
                 'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=103, name='LAN_XTD', vrfid=context['vrf_evpn']),
             },
             'EAST-BR2': {
                 'evpnid': 20,
                 'l2vni': 10000 + 20,
+                'l3evpnid': 50,
+                'l3vni': 50000,
                 'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=104, name='LAN_XTD', vrfid=context['vrf_evpn']),
             },
         }
