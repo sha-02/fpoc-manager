@@ -139,18 +139,20 @@
                         <table>
                             <tr>
                                 <td>
-                                    <input maxlength="3" name="vrf_wan" size="3" type="text" value="1"> Underlay/WAN VRF
+                                    VRF
+                                    Mgmt <input maxlength="3" name="vrf_mgmt" size="3" type="text" value="10">
+                                    WAN underlay <input maxlength="3" name="vrf_wan" size="3" type="text" value="1">
                                 </td>
                                 <td>
                                     <input name="vrf_segmentation" title="(BGP VPNv4/VPNv6 + vpn-id-ipip)" type="checkbox"
-                                   value=1> VRF segmentation
+                                   value=1> Segmentation
                                 </td>
                             </tr>
                             <tr>
                                 <td></td>
                                 <td>
-                                    Overlay/PE <input maxlength="3" name="vrf_pe" size="3" type="text" value="1">
-                                    port5/BLUE <input maxlength="3" name="vrf_blue" size="3" type="text" value="13">
+                                    PE <input maxlength="3" name="vrf_pe" size="3" type="text" value="1">
+                                    BLUE <input maxlength="3" name="vrf_blue" size="3" type="text" value="13">
                                     YELLOW <input maxlength="3" name="vrf_yellow" size="3" type="text" value="11">
                                     RED <input maxlength="3" name="vrf_red" size="3" type="text" value="12">
                                     GREY <input disabled maxlength="3" name="vrf_grey" size="3" type="text" value="14">

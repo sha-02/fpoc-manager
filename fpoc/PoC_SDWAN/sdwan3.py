@@ -53,11 +53,12 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
         # VRF segmentation
         'vrf_segmentation': bool(request.POST.get('vrf_segmentation', False)),  # True or False
-        'vrf_wan': int(request.POST.get('vrf_wan',0)),  # [0-511] VRF for Internet and MPLS links
-        'vrf_pe': int(request.POST.get('vrf_pe',0)),  # [0-511] VRF for IPsec tunnels
-        'vrf_blue': int(request.POST.get('vrf_blue', 13)),  # [0-511] port5 (no vlan) segment
-        'vrf_yellow': int(request.POST.get('vrf_yellow', 11)),  # [0-511] vlan segment
-        'vrf_red': int(request.POST.get('vrf_red', 12)),  # [0-511] vlan segment
+        'vrf_mgmt': int(request.POST.get('vrf_mgmt',10)),  # [0-511]
+        'vrf_wan': int(request.POST.get('vrf_wan',0)),  # VRF for Internet and MPLS links
+        'vrf_pe': int(request.POST.get('vrf_pe',0)),  # VRF for IPsec tunnels
+        'vrf_blue': int(request.POST.get('vrf_blue', 13)),  # VRF user (segment)
+        'vrf_yellow': int(request.POST.get('vrf_yellow', 11)),  # VRF user (segment)
+        'vrf_red': int(request.POST.get('vrf_red', 12)),  # VRF user (segment)
         'vrf_grey': int(request.POST.get('vrf_grey', 14)),  # VRF between WEST-DCs and WEST-EXT
 
         # EVPN
@@ -103,10 +104,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     minimumFOSversion = 7_006_007
 
     # OOB
-    if targetedFOSversion >= 8_000_000 or context['vrf_segmentation']:
-        management_vrf = 0  # VRF 0 is not used by PoC so it can be used for OOB
-    else:
-        management_vrf = 10
+    management_vrf = context['vrf_mgmt']
 
     #
     # Additional context info
