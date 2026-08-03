@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc import studio_instances
+from fpoc.studio_instances import studio_instances
 
 ######### CURRENT POC = POC02  ##############################################
 from .once02 import devices
