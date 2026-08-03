@@ -15,10 +15,14 @@ from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
 mapping = {
     'WEST-DC1': 'HUB1',
     'WEST-DC2': 'HUB2',
-    'EAST-DC1': 'HUB3',
     'WEST-BR1': 'BR1',
     'WEST-BR2': 'BR2',
+    # 'WEST-BR3': 'BR3',
+    # 'WEST-BR4': 'HUB3',
+
+    'EAST-DC1': 'HUB3',
     'EAST-BR1': 'BR3',
+    # 'EAST-BR2': 'HUB2',
 }
 
 class SDWAN3(FabricStudioSDWAN):
@@ -228,6 +232,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'WEST-DC2': Interface(address='10.2.0.1/24', alias='DC'),
         'WEST-BR1': Interface(address='10.0.1.1/24', alias='LAN'),
         'WEST-BR2': Interface(address='10.0.2.1/24', alias='LAN'),
+        'WEST-BR3': Interface(address='10.0.3.1/24', alias='LAN'),
+        'WEST-BR4': Interface(address='10.0.4.1/24', alias='LAN'),
         'EAST-DC1': Interface(address='10.4.0.1/24', alias='DC'),
         'EAST-BR1': Interface(address='10.4.1.1/24', alias='LAN'),
         'EAST-BR2': Interface(address='10.4.2.1/24', alias='LAN'),
@@ -264,9 +270,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['WEST-DC1'].wan.inet1,
-                    'inet2': poc.devices['WEST-DC1'].wan.inet2,
-                    'mpls': poc.devices['WEST-DC1'].wan.mpls1,
+                    'inet1': poc.devices['WEST-DC1'].wan.inet1 if 'WEST-DC1' in poc.devices else Interface(),
+                    'inet2': poc.devices['WEST-DC1'].wan.inet2 if 'WEST-DC1' in poc.devices else Interface(),
+                    'mpls': poc.devices['WEST-DC1'].wan.mpls1 if 'WEST-DC1' in poc.devices else Interface(),
                     'lan': LAN['WEST-DC1'],
                     'loopback': dc_loopbacks['WEST-DC1'],
                     'loopback_RP': rendezvous_points['WEST-DC1']
@@ -274,9 +280,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     west_dc2_ = {
                     'id': 2,
-                    'inet1': poc.devices['WEST-DC2'].wan.inet1,
-                    'inet2': poc.devices['WEST-DC2'].wan.inet2,
-                    'mpls': poc.devices['WEST-DC2'].wan.mpls1,
+                    'inet1': poc.devices['WEST-DC2'].wan.inet1 if 'WEST-DC2' in poc.devices else Interface(),
+                    'inet2': poc.devices['WEST-DC2'].wan.inet2 if 'WEST-DC2' in poc.devices else Interface(),
+                    'mpls': poc.devices['WEST-DC2'].wan.mpls1 if 'WEST-DC2' in poc.devices else Interface(),
                     'lan': LAN['WEST-DC2'],
                     'loopback': dc_loopbacks['WEST-DC2'],
                     'loopback_RP': rendezvous_points['WEST-DC2']
@@ -284,9 +290,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     east_dc1_ = {
                     'id': 1,
-                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
-                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
-                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
+                    'inet1': poc.devices['EAST-DC1'].wan.inet1 if 'EAST-DC1' in poc.devices else Interface(),
+                    'inet2': poc.devices['EAST-DC1'].wan.inet2 if 'EAST-DC1' in poc.devices else Interface(),
+                    'mpls': poc.devices['EAST-DC1'].wan.mpls1 if 'EAST-DC1' in poc.devices else Interface(),
                     'lan': LAN['EAST-DC1'],
                     'loopback': dc_loopbacks['EAST-DC1'],
                     'loopback_RP': rendezvous_points['EAST-DC1']
@@ -294,9 +300,9 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
 
     east_dc2_ = {  # Fictitious second DC for East region
                     'id': 2,
-                    'inet1': poc.devices['EAST-DC1'].wan.inet1,
-                    'inet2': poc.devices['EAST-DC1'].wan.inet2,
-                    'mpls': poc.devices['EAST-DC1'].wan.mpls1,
+                    'inet1': poc.devices['EAST-DC2'].wan.inet1 if 'EAST-DC2' in poc.devices else Interface(),
+                    'inet2': poc.devices['EAST-DC2'].wan.inet2 if 'EAST-DC2' in poc.devices else Interface(),
+                    'mpls': poc.devices['EAST-DC2'].wan.mpls1 if 'EAST-DC2' in poc.devices else Interface(),
                     'lan': '0.0.0.0/0',
                     'loopback': dc_loopbacks['EAST-DC2'],
                     'loopback_RP': rendezvous_points['EAST-DC2']
@@ -344,13 +350,13 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
                                 'datacenter': datacenters['west']
                                  })
     west_br3 = FortiGate(name='WEST-BR3', template_group='BRANCHES',
-                         lan=LAN['EAST-BR1'],
+                         lan=LAN['WEST-BR3'],
                          template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 3, 'gps': (0, 0),
                                 'loopback': '10.200.1.3',
                                 'datacenter': datacenters['west']
                                  })
     west_br4 = FortiGate(name='WEST-BR4', template_group='BRANCHES',
-                         lan=LAN['EAST-BR2'],
+                         lan=LAN['WEST-BR4'],
                          template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 4, 'gps': (0, 0),
                                 'loopback': '10.200.1.4',
                                 'datacenter': datacenters['west']
@@ -384,6 +390,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         'EAST-DC1-LXC': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
         'WEST-BR1-LXC': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
         'WEST-BR2-LXC': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
+        'WEST-BR3-LXC': {'rank': 101, 'gateway': LAN['WEST-BR3'].ipprefix},
+        'WEST-BR4-LXC': {'rank': 101, 'gateway': LAN['WEST-BR4'].ipprefix},
         'EAST-BR1-LXC': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
         'EAST-BR2-LXC': {'rank': 101, 'gateway': LAN['EAST-BR2'].ipprefix},
     }
@@ -391,21 +399,24 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     devices = {
         'WEST-DC1': west_dc1,
         'WEST-DC2': west_dc2,
-        'EAST-DC1': east_dc1,
         'WEST-BR1': west_br1,
         'WEST-BR2': west_br2,
+        'WEST-BR3': west_br3,
+        'WEST-BR4': west_br4,
+
+        'EAST-DC1': east_dc1,
         'EAST-BR1': east_br1,
-        # 'EAST-BR2': east_br2,
-        # 'WEST-BR3': west_br3,
-        # 'WEST-BR4': west_br4,
+        'EAST-BR2': east_br2,
 
         # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
 
         'WEST-DC1-LXC': LXC(name="WEST-DC1-LXC", template_context={'hosts': hosts}),
         'WEST-DC2-LXC': LXC(name="WEST-DC2-LXC",template_context={'hosts': hosts}),
-        'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),
         'WEST-BR1-LXC': LXC(name="WEST-BR1-LXC",template_context={'hosts': hosts}),
         'WEST-BR2-LXC': LXC(name="WEST-BR2-LXC",template_context={'hosts': hosts}),
+        'WEST-BR3-LXC': LXC(name="WEST-BR3-LXC",template_context={'hosts': hosts}),
+        'WEST-BR4-LXC': LXC(name="WEST-BR4-LXC",template_context={'hosts': hosts}),
+        'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),
         'EAST-BR1-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),
         'EAST-BR2-LXC': LXC(name="EAST-BR2-LXC", template_context={'hosts': hosts}),
         'INTERNET-SERVER': LXC(name="INTERNET-SERVER", template_filename='lxc.SRVINET.conf')
@@ -470,6 +481,16 @@ def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str,
             'YELLOW': Interface(address='10.0.21.1/24', port='port5', vlanid=46, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
             'RED': Interface(address='10.0.22.1/24', port='port5', vlanid=47, name='LAN_RED', vrfid=context['vrf_red']),
         },
+        'WEST-BR3': {
+            'BLUE': Interface(address='10.0.3.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.0.31.1/24', port='port5', vlanid=86, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.0.32.1/24', port='port5', vlanid=87, name='LAN_RED', vrfid=context['vrf_red']),
+        },
+        'WEST-BR4': {
+            'BLUE': Interface(address='10.0.4.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            'YELLOW': Interface(address='10.0.41.1/24', port='port5', vlanid=96, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            'RED': Interface(address='10.0.42.1/24', port='port5', vlanid=97, name='LAN_RED', vrfid=context['vrf_red']),
+        },
         'EAST-DC1': {
             'BLUE': Interface(address='10.4.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
             'YELLOW': Interface(address='10.4.1.1/24', port='port5', vlanid=56, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
@@ -522,7 +543,7 @@ def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str,
 def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     extended_lans = {
             # Extended LAN between WEST BR1<->BR2
-            # L3VNI are not used in the context of SD-WAN design but they are kept for reference
+            # L3VNI are not used in the context of SD-WAN design, but they are kept for reference
             'WEST-BR1': {
                 'evpnid': 10,
                 'l2vni': 10000 + 10,
@@ -538,7 +559,23 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
                 'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=102, name='LAN_XTD', vrfid=context['vrf_evpn']),
             },
 
-            # Extended LAN between EAST BR1<->BR2
+            # Extended LAN between WEST BR3<->BR4
+            'WEST-BR3': {
+                'evpnid': 20,
+                'l2vni': 10000 + 20,
+                'l3evpnid': 50,
+                'l3vni': 50000,
+                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=103, name='LAN_XTD', vrfid=context['vrf_evpn']),
+            },
+            'WEST-BR4': {
+                'evpnid': 20,
+                'l2vni': 10000 + 20,
+                'l3evpnid': 50,
+                'l3vni': 50000,
+                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=104, name='LAN_XTD', vrfid=context['vrf_evpn']),
+            },
+
+            # Extended LAN between EAST BR1<->BR2 (same as WEST BR3<->BR4 since they are not used simultaneously)
             'EAST-BR1': {
                 'evpnid': 20,
                 'l2vni': 10000 + 20,
@@ -557,6 +594,7 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
 
     if not context['evpn_anycast_gw']:  # Different GW IP must be used on BR2
         extended_lans['WEST-BR2']['intf'].update(Interface(address='10.99.12.2/24'))
+        extended_lans['WEST-BR4']['intf'].update(Interface(address='10.99.34.2/24'))
         extended_lans['EAST-BR2']['intf'].update(Interface(address='10.99.34.2/24'))
 
     # Update Branches FortiGates (FGTs with a branch_id)
