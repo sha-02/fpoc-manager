@@ -33,7 +33,7 @@ class Interface:
             self.alias = alias
 
         if address is None:
-            self._address = None
+            self._address = ipaddress.ip_interface('1.2.3.4/32')
         elif address == 'dhcp':
             self.dhcp = True
             self._address = ipaddress.ip_interface('1.2.3.4/32')
@@ -257,7 +257,7 @@ class FortiGate(Device):
         #
         # initialize attributes from local class
         # self.apiadmin = 'adminapi'
-        self.HA = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
+        self.HA = self.HA or FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
     @classmethod
     def FOS_int(cls, fos_version: str):

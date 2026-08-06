@@ -8,6 +8,7 @@ import fpoc
 import fpoc.fortios as fortios
 from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS
 from fpoc.PoC_SDWAN.fabric_studio import FabricStudioSDWAN          # required for eval(request.POST['Class_PoC'])
+from fpoc.PoC_SDWAN import SDWAN1, SDWAN2, SDWAN3                   # required for eval(request.POST['Class_PoC'])
 from fpoc.PoC_SDWAN.agora import AgoraSDWAN                         # required for eval(request.POST['Class_PoC'])
 
 import fpoc.ansible as ansible
