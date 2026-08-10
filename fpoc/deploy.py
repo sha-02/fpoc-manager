@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, subprocess, socket
 
 from django.core.handlers.wsgi import WSGIRequest
 
@@ -90,18 +90,34 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
                   {'poc_id': poc.id, 'devices': status_devices, 'messages': poc.messages})
 
 
+class CompletionCounter:
+    def __init__(self):
+        self.value = 0
+        self.lock = threading.Lock()
+
+    def __str__(self):
+        with self.lock:
+            return str(self.value)
+
+    def increment(self):
+        with self.lock:
+            self.value += 1
+            return self.value
+
 def start2(poc: TypePoC) -> list:
     """
     :param poc: contains all the devices defined for this poc
     :return:
     """
+    poc.nb_completed = CompletionCounter()  # Monkey patching adding the nb of completed device deployment for the poc
 
     start_time = time.perf_counter()
     deploy_configs(poc)
     end_time = time.perf_counter()
 
     duration_seconds = end_time - start_time
-    print(f'\n\nDeployment finished. It took {datetime.timedelta(seconds=duration_seconds)}.\n')
+    print(f'\n\nDeployment finished ({poc.nb_completed}/{len(poc.devices)}). '
+          f'It took {datetime.timedelta(seconds=duration_seconds)}.\n')
 
     # List of all config settings rendered from template
     status_devices = [
@@ -139,17 +155,6 @@ def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     return ''  # no console, empty string returned
 
 
-class CompletionCounter:
-    def __init__(self):
-        self.value = 0
-        self.lock = threading.Lock()
-
-    def increment(self):
-        with self.lock:
-            self.value += 1
-            return self.value
-
-
 def deploy_configs(poc: TypePoC, multithread=True):
     """
     Deploy the configurations to all devices
@@ -158,8 +163,6 @@ def deploy_configs(poc: TypePoC, multithread=True):
     :param multithread:
     :return:
     """
-    poc.nb_completed = CompletionCounter()  # Monkey patching adding the nb of completed device deployment for the poc
-
     if multithread:
         threads = list()
         for device in poc:
@@ -255,6 +258,19 @@ def deploy(poc: TypePoC, device: TypeDevice):
     :param device:
     :return:
     """
+    if not poc.request.POST.get('previewOnly'):
+        print(f'{device.name} : testing liveness on SSH port tcp/{device.ssh_port}')
+        if not is_alive_tcp(device.ip, device.ssh_port):
+            print(f'{device.name} : is not responding on SSH port tcp/{device.ssh_port}. Stop processing device.')
+            raise StopProcessingDevice(f'not responding on SSH port tcp/{device.ssh_port}')
+        print(f'{device.name} : responded on SSH port tcp/{device.ssh_port}')
+
+        print(f'{device.name} : testing liveness on HTTPS port tcp/{device.https_port}')
+        if not is_alive_tcp(device.ip, device.https_port):
+            print(f'{device.name} : is not responding on HTTPS port tcp/{device.https_port}. Stop processing device.')
+            raise StopProcessingDevice(f'not responding on HTTPS port tcp/{device.https_port}')
+        print(f'{device.name} : responded on HTTPS port tcp/{device.https_port}')
+
     if isinstance(device, FortiGate):
         fortios.deploy(poc, device)
     elif isinstance(device, LXC):
@@ -263,3 +279,46 @@ def deploy(poc: TypePoC, device: TypeDevice):
         vyos.deploy(poc, device)
     else:
         raise StopProcessingDevice(f'{device.name} : the type of this device is not supported for deployment')
+
+
+def is_alive(ip: str) -> bool:
+    """
+    Test if the device is alive by sending ping request. A maximum of 5 pings are sent.
+    Returns True immediately when the first ping succeeds
+    Returns False if no ping succeeds
+    """
+    for _ in range(5):
+        try:
+            result = subprocess.run(
+                ["ping", "-c", "1", "-W", "1", ip],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+
+            if result.returncode == 0:
+                return True
+
+        except OSError:
+            return False
+
+    return False
+
+
+def is_alive_tcp(ip: str, port: int) -> bool:
+    """
+    Test if the device is alive by sending TCP SYN request. A maximum of 5 SYNs are sent.
+    Returns True immediately when a TCP handshake completes
+    Returns False otherwise
+    """
+    for _ in range(5):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(1.0)
+
+                if sock.connect_ex((ip, port)) == 0:
+                    return True
+
+        except OSError:
+            return False
+
+    return False
