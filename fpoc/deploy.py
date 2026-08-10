@@ -18,7 +18,7 @@ from django.http import HttpResponse
 import fpoc.fortios as fortios
 import fpoc.lxc as lxc
 import fpoc.vyos as vyos
-from fpoc.devices import FortiGate, LXC, VyOS
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS
 from fpoc.fabric_studio import FabricStudio
 from fpoc.typing import TypePoC, TypeDevice
 from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
@@ -139,6 +139,17 @@ def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:
     return ''  # no console, empty string returned
 
 
+class CompletionCounter:
+    def __init__(self):
+        self.value = 0
+        self.lock = threading.Lock()
+
+    def increment(self):
+        with self.lock:
+            self.value += 1
+            return self.value
+
+
 def deploy_configs(poc: TypePoC, multithread=True):
     """
     Deploy the configurations to all devices
@@ -147,6 +158,8 @@ def deploy_configs(poc: TypePoC, multithread=True):
     :param multithread:
     :return:
     """
+    poc.nb_completed = CompletionCounter()  # Monkey patching adding the nb of completed device deployment for the poc
+
     if multithread:
         threads = list()
         for device in poc:
@@ -166,7 +179,6 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
     Deploy the configuration for a device
 
     """
-    # print('=' * 50, f'{device.name} : Processing device', '=' * 50)
     print(f'{device.name} : Processing device')
     nb_failures = auth_failures = 0
 
@@ -175,7 +187,7 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
             deploy(poc, device)
 
         except CompletedDeviceProcessing:
-            print(f'{device.name} : Finished processing')
+            print(f'{device.name} : Finished processing ({poc.nb_completed.increment()}/{len(poc.devices)})')
             device.deployment_status = 'completed'
             break  # exit the 'while True' loop to process the next device
 
@@ -230,7 +242,7 @@ def deploy_config(poc: TypePoC, device: TypeDevice):
             print(f'{device.name} : Processing device once again')  # before reprocessing the device
 
         else:  # No exception occurred for this device
-            print(f'{device.name} : Finished processing device')
+            print(f'{device.name} : Finished processing ({poc.nb_completed.increment()}/{len(poc.devices)})')
             device.deployment_status = 'completed'
             break  # exit the 'while True' loop to process the next device
 

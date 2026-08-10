@@ -174,13 +174,12 @@ def is_running_bootstrap(device: FortiGate) -> bool:
     return bootstrap
 
 
-def render_bootstrap_config(poc: TypePoC, device: FortiGate):
+def render_bootstrap_config(device: FortiGate) -> str:
     """
     Render the bootstrap config based on the FortiOS version of the FGT (device.fos_version)
-    Bootstrap config is stored in device.config
 
     :param device:
-    :return:
+    :return: the rendered bootstrap config
     """
 
     # Load the factory config for this FOS firmware and FGT model (file name e.g. 'FGT_VM64_KVM_7.6.6.conf')
@@ -194,18 +193,15 @@ def render_bootstrap_config(poc: TypePoC, device: FortiGate):
             f'{device.name} : Could not find factory configuration "{factory_config_filename}" in folder {PATH_FPOC_BOOTSTRAP_CONFIGS}')
         raise StopProcessingDevice
 
-    # Obsolete: there is no Jinja code anymore within the factory config, so no need to render the factory config
-        # Render the factory config
-        # jinja2_engine = engines['jinja2']
-        # device.config = jinja2_engine.from_string(factory_config).render(device.template_context)
-    device.config = factory_config
+    boostrap_config = factory_config
 
     # Render specific settings for this FGT
     #   No need to pass the 'request' parameter (which adds CSRF tokens) since this is a rendering for FGT CLI settings
     # Append the rendered config after the factory config
-    device.config += loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/_FGT.conf',
+    boostrap_config += loader.render_to_string(f'{RELPATH_FPOC_BOOTSTRAP_CONFIGS}/_FGT.conf',
                                             device.template_context, using='jinja2')
 
+    return boostrap_config
 
 def should_upload_boostrap(device: FortiGate) -> bool:
     """
@@ -228,23 +224,29 @@ def should_upload_boostrap(device: FortiGate) -> bool:
     return not is_running_bootstrap(device)  # Returns False if FGT is not running bootstrap config, True otherwise.
 
 
-def save_config(studio_name: str, device: FortiGate, poc_id: int) -> str:
+def save_config(studio_name: str, device: FortiGate, poc_id: int, tag: str = "", config=None) -> str:
     """
     """
-    filepath = f'{PATH_FPOC_CONFIG_SAVE}/{studio_name}_poc{poc_id:02}_{device.name}.conf'
+    if config is None:
+        config = device.config
+
+    header = ""
+    if is_config_snippets(config):
+        header += f'# {studio_name} PoC{poc_id:02} {device.name} FortiOS {device.fos_version}'
+        header += f'\n# context = {device.template_context}'
+        header += '\n#\n' + '#' * 50
+        config = header + config
+
+    filepath = f'{PATH_FPOC_CONFIG_SAVE}/{studio_name}_poc{poc_id:02}_{device.name}{tag}.conf'
     with open(filepath, 'w') as f:
-        if is_config_snippets(device.config):
-            f.write(f'# fpoc{poc_id:02} {device.name} FortiOS {device.fos_version}')
-            f.write(f'\n# context = {device.template_context}')
-            f.write('\n#\n' + '#' * 50)
-        f.write(device.config)
+        f.write(config)
 
     if poc_id == 0:
         print(f'{device.name} : Bootstrap configuration saved to {filepath}')
-    elif is_config_snippets(device.config):
-        print(f'{device.name} : CLI script saved to {filepath}')
+    # elif is_config_snippets(config):
+    #     print(f'{device.name} : CLI script saved to {filepath}')
     else:
-        print(f'{device.name} : full-config saved to {filepath}')
+        print(f'{device.name} : {tag} config saved to {filepath}')
 
     return filepath
 
@@ -267,8 +269,6 @@ def deploy(poc: TypePoC, device: FortiGate):
     # - use this FOS version to render the config and, if needed, upgrade the FGT to this version
     # When no FortiOS version is specified:
     # - get the FOS version from the FGT and use this version for config rendering
-    #
-    # For cases: prepare the FGT (API admin, API key) and, if needed, load the desired FortiOS version
     #
     elif poc.request.POST.get('enforceFOSversion') or not poc.request.POST['targetedFOSversion']:
         prepare_api(device)  # create API admin and key if needed
@@ -306,7 +306,7 @@ def deploy(poc: TypePoC, device: FortiGate):
     # Special PoC which only uploads bootstrap config to the FGT
     #
     if poc.id == 0:
-        render_bootstrap_config(poc, device)    # config is stored in device.config
+        device.config = render_bootstrap_config(device)
         config_filepath = save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if not poc.request.POST.get('previewOnly'):
             print(f'{device.name} : Uploading bootstrap configuration ', end='')
@@ -327,35 +327,82 @@ def deploy(poc: TypePoC, device: FortiGate):
         template_name += f'{device.template_group}/'
     template_name += f'{device.template_filename}'
 
-    if not poc.request.POST.get('previewOnly') and poc.request.POST.get('singlePassDeploy'):
-        # Create a full-config made up of the bootstrap config followed by the PoC CLI commands
-        render_bootstrap_config(poc, device)    # bootstrap config is loaded in device.config
-        device.config += loader.render_to_string(template_name, device.template_context, using='jinja2') # add PoC CLI cmdes
-    else:
-        device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
+    #
+    # Render config
+    #
 
-    # if the config is not a full-config: Upload bootstrap config to FGT (if it is not running one)
-    if not poc.request.POST.get('previewOnly') and is_config_snippets(device.config) and should_upload_boostrap(device):
-        render_bootstrap_config(poc, device)    # config is stored in device.config
-        save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
-        print(f'{device.name} : Uploading bootstrap configuration... ')
-        fortios.api.upload_config(device)
-        print(f'{device.name} : bootstrap configuration uploaded.')
-        if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
-            raise CompletedDeviceProcessing
-        else:
-            device.apikey = ''  # reset cached API key since there is no API key in the bootstrap config
-            raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to load the config and reboot
+    # config preview only
+    if poc.request.POST.get('previewOnly'):
+        #  save the rendered bootstrap config (for possible review)
+        save_config(poc.__class__.__name__, device, poc.id, tag=".bootstrap", config=render_bootstrap_config(device))
+        # render the CLI commands
+        if not (device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY):
+            # HA primary or standalone FGT
+            device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
+            save_config(poc.__class__.__name__, device, poc.id, tag=".cli") # save CLI to disk for review
 
-    # Save this CLI configuration to disk
-    config_filepath = save_config(poc.__class__.__name__, device, poc.id)
-
-    # Preview the config
-    if poc.request.POST.get('previewOnly'):  # Only preview of the config is requested, no deployment needed
         raise CompletedDeviceProcessing  # No more processing needed for this FGT
 
+    if poc.request.POST.get('singlePassDeploy'):
+        # Create a full-config made up of the bootstrap config followed by the PoC CLI commands
+        # render the bootstrap config and save it to disk (for possible review)
+        device.config = render_bootstrap_config(device)
+        save_config(poc.__class__.__name__, device, poc.id, tag=".bootstrap")
+
+        # HA secondary device: no CLI commands to render, only bootstrap config is needed
+        if not (device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY):
+            # HA primary or standalone FGT
+            # render the CLI commands
+            cli_commands = loader.render_to_string(template_name, device.template_context, using='jinja2')
+            # Save them to disk (for possible review)
+            save_config(poc.__class__.__name__, device, poc.id, config=cli_commands, tag=".cli")
+            # Add the CLI commands after the bootstrap config
+            device.config += cli_commands
+
+        # Save the full config (in device.config) to disk for deployment to FGT
+        config_filepath = save_config(poc.__class__.__name__, device, poc.id)
+
+    else:
+        # CLI commands to be executed on the FGT after the bootstrap config was uploaded
+        if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
+            # HA secondary device: no CLI commands to render, only bootstrap config is needed
+            device.config = ""
+        else:
+            # If HA primary or standalone: CLI commands to run after the bootstrap config was loaded
+            device.config = loader.render_to_string(template_name, device.template_context, using='jinja2')
+
+        # Upload bootstrap config if needed
+        if should_upload_boostrap(device):
+            device.config = render_bootstrap_config(device)
+            save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
+            print(f'{device.name} : Uploading bootstrap configuration... ')
+            fortios.api.upload_config(device)
+            print(f'{device.name} : bootstrap configuration uploaded.')
+            if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY:
+                raise CompletedDeviceProcessing
+            else:
+                device.apikey = ''  # reset cached API key since there is no API key in the bootstrap config
+                raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to load the config and reboot
+
+        # Save device.config to disk for deployment to FGT
+        config_filepath = save_config(poc.__class__.__name__, device, poc.id)
+
+    #
     # Deploy the config
-    if is_config_snippets(device.config):   # CLI commands to run via API script
+    #
+    if (device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.role == FortiGate_HA.Roles.SECONDARY
+            and fortios.ssh.is_running_ha(device)):
+            # Device is currently an HA member and, by PoC declaration, is expected to be secondary: Do not deploy config
+            print(f'{device.name} : is running HA and is expected to be secondary, so no configuration is deployed.')
+            raise CompletedDeviceProcessing
+
+    if poc.request.POST.get('singlePassDeploy'):
+        # Upload the Full configuration file
+        if poc.request.POST.get('scpDeploy'):  # Upload via SCP
+            fortios.ssh.upload_config(device, filepath=config_filepath)
+        else:  # Upload via API
+            fortios.api.upload_config(device)
+    else:   # CLI commands to run via API script
         # Enable VDOMs on the FGT if it is needed for the PoC and VDOMs are not yet enabled on the FGT
         if device.template_context.get('multi_vdom') and fortios.retrieve_vdom_mode(device) == 'no-vdom':
             print(f'{device.name} : Enabling VDOMs')
@@ -367,12 +414,6 @@ def deploy(poc: TypePoC, device: FortiGate):
         script_name = f'fpoc={poc.id:02} config_hash={hash(device.config):_}'
         print(f'{device.name} : Upload and run configuration script: {script_name}')
         fortios.run_script(device, script_name)
-    else:
-        # Upload the Full configuration file
-        if poc.request.POST.get('scpDeploy') :  # Upload via SCP
-            fortios.ssh.upload_config(device, filepath=config_filepath)
-        else:   # Upload via API
-            fortios.api.upload_config(device)
 
 
 def is_config_snippets(config: str) -> bool:

@@ -167,4 +167,5 @@ def is_running_ha(device: FortiGate) -> bool:
         raise StopProcessingDevice(f'device={device.name} : failure to retrieve the HA status via SSH')
 
     # Return True if HA mode is not 'standalone', return False if HA mode is 'standalone'
-    return re_token.group(1).strip() != 'standalone'
+    device.output = re_token.group(1).strip()
+    return device.output != 'standalone'
