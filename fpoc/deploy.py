@@ -265,11 +265,12 @@ def deploy(poc: TypePoC, device: TypeDevice):
             raise StopProcessingDevice(f'not responding on SSH port tcp/{device.ssh_port}')
         print(f'{device.name} : responded on SSH port tcp/{device.ssh_port}')
 
-        print(f'{device.name} : testing liveness on HTTPS port tcp/{device.https_port}')
-        if not is_alive_tcp(device.ip, device.https_port):
-            print(f'{device.name} : is not responding on HTTPS port tcp/{device.https_port}. Stop processing device.')
-            raise StopProcessingDevice(f'not responding on HTTPS port tcp/{device.https_port}')
-        print(f'{device.name} : responded on HTTPS port tcp/{device.https_port}')
+        if not poc.request.POST.get('scpDeploy'):
+            print(f'{device.name} : testing liveness on HTTPS port tcp/{device.https_port}')
+            if not is_alive_tcp(device.ip, device.https_port):
+                print(f'{device.name} : is not responding on HTTPS port tcp/{device.https_port}. Stop processing device.')
+                raise StopProcessingDevice(f'not responding on HTTPS port tcp/{device.https_port}')
+            print(f'{device.name} : responded on HTTPS port tcp/{device.https_port}')
 
     if isinstance(device, FortiGate):
         fortios.deploy(poc, device)
