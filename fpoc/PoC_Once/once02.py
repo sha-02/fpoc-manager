@@ -21,6 +21,10 @@ devices = {
                               mpls1=Interface('port4', 0, '10.71.14.1/24', 'MPLS'),
                           )),
 
+    'HUB1-B': FortiGate(offset=3, nameid='fgt004', name_phy='HUB1-B',
+                          mgmt=Interface('port10', 0, '172.16.31.22/24'),
+                           ),
+
     'HUB2': FortiGate(offset=2, nameid='fgt001', name_phy='HUB2',
                           mgmt=Interface('port10', 0, '172.16.31.21/24'),
                           lan=Interface('port5', 0, ''),
@@ -40,6 +44,10 @@ devices = {
                               inet3=Interface('port3', 0, '100.64.43.1/24', 'Internet_3'),
                               mpls1=Interface('port4', 0, '10.71.44.1/24', 'MPLS'),
                           )),
+
+    'BRANCH1-B': FortiGate(offset=22, nameid='fgt008', name_phy='BR1-B',
+                          mgmt=Interface('port10', 0, '172.16.31.32/24'),
+                           ),
 
     'BRANCH2': FortiGate(offset=6, nameid='fgt003', name_phy='BR2',
                           mgmt=Interface('port10', 0, '172.16.31.41/24'),

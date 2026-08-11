@@ -3,7 +3,7 @@ from django.http import HttpResponse
 import copy
 
 import fpoc
-from fpoc.devices import Interface, FortiGate, WAN
+from fpoc.devices import Interface, FortiGate, FortiGate_HA
 from .once import FabricStudioPoCOnce
 
 
@@ -11,9 +11,9 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
     """
     FOS 7.6.7
     Dual Region, Single Hub per Region, 4x Branches (2x BR per Region)
-    3x VRFs: IPv4/VPNv4 & IPv6/VPNv6
+    3x VRFs (Data, Voice, Video): IPv4/VPNv4 & IPv6/VPNv6
     multicast IPv4 in VRFs
-    EVPN
+    EVPN: two extended LANs between BR1<->BR2 in Region1 and BR3<->BR4 in Region2
     No local breakout, only overlay traffic
     """
 
@@ -155,6 +155,10 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
     # FortiGate Devices
 
     hub1 = FortiGate(name='HUB1', template_group='DATACENTERS',
+                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                         group_id=91, group_name="HUB1", priority=129,
+                                         hbdev=[('port6', 0)], sessyncdev=['port7'],
+                                         monitordev=['port1','port2','port3','port5']),
                          # lan=PE['HUB1'],
                          lan=segments['HUB1']['DATA'],
                          template_context=context | {'dc_id': 1, 'gps': (48.856614, 2.352222),
@@ -163,6 +167,12 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
                                 'datacenter': datacenters,
                                 'vrf_segments': segments['HUB1'],
                                 })
+    hub1_sec = FortiGate(name='HUB1-B', template_group='DATACENTERS',
+                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                         group_id=91, group_name="HUB1", priority=127,
+                                         hbdev=[('port6', 0)], sessyncdev=['port7'],
+                                         monitordev=['port1','port2','port3','port5'])
+                        )
     hub2 = FortiGate(name='HUB2', template_group='DATACENTERS',
                          # lan=PE['HUB2'],
                          lan=segments['HUB2']['DATA'],
@@ -173,6 +183,10 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
                                 'vrf_segments': segments['HUB2'],
                                 })
     br1 = FortiGate(name='BRANCH1', template_group='BRANCHES',
+                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                         group_id=1, group_name="BRANCH1", priority=129,
+                                         hbdev=[('port6', 0)], sessyncdev=['port7'],
+                                         monitordev=['port1','port2','port3','port5']),
                          lan=segments['BRANCH1']['LAN'],
                          template_context=context | {'branch_id': 1, 'gps': (44.8333, -0.5667),
                                 'region': 'West', 'region_id': 1,
@@ -180,6 +194,12 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
                                 'datacenter': datacenters['west'],
                                  'vrf_segments': segments['BRANCH1'],
                                  })
+    br1_sec = FortiGate(name='BRANCH1-B', template_group='BRANCHES',
+                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                         group_id=1, group_name="BRANCH1", priority=127,
+                                         hbdev=[('port6', 0)], sessyncdev=['port7'],
+                                         monitordev=['port1','port2','port3','port5'])
+                        )
     br2 = FortiGate(name='BRANCH2', template_group='BRANCHES',
                          lan=segments['BRANCH2']['LAN'],
                          template_context=context | {'branch_id': 2, 'gps': (43.616354, 7.055222),
@@ -208,8 +228,10 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
 
     devices = {
         'HUB1': hub1,
+        'HUB1-B': hub1_sec,
         'HUB2': hub2,
         'BRANCH1': br1,
+        'BRANCH1-B': br1_sec,
         'BRANCH2': br2,
         'BRANCH3': br3,
         'BRANCH4': br4,
