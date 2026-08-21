@@ -30,11 +30,13 @@ class SDWAN1(FabricStudioSDWAN):
     devices = { k:FabricStudioSDWAN.devices[v] for k,v in mapping.items()}
 
 
-def dualdc(request: WSGIRequest) -> HttpResponse:
+def dualdc(request: WSGIRequest, **kwargs) -> HttpResponse:
     """
     Dual-Region WEST/EAST
     WEST: Dual DC, Two Branches
     EAST: Single DC, One Branch
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     context = {

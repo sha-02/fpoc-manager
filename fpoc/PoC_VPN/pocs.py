@@ -8,8 +8,9 @@ from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
 from fpoc.PoC_VPN import StudioVPN
 
 
-def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def vpn_site2site(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     """
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
     context = {
         'vpn': request.POST.get('vpn'),  # 'ipsec', 'gre', ...
@@ -55,8 +56,9 @@ def vpn_site2site(request: WSGIRequest, poc_id: int) -> HttpResponse:
     return fpoc.start(StudioVPN(request, poc_id), devices)
 
 
-def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def l2vpn(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     """
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
     context = {
         'l2vpn': request.POST.get('l2vpn'),  # 'vxlan-ipsec', 'vxlan'
@@ -168,8 +170,9 @@ def l2vpn(request: WSGIRequest, poc_id: int) -> HttpResponse:
     return fpoc.start(poc, devices)
 
 
-def vpn_dialup(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def vpn_dialup(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     """
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
     context = {
         'ike': request.POST.get('ike'),  # 1 or 2

@@ -7,9 +7,11 @@ from fpoc.deploy import device_URL, device_URL_console
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN, SDWAN1, SDWAN2, SDWAN3    # Required for  eval(request.POST['Class_PoC'])
 
 
-def dashboard(request: WSGIRequest) -> HttpResponse:
+def dashboard(request: WSGIRequest, **kwargs) -> HttpResponse:
     """
     Display a dashboard of all devices
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     # Check the request

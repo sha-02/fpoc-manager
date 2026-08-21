@@ -6,9 +6,11 @@ from fpoc.devices import Interface, FortiGate, WAN
 from .once import FabricStudioPoCOnce
 
 
-def poc01(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def poc01(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     """
     Single Hub, Two Branches
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     #

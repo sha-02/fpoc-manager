@@ -35,8 +35,9 @@ def request_sanity(request: WSGIRequest) -> str:
     return ''
 
 
-def bootstrap(request: WSGIRequest) -> HttpResponse:
+def bootstrap(request: WSGIRequest, **kwargs) -> HttpResponse:
     """
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     # Check the request
@@ -80,9 +81,11 @@ def bootstrap(request: WSGIRequest) -> HttpResponse:
     return fpoc.start(poc, fortigates)
 
 
-def upgrade(request: WSGIRequest) -> HttpResponse:
+def upgrade(request: WSGIRequest, **kwargs) -> HttpResponse:
     """
     Unconditional upgrade to the requested FOS version
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     # Check the request
@@ -126,8 +129,9 @@ def upgrade(request: WSGIRequest) -> HttpResponse:
 
 
 
-def poweron(request: WSGIRequest) -> HttpResponse:
+def poweron(request: WSGIRequest, **kwargs) -> HttpResponse:
     """
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     # Create a class instance based on the class name stored as a string in variable request.POST['Class_PoC']

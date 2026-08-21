@@ -31,7 +31,7 @@ class SDWAN3(FabricStudioSDWAN):
     devices = { k:FabricStudioSDWAN.devices[v] for k,v in mapping.items()}
 
 
-def dualdc(request: WSGIRequest) -> HttpResponse:
+def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     """
     PoC01, Dual Branch: FortiOS 7.6.7+ and 8.0+
         BGP on loopback, SDWAN+ADVPN v2.0, ADVPN routing with dynamic BGP on loopback
@@ -42,6 +42,8 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
         WEST: EXT, Dual DC, Two Branches
             no SNAT to WEST-EXT: Remote Signaling with BGP MED automatically derived from link priority
         EAST: Single DC, One Branch
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     context = {

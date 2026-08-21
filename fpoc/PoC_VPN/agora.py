@@ -31,9 +31,11 @@ class FortiLabVpnSite2Site(FortiLab):
         super(FortiLabVpnSite2Site, self).__init__(request, poc_id)
 
 
-def vpn_site2site_fortilab(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def vpn_site2site_fortilab(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     """
     Site-to-Site PoC for Hardware Lab
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     context = {

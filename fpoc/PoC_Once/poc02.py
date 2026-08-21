@@ -7,7 +7,7 @@ from fpoc.devices import Interface, FortiGate, FortiGate_HA
 from .once import FabricStudioPoCOnce
 
 
-def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
+def poc02(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     """
     FOS 7.6.7
     Dual Region, Single Hub per Region, 4x Branches (2x BR per Region)
@@ -15,6 +15,8 @@ def poc02(request: WSGIRequest, poc_id: int) -> HttpResponse:
     multicast IPv4 in VRFs
     EVPN: two extended LANs between BR1<->BR2 in Region1 and BR3<->BR4 in Region2
     No local breakout, only overlay traffic
+
+    kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     #
