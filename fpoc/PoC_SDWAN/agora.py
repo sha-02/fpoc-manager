@@ -64,8 +64,10 @@ class AgoraSDWAN(FortiLab):
         # and configure device access info
         super().__init__(request, poc_id)
 
-        # No impairment is requested
-        if not wan_impairment:
+        # Set impairment for the class devices
+        if wan_impairment:
+            self.__class__.devices = self.__class__.impairment
+        else:
             self.__class__.devices = self.__class__.no_impairment
 
         # Add MPLS summary subnet to each FortiGate
