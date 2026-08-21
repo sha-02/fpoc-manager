@@ -17,9 +17,9 @@ FGT_B = FortiGate(name_phy='SDW-1001F-B', alias='SDW-1001F-B', password='Fortine
                   lan=Interface('port6', vlanid=0, speed='1000auto'),
                   )
 wan_impairment = FortiGate(wan=WAN(
-    inet1=Interface('port1', vlanid=0, speed='1000auto'),
-    inet2=Interface('port2', vlanid=0, speed='1000auto'),
-    mpls1=Interface('port4', vlanid=0, speed='1000auto'),
+    inet1=Interface('port1', vlanid=0, speed='1000auto', alias='Internet_1'),
+    inet2=Interface('port2', vlanid=0, speed='1000auto', alias='Internet_2'),
+    mpls1=Interface('port4', vlanid=0, speed='1000auto', alias='MPLS'),
     ))
 wan_no_impairment = FortiGate(wan=WAN(
     inet1=Interface('port1', name="Internet_1", vlanid=71, speed='1000auto'),
@@ -66,9 +66,9 @@ FGT_B = FortiGate(name_phy='SDW-3301E-B', alias='SDW-3301E-B', password='Fortine
                   lan=Interface('port6', vlanid=0, speed='auto'),
                   )
 wan_impairment = FortiGate(wan=WAN(
-    inet1=Interface('port1', vlanid=0, speed='1000auto'),
-    inet2=Interface('port2', vlanid=0, speed='1000auto'),
-    mpls1=Interface('port4', vlanid=0, speed='1000auto'),
+    inet1=Interface('port1', vlanid=0, speed='1000auto', alias='Internet_1'),
+    inet2=Interface('port2', vlanid=0, speed='1000auto', alias='Internet_2'),
+    mpls1=Interface('port4', vlanid=0, speed='1000auto', alias='MPLS'),
     ))
 wan_no_impairment = FortiGate(wan=WAN(
     inet1=Interface('port1', name="Internet_1", vlanid=71, speed='1000auto'),
@@ -115,9 +115,9 @@ FGT_B = FortiGate(name_phy='SDW-101F-B', alias='SDW-101F-B', password='Fortinet1
                   lan=Interface('port4', vlanid=0, speed='auto'),
                   )
 wan_impairment = FortiGate(wan=WAN(
-    inet1=Interface('wan1', vlanid=0, speed='auto'),
-    inet2=Interface('wan2', vlanid=0, speed='auto'),
-    mpls1=Interface('port2', vlanid=0, speed='auto'),
+    inet1=Interface('wan1', vlanid=0, speed='auto', alias='Internet_1'),
+    inet2=Interface('wan2', vlanid=0, speed='auto', alias='Internet_2'),
+    mpls1=Interface('port2', vlanid=0, speed='auto', alias='MPLS'),
     ))
 wan_no_impairment = FortiGate(wan=WAN(
     inet1=Interface('wan1', name="Internet_1", vlanid=71, speed='auto'),
