@@ -67,7 +67,7 @@ def dualdc(request: WSGIRequest) -> HttpResponse:
     #
     if 'fabric'  in request.path:  # poc is running in FabricStudio
         poc = SDWAN1(request)
-    elif 'hardware' in request.path:  # poc is running in Hardware Lab
+    elif 'agora' in request.path:  # poc is running in Hardware Lab
         poc = AgoraSDWAN(request)
     else:
         print('\nError: Cannot create the poc based on the request PATH')

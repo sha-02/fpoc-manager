@@ -6,11 +6,11 @@
 <!--            <option value = "/SDWAN/">v1</option>-->
 <!--            <option value = "/SDWAN/ADVPNv2/">v2</option>-->
 
-    {% for url, site in sdwan_sites.items %}
-        {% if site.selected %}
-            <option value="/{{url}}" selected>{{url}}</option>
+    {% for path in sites.keys %}
+        {% if path in current_path %}
+            <option value="/{{path}}" selected>{{path}}</option>
         {% else %}
-            <option value="/{{url}}">{{url}}</option>
+            <option value="/{{path}}">{{path}}</option>
         {% endif %}
     {% endfor %}
  </select>

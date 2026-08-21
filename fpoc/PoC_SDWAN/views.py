@@ -27,16 +27,11 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
 
-        # Build the home page with a selection of all the sites URL which starts with "SDWAN/"
-        # sdwan_sites = { k: v for k, v in kwargs['sites'].items() if k.startswith('SDWAN/') }
-        sdwan_sites = copy.deepcopy(kwargs['sites'])
+        # context contains: 'sites' dict()
+        # which is inherited from the call in config.urls
 
-        # Set the current site to 'selected' after having unselected all other sites
-        for site in sdwan_sites.values():
-            site['selected'] = False
-        sdwan_sites[self.request.path[1:]]['selected'] = True
-
-        context['sdwan_sites'] = sdwan_sites
+        # Add current path to the context
+        context['current_path'] = self.request.path
 
         # Add VM Studio instances (eg, almodo10,...) to context if applicable
         context['studio_instances'] = False
@@ -58,7 +53,7 @@ class HomePageView(TemplateView):
             context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
 
 
-        if 'hardware' in self.request.path:
+        if 'agora' in self.request.path:
             context['Class_PoC'] = 'AgoraSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
             context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
 
