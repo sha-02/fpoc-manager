@@ -133,7 +133,7 @@
                         <br><br>
                         Branch Internet Breakout
                         <input checked name="dia" title="Direct Internet Access" type="checkbox" value=1> DIA
-                        <input checked name="sia" title="Remote Internet Access via SSE" type="checkbox" value=1> SIA
+                        <input {%if not agora%}checked{%endif%} name="sia" title="Remote Internet Access via SSE" type="checkbox" value=1> SIA
                         <input name="ria" title="Remote Internet Access via Hub" type="checkbox" value=1> RIA
                         <br>
                         <table>

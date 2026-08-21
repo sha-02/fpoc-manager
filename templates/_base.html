@@ -84,6 +84,11 @@
           or IP<input type="text" id="vmIP" name="vmIP" maxlength="15" size="15">
         </div>
       {% endif %}
+      {% if agora %}
+        <div>
+          <input checked id="wan_impairment" name="wan_impairment" title="WAN Impairment or not" type="checkbox" value=1> WAN Impairment
+        </div>
+      {% endif %}
     </div>
     <div class="d-flex flex-row bd-highlight mb-3 align-items-center">
       <div class="p-2 bd-highlight">

@@ -38,6 +38,9 @@ class HomePageView(TemplateView):
         if 'fabric' in self.request.path:
             context['studio_instances'] = studio_instances()
 
+        # Add agora to context if applicable
+        context['agora'] = 'agora' in self.request.path
+
         # List of devices for the PoC
         if 'fabric' in self.request.path:
             if '7.6_8.0' in self.request.path:
@@ -51,7 +54,6 @@ class HomePageView(TemplateView):
             context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
             context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
             context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
-
 
         if 'agora' in self.request.path:
             context['Class_PoC'] = 'AgoraSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form

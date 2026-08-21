@@ -4,6 +4,7 @@ from django.http import HttpResponse
 
 import typing
 import fpoc
+from fpoc.agora import wan_impairment
 from fpoc.exceptions import AbortDeployment
 from fpoc.devices import Interface, FortiGate, LXC
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
@@ -218,7 +219,7 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     if 'fabric'  in request.path:  # poc is running in FabricStudio
         poc = SDWAN3(request)
     elif 'agora' in request.path:  # poc is running in Hardware Lab
-        poc = AgoraSDWAN(request)
+        poc = AgoraSDWAN(request, wan_impairment=bool(request.POST.get('wan_impairment', False)))
     else:
         print('\nError: Cannot create the poc based on the request PATH')
         raise AbortDeployment

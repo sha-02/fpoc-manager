@@ -164,19 +164,24 @@ FGT_B = FortiGate(name_phy='SDW-50G-B', alias='SDW-50G-B', password='Fortinet123
                   mgmt=Interface('lan2', 0, '10.210.0.255/23'),
                   lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
                   )
-wan_impairment = FortiGate(wan=WAN(
-    inet1=Interface('wan1', vlanid=0, speed='auto'),
-    inet2=Interface('port1', vlanid=0, speed='auto'),
-    mpls1=Interface('port2', vlanid=0, speed='auto'),
+wan_impairment_A = FortiGate(wan=WAN(
+    inet1=Interface('wan', name="Internet_1", vlanid=91, speed='auto'),
+    inet2=Interface('wan', name="Internet_2", vlanid=92, speed='auto'),
+    mpls1=Interface('wan', name="MPLS", vlanid=94, speed='auto'),
+    ))
+wan_impairment_B = FortiGate(wan=WAN(
+    inet1=Interface('wan', name="Internet_1", vlanid=101, speed='auto'),
+    inet2=Interface('wan', name="Internet_2", vlanid=102, speed='auto'),
+    mpls1=Interface('wan', name="MPLS", vlanid=104, speed='auto'),
     ))
 wan_no_impairment = FortiGate(wan=WAN(
     inet1=Interface('wan', name="Internet_1", vlanid=71, speed='auto'),
-    inet2=Interface('wan', name="Internet_2", vlanid=73, speed='auto'),
+    inet2=Interface('wan', name="Internet_2", vlanid=72, speed='auto'),
     mpls1=Interface('wan', name="MPLS", vlanid=74, speed='auto'),
     ))
 
 SDW_agora['SDW_50G_A'] = {
-    'impairment': FGT_50G.update(FGT_A).update(wan_impairment).update(FortiGate(wan=WAN(
+    'impairment': FGT_50G.update(FGT_A).update(wan_impairment_A).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.91.1/24'),
                                 inet2=Interface(address='100.64.92.1/24'),
                                 mpls1=Interface(address='10.71.94.1/24'),
@@ -189,7 +194,7 @@ SDW_agora['SDW_50G_A'] = {
     }
 
 SDW_agora['SDW_50G_B'] = {
-    'impairment': FGT_50G.update(FGT_B).update(wan_impairment).update(FortiGate(wan=WAN(
+    'impairment': FGT_50G.update(FGT_B).update(wan_impairment_B).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.101.1/24'),
                                 inet2=Interface(address='100.64.102.1/24'),
                                 mpls1=Interface(address='10.71.104.1/24'),

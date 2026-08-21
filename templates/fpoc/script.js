@@ -7,6 +7,9 @@ function collectElements(formID)
     document.getElementById('vmInstance').setAttribute('form', formID);
     document.getElementById('vmIP').setAttribute('form', formID);
   {% endif %}
+  {% if agora %}
+    document.getElementById('wan_impairment').setAttribute('form', formID);
+  {% endif %}
 
   document.getElementById('scpDeploy').setAttribute('form', formID);
   document.getElementById('singlePassDeploy').setAttribute('form', formID);
