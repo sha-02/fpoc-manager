@@ -1,7 +1,7 @@
 import copy
 
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc.devices import FortiGate, LXC, VyOS, WAN, Interface, Network
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS, WAN, Interface, Network
 from fpoc.fabric_studio import FabricStudio
 
 
@@ -42,6 +42,10 @@ class FabricStudioSDWAN(FabricStudio):
 
         'BR1': FortiGate(offset=4, nameid='fgt002',  name_phy='BR1',
                             mgmt=Interface('port10', 0, '172.16.31.31/24'),
+                            HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                         group_id=1, group_name="BRANCH1", priority=129,
+                                         hbdev=[('port6', 0)], sessyncdev=['port7'],
+                                         monitordev=['port1', 'port2', 'port3', 'port5']),
                             lan=Interface('port5', 0, ''),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.41.1/24', alias='Internet_1'),
