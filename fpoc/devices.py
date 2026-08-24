@@ -210,8 +210,8 @@ class FortiGate_HA:
     class Modes(Enum):
         STANDALONE = 0
         FGCP = 1
-        FGSP = 2
-        FGCP_FGSP = 3
+        FGSP = 2        # Not yet implemented
+        FGCP_FGSP = 3   # Not yet implemented
 
     class Roles(Enum):
         STANDALONE = 0
@@ -226,6 +226,20 @@ class FortiGate_HA:
     sessyncdev: list = None  # list of HA session synch devices (e.g. ['port6', 'port7'])
     monitordev: list = None  # list of HA monitored interfaces (e.g., ['port1', 'port2',  'port5'])
     priority: int = None  # HA priority
+
+    def update(self, ha: FortiGate_HA):
+        # Update (Override) this HA attributes with all not-None attributes from the 'ha' passed as argument
+        if self.mode == self.__class__.Modes.STANDALONE or ha.mode != self.mode or ha.role != self.role:
+            self.__dict__ = ha.__dict__
+            return
+
+        # 'ha' and 'self' are both FGCP with same role
+        for k, v in ha.__dict__.items():
+            if k == 'mode' or k == 'role':
+                continue
+            if v is not None:
+                self.__dict__[k] = v    # update 'self' with 'ha'
+                # when 'ha' attribute is None, 'self' keeps its current value for this attribute
 
 
 @dataclass
@@ -282,10 +296,9 @@ class FortiGate(Device):
                 else:
                     self.lan = fortigate.lan
             elif k == 'wan' and self.wan is not None:
-                if self.wan is not None:
-                    self.wan.update(fortigate.wan)
-                else:
-                    self.wan = fortigate.wan
+                self.wan.update(fortigate.wan)
+            elif k == 'HA' and self.HA is not None:
+                self.HA.update(fortigate.HA)
             else:
                 self.__dict__[k] = v  # update the local FortiGate attribute with the 'fortigate' attribute
 
