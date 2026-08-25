@@ -12,8 +12,8 @@ class Interface:
     # port: str  # e.g. 'port1'
     # vlanid: int  # e.g, 11
     # _address: ipaddress
-    def __init__(self, port:str = None, vlanid: int = None, address: str = None, name: str = None, speed: str = None,
-                 vrfid: int = None, alias: str = None):
+    def __init__(self, port:str|None = None, vlanid: int|None = None, address: str|None = None, name: str|None = None, speed: str|None = None,
+                 vrfid: int|None = None, alias: str|None = None):
         # All parameters must default to None due to the update() method used by FortiGate class
         self.port = port
         self.vlanid = vlanid
@@ -118,21 +118,21 @@ class Network:
 @dataclass
 class WAN:
     # All attributes must default to None due to the update() method used by FortiGate class
-    inet: Interface = None
-    inet_snat: Interface = None
-    inet_dnat: Interface = None
-    inet1: Interface = None
-    inet1_snat: Interface = None
-    inet1_dnat: Interface = None
-    inet2: Interface = None
-    inet2_snat: Interface = None
-    inet2_dnat: Interface = None
-    inet3: Interface = None
-    inet3_snat: Interface = None
-    inet3_dnat: Interface = None
-    mpls1: Interface = None
-    mpls2: Interface = None
-    mpls_summary: Network = None    # Summary for MPLS underlay (e.g. '10.71.0.0/16')
+    inet: Interface|None = None
+    inet_snat: Interface|None = None
+    inet_dnat: Interface|None = None
+    inet1: Interface|None = None
+    inet1_snat: Interface|None = None
+    inet1_dnat: Interface|None = None
+    inet2: Interface|None = None
+    inet2_snat: Interface|None = None
+    inet2_dnat: Interface|None = None
+    inet3: Interface|None = None
+    inet3_snat: Interface|None = None
+    inet3_dnat: Interface|None = None
+    mpls1: Interface|None = None
+    mpls2: Interface|None = None
+    mpls_summary: Network|None = None    # Summary for MPLS underlay (e.g. '10.71.0.0/16')
 
     def __iter__(self):
         """"
@@ -160,32 +160,32 @@ class WAN:
 @dataclass
 class Device:
     # All attributes must default to None due to the update() method used by FortiGate class
-    offset: int = None  # Offset of this device if inside Fabric-Studio (used to derive SSH/HTTPS external port)
-    nameid: str = None  # name used by Fabric-Studio for the console access
+    offset: int|None = None  # Offset of this device if inside Fabric-Studio (used to derive SSH/HTTPS external port)
+    nameid: str|None = None  # name used by Fabric-Studio for the console access
 
-    ip: str = None  # IP@ used to access the device (eg, direct IP or external.NAT/studio IP)
-    ssh_port: int = None  # direct access (22) or from external NAT (eg, Fabric-Studio 10100+offset)
-    https_port: int = None  # direct access (443) or from external NAT (eg, Fabric-Studio 10400+offset)
+    ip: str|None = None  # IP@ used to access the device (eg, direct IP or external.NAT/studio IP)
+    ssh_port: int|None = None  # direct access (22) or from external NAT (eg, Fabric-Studio 10100+offset)
+    https_port: int|None = None  # direct access (443) or from external NAT (eg, Fabric-Studio 10400+offset)
 
-    reboot_delay: int = None     # number of seconds to wait for the device to perform a full reboot
+    reboot_delay: int|None = None     # number of seconds to wait for the device to perform a full reboot
 
-    mgmt: Interface = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
+    mgmt: Interface|None = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
 
-    name: str = None  # Name configured on the device
-    name_phy: str = None  # "Physical" Name of the device in the Fabric-Studio or in the Hardware Lab
-    username: str = None  # username for SSH session
-    password: str = None  # password for SSH session
+    name: str|None = None  # Name configured on the device
+    name_phy: str|None = None  # "Physical" Name of the device in the Fabric-Studio or in the Hardware Lab
+    username: str|None = None  # username for SSH session
+    password: str|None = None  # password for SSH session
 
-    output: str = None  # output for the SSH commands executed on the device
-    template_context: dict = None  # Dictionary needed for the Django template to render the template configuration
-    template_group: str = None  # name of the template group to which belongs this device
-    template_filename: str = None  # name of the file in the template group (e.g. '_FGT.conf')
-    config: str = None  # configuration to be deployed to the device
-    commands: list = None  # List of CLI commands to be executed on the device
+    output: str|None = None  # output for the SSH commands executed on the device
+    template_context: dict|None = None  # Dictionary needed for the Django template to render the template configuration
+    template_group: str|None = None  # name of the template group to which belongs this device
+    template_filename: str|None = None  # name of the file in the template group (e.g. '_FGT.conf')
+    config: str|None = None  # configuration to be deployed to the device
+    commands: list|None = None  # List of CLI commands to be executed on the device
 
-    deployment_status: str = None  # e.g. 'completed' or 'skipped'
+    deployment_status: str|None = None  # e.g. 'completed' or 'skipped'
 
-    _callback: Callable = None  # Callback function which can be registered to the class instance and can be called later on
+    _callback: Callable|None = None  # Callback function which can be registered to the class instance and can be called later on
 
     def __post_init__(self):  # Apply default values
         # self.template_group = self.template_group or self.name  # initialize if it is None
@@ -220,13 +220,13 @@ class FortiGate_HA:
 
     mode: Modes = Modes.FGCP  # HA mode from Enum Modes
     role: Roles = Roles.PRIMARY  # HA role from Enum Roles
-    group_id: int = None
-    group_name: str = None
-    hbdev: list = None  # list of HA heartbeat interfaces with their priorities (e.g. [('port6', 0), ('port7', 0)])
-    sessyncdev: list = None  # list of HA session synch devices (e.g. ['port6', 'port7'])
-    monitordev: list = None  # list of HA monitored interfaces (e.g., ['port1', 'port2',  'port5'])
-    priority: int = None  # HA priority
-    mgmt_interfaces: bool = None
+    group_id: int|None = None
+    group_name: str|None = None
+    hbdev: list|None = None  # list of HA heartbeat interfaces with their priorities (e.g. [('port6', 0), ('port7', 0)])
+    sessyncdev: list|None = None  # list of HA session synch devices (e.g. ['port6', 'port7'])
+    monitordev: list|None = None  # list of HA monitored interfaces (e.g., ['port1', 'port2',  'port5'])
+    priority: int|None = None  # HA priority
+    mgmt_interfaces: bool|None = None
 
     def update(self, ha: FortiGate_HA):
         # Update (Override) this HA attributes with all not-None attributes from the 'ha' passed as argument
@@ -246,16 +246,16 @@ class FortiGate_HA:
 
 @dataclass
 class FortiGate(Device):
-    alias: str = None   # alias name
-    model: str = None # FGT model as displayed in the firmware filename
-    npu: str = None     # NPU model for appliances
+    alias: str|None = None   # alias name
+    model: str|None = None # FGT model as displayed in the firmware filename
+    npu: str|None = None     # NPU model for appliances
 
-    fos_version: str = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
-    fos_version_target: str = None  # FortiOS requested by the user. For e.g., "6.0.13"
+    fos_version: str|None = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
+    fos_version_target: str|None = None  # FortiOS requested by the user. For e.g., "6.0.13"
 
-    lan: Interface = None  # used to define the LAN connectivity (eg, "port5")
-    wan: WAN = None  # WAN underlays
-    HA: FortiGate_HA = None  # Initializing default value here does not work well, so it is done in __post_init__
+    lan: Interface|None = None  # used to define the LAN connectivity (eg, "port5")
+    wan: WAN|None = None  # WAN underlays
+    HA: FortiGate_HA|None = None  # Initializing default value here does not work well, so it is done in __post_init__
 
     apiv2auth: bool = False  # True= Use APIv2 authentication based on admin/password ; False= Use API admin
                              # APIv2 auth with admin/pwd is no longer supported as of 7.6.4, so I'm reverting to the API admin method
