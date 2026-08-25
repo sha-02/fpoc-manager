@@ -260,7 +260,20 @@ def deploy(poc: TypePoC, device: FortiGate):
     :return:
     """
 
-    # Config preview
+    # HA is None -> switch to Standalone
+    if device.HA is None:
+        device.HA = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
+
+    # FGCP configuration is incomplete -> switch to Standalone
+    if (device.HA.mode == FortiGate_HA.Modes.FGCP and
+        (device.HA.group_id is None or device.HA.group_name is None or device.HA.hbdev is None)):
+        device.HA = FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
+
+    # FGCP with ha-mgmt-interfaces unspecified => Enable ha-mgmt-interfaces
+    if device.HA.mode == FortiGate_HA.Modes.FGCP and device.HA.mgmt_interfaces is None:
+        device.HA.mgmt_interfaces = True
+
+    # FOS version for config preview
     if poc.request.POST.get('previewOnly'):
         device.fos_version = poc.request.POST['targetedFOSversion']  # FOS version used for config rendering
 

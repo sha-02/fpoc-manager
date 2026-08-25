@@ -1,4 +1,4 @@
-from fpoc.devices import FortiGate, WAN, Interface
+from fpoc.devices import FortiGate, FortiGate_HA, WAN, Interface
 
 # Define each FGT appliance in Agora Hardware Lab
 
@@ -9,10 +9,16 @@ SDW_agora = dict()
 
 FGT_1001F = FortiGate(model='FGT_1001F', npu='NP7', reboot_delay=300)
 FGT_A = FortiGate(name_phy='SDW-1001F-A', alias='SDW-1001F-A', password='Fortinet123#',
-                  mgmt=Interface('mgmt', 0, '10.210.0.59/23'),
-                  lan=Interface('port6', vlanid=0, speed='1000auto'),
+                    HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                    hbdev=[('ha', 0)], sessyncdev=['port8'], mgmt_interfaces=False,
+                                    monitordev=['port1','port2','port3', 'port4', 'port5', 'port6']),
+                    mgmt=Interface('mgmt', 0, '10.210.0.59/23'),
+                    lan=Interface('port6', vlanid=0, speed='1000auto'),
                   )
 FGT_B = FortiGate(name_phy='SDW-1001F-B', alias='SDW-1001F-B', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                  hbdev=[('ha', 0)], sessyncdev=['port8'], mgmt_interfaces=False,
+                                  monitordev=['port1', 'port2', 'port3', 'port4', 'port5', 'port6']),
                   mgmt=Interface('mgmt', 0, '10.210.0.50/23'),
                   lan=Interface('port6', vlanid=0, speed='1000auto'),
                   )
@@ -70,10 +76,16 @@ SDW_agora['SDW_1001F_B'] = {
 
 FGT_3301E = FortiGate(model='FGT_3301E', npu='NP7', reboot_delay=300)
 FGT_A = FortiGate(name_phy='SDW-3301E-A', alias='SDW-3301E-A', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                  hbdev=[('ha1', 0)], sessyncdev=['ha2'], mgmt_interfaces=False,
+                                  monitordev=['port1', 'port2', 'port3', 'port4', 'port5', 'port6']),
                   mgmt=Interface('mgmt1', 0, '10.210.0.63/23'),
                   lan=Interface('port6', vlanid=0, speed='auto'),
                   )
 FGT_B = FortiGate(name_phy='SDW-3301E-B', alias='SDW-3301E-B', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                  hbdev=[('ha1', 0)], sessyncdev=['ha2'], mgmt_interfaces=False,
+                                  monitordev=['port1', 'port2', 'port3', 'port4', 'port5', 'port6']),
                   mgmt=Interface('mgmt1', 0, '10.210.0.67/23'),
                   lan=Interface('port6', vlanid=0, speed='auto'),
                   )
@@ -131,10 +143,16 @@ SDW_agora['SDW_3301E_B'] = {
 
 FGT_101F = FortiGate(model='FGT_101F', npu='SoC4', reboot_delay=180 )
 FGT_A = FortiGate(name_phy='SDW-101F-A', alias='SDW-101F-A', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                  hbdev=[('ha1', 0)], sessyncdev=['ha2'], mgmt_interfaces=False,
+                                  monitordev=['port1', 'port2', 'port3', 'port4']),
                   mgmt=Interface('mgmt', 0, '10.210.0.23/23'),
                   lan=Interface('port4', vlanid=0, speed='auto'),
                   )
 FGT_B = FortiGate(name_phy='SDW-101F-B', alias='SDW-101F-B', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                  hbdev=[('ha1', 0)], sessyncdev=['ha2'], mgmt_interfaces=False,
+                                  monitordev=['port1', 'port2', 'port3', 'port4']),
                   mgmt=Interface('mgmt', 0, '10.210.0.41/23'),
                   lan=Interface('port4', vlanid=0, speed='auto'),
                   )
@@ -193,10 +211,16 @@ SDW_agora['SDW_101F_B'] = {
 
 FGT_50G = FortiGate(model='FWF_50G', npu='SoC5', reboot_delay=120 )
 FGT_A = FortiGate(name_phy='SDW-50G-A', alias='SDW-50G-A', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                  hbdev=[('lan3', 0)], sessyncdev=['a'], mgmt_interfaces=False,
+                                  monitordev=['wan']),
                   mgmt=Interface('lan2', 0, '10.210.0.250/23'),
                   lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
                   )
 FGT_B = FortiGate(name_phy='SDW-50G-B', alias='SDW-50G-B', password='Fortinet123#',
+                  HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                  hbdev=[('lan3', 0)], sessyncdev=['a'], mgmt_interfaces=False,
+                                  monitordev=['wan']),
                   mgmt=Interface('lan2', 0, '10.210.0.255/23'),
                   lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
                   )

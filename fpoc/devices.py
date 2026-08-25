@@ -226,20 +226,22 @@ class FortiGate_HA:
     sessyncdev: list = None  # list of HA session synch devices (e.g. ['port6', 'port7'])
     monitordev: list = None  # list of HA monitored interfaces (e.g., ['port1', 'port2',  'port5'])
     priority: int = None  # HA priority
+    mgmt_interfaces: bool = None
 
     def update(self, ha: FortiGate_HA):
         # Update (Override) this HA attributes with all not-None attributes from the 'ha' passed as argument
-        if self.mode == self.__class__.Modes.STANDALONE or ha.mode != self.mode or ha.role != self.role:
-            self.__dict__ = ha.__dict__
+        if ha is None:
             return
 
-        # 'ha' and 'self' are both FGCP with same role
-        for k, v in ha.__dict__.items():
-            if k == 'mode' or k == 'role':
-                continue
-            if v is not None:
-                self.__dict__[k] = v    # update 'self' with 'ha'
-                # when 'ha' attribute is None, 'self' keeps its current value for this attribute
+        if self.mode == ha.mode and self.mode == self.__class__.Modes.FGCP:
+            # 'ha' and 'self' are both FGCP
+            for k, v in ha.__dict__.items():
+                if v is not None:
+                    self.__dict__[k] = v  # update 'self' with 'ha'
+                    # when 'ha' attribute is None, 'self' keeps its current value for this attribute
+            return
+
+        self.__dict__ = ha.__dict__
 
 
 @dataclass
@@ -271,7 +273,7 @@ class FortiGate(Device):
         #
         # initialize attributes from local class
         # self.apiadmin = 'adminapi'
-        self.HA = self.HA or FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
+        # self.HA = self.HA or FortiGate_HA(mode=FortiGate_HA.Modes.STANDALONE, role=FortiGate_HA.Roles.STANDALONE)
 
     @classmethod
     def FOS_int(cls, fos_version: str):
@@ -291,14 +293,20 @@ class FortiGate(Device):
             if v is None:
                 continue
             if k == 'lan':
-                if self.lan is not None:
-                    self.lan.update(fortigate.lan)
-                else:
+                if self.lan is None:
                     self.lan = fortigate.lan
-            elif k == 'wan' and self.wan is not None:
-                self.wan.update(fortigate.wan)
-            elif k == 'HA' and self.HA is not None:
-                self.HA.update(fortigate.HA)
+                else:
+                    self.lan.update(fortigate.lan)
+            elif k == 'wan':
+                if self.wan is None:
+                    self.wan = fortigate.wan
+                else:
+                    self.wan.update(fortigate.wan)
+            elif k == 'HA':
+                if self.HA is None:
+                    self.HA = fortigate.HA
+                else:
+                    self.HA.update(fortigate.HA)
             else:
                 self.__dict__[k] = v  # update the local FortiGate attribute with the 'fortigate' attribute
 
