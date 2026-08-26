@@ -46,7 +46,7 @@ class Interface:
             self.dhcp = False
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(port={self.port}, vrfid={self.vrfid}, vlanid={self.vlanid}, '
+        return (f'{type(self).__name__}(port={self.port}, vrfid={self.vrfid}, vlanid={self.vlanid}, '
                 f'address={"dhcp" if self.dhcp else (self._address)}, name={self.name}, speed={self.speed}, '
                 f'alias={self.alias})')
 
@@ -371,7 +371,7 @@ class FortiGate_HA:
         if ha is None:
             return
 
-        if self.mode == ha.mode and self.mode == self.__class__.Modes.FGCP:
+        if self.mode == ha.mode and self.mode == type(self).Modes.FGCP:
             # 'ha' and 'self' are both FGCP
             for k, v in ha.__dict__.items():
                 if v is not None:
@@ -422,7 +422,7 @@ class FortiGate(Device):
     @property
     def FOS(self):
         # long integer of the fos_version, e.g. 6_000_013 for 6.0.13, used in django templates to compare FOS versions
-        return self.__class__.FOS_int(self.fos_version)
+        return type(self).FOS_int(self.fos_version)
 
     def update(self, fortigate: FortiGate):
         # Update (Override) this FortiGate instance with not-None attributes from another FortiGate passed as argument

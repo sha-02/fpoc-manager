@@ -66,11 +66,11 @@ class AgoraSDWAN(FortiLab):
 
         # Set impairment for the class devices
         if wan_impairment:
-            self.__class__.devices = self.__class__.impairment
+            type(self).devices = type(self).impairment
         else:
-            self.__class__.devices = self.__class__.no_impairment
+            type(self).devices = type(self).no_impairment
 
         # Add MPLS summary subnet to each FortiGate
         for device in self.devices.values():
             if isinstance(device, FortiGate) and device.wan is not None:
-                device.wan.mpls_summary = Network(self.__class__.mpls_summary)
+                device.wan.mpls_summary = Network(type(self).mpls_summary)

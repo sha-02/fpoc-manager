@@ -79,14 +79,14 @@ class FortiLab:
             pass  # Nothing to do, self.devices is simply the class devices
 
         elif devnames:  # Build the poc self.devices dict from the list of poc device name in 'devnames'
-            self.devices = {devname: copy.deepcopy(self.__class__.devices[devname]) for devname in devnames}
+            self.devices = {devname: copy.deepcopy(type(self).devices[devname]) for devname in devnames}
 
         elif devices:  # Build the poc self.devices dict from the 'devices' dict
             self.devices = {}
             # "merge" the attributes from a device defined in the Class with its counter-part passed as argument
             for devname, device in devices.items():
                 # Retrieve all the device's attributes from the Class
-                self.devices[devname] = copy.deepcopy(self.__class__.devices[devname])  # Shallow copy may not be enough
+                self.devices[devname] = copy.deepcopy(type(self).devices[devname])  # Shallow copy may not be enough
                 # Update (Override) with all attributes from the device passed as argument
                 self.devices[devname].update(device)
 
