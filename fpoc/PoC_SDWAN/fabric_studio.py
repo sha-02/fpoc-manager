@@ -43,7 +43,6 @@ class FabricStudioSDWAN(FabricStudio):
         'BR1': FortiGate(offset=4, nameid='fgt002',  name_phy='BR1',
                             mgmt=Interface('port10', 0, '172.16.31.31/24'),
                             HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
-                                         group_id=1, group_name="BRANCH1", priority=129,
                                          hbdev=[('port6', 0)], sessyncdev=['port7'],
                                          monitordev=['port1', 'port2', 'port3', 'port5']),
                             lan=Interface('port5', 0, ''),
@@ -52,6 +51,13 @@ class FabricStudioSDWAN(FabricStudio):
                                 inet2=Interface('port2', 0, '100.64.42.1/24', alias='Internet_2'),
                                 mpls1=Interface('port3', 0, '10.71.44.1/24', alias='MPLS'),
                             )),
+
+        'BR1-B': FortiGate(offset=22, nameid='fgt008', name_phy='BR1-B',
+                        mgmt=Interface('port10', 0, '172.16.31.32/24'),
+                        HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                       hbdev=[('port6', 0)], sessyncdev=['port7'],
+                                       monitordev=['port1', 'port2', 'port3', 'port5'])
+                           ),
 
         'BR2': FortiGate(offset=6, nameid='fgt003',  name_phy='BR2',
                             mgmt=Interface('port10', 0, '172.16.31.41/24'),

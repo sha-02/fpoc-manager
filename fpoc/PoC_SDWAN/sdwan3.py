@@ -6,7 +6,7 @@ import typing
 import fpoc
 from fpoc.agora import wan_impairment
 from fpoc.exceptions import AbortDeployment
-from fpoc.devices import Interface, FortiGate, LXC
+from fpoc.devices import Interface, FortiGate, FortiGate_HA, LXC
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
 
 
@@ -17,6 +17,7 @@ mapping = {
     'WEST-DC1': 'HUB1',
     'WEST-DC2': 'HUB2',
     'WEST-BR1': 'BR1',
+    'WEST-BR1-B': 'BR1-B',
     'WEST-BR2': 'BR2',
     # 'WEST-BR3': 'BR3',
     # 'WEST-BR4': 'HUB3',
@@ -341,11 +342,16 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
                                 'datacenter': datacenters
                                 })
     west_br1 = FortiGate(name='WEST-BR1', template_group='BRANCHES',
+                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                         group_id=1, group_name="BRANCH1", priority=129),
                          lan=LAN['WEST-BR1'],
                          template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 1, 'gps': (44.8333, -0.5667),
                                 'loopback': '10.200.1.1',
                                 'datacenter': datacenters['west']
                              })
+    west_br1_sec = FortiGate(name='WEST-BR1-B', template_group='BRANCHES',
+                        HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
+                                        group_id=1, group_name="BRANCH1", priority=127))
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          lan=LAN['WEST-BR2'],
                          template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
@@ -403,6 +409,7 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         'WEST-DC1': west_dc1,
         'WEST-DC2': west_dc2,
         'WEST-BR1': west_br1,
+        'WEST-BR1-B': west_br1_sec,
         'WEST-BR2': west_br2,
         'WEST-BR3': west_br3,
         'WEST-BR4': west_br4,
