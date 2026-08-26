@@ -115,46 +115,184 @@ class Network:
         return self.__dict__
 
 
-@dataclass
+# @dataclass
+# class WAN:
+#     # All attributes must default to None due to the update() method used by FortiGate class
+#     inet: Interface|None = None
+#     inet_snat: Interface|None = None
+#     inet_dnat: Interface|None = None
+#     inet1: Interface|None = None
+#     inet1_snat: Interface|None = None
+#     inet1_dnat: Interface|None = None
+#     inet2: Interface|None = None
+#     inet2_snat: Interface|None = None
+#     inet2_dnat: Interface|None = None
+#     inet3: Interface|None = None
+#     inet3_snat: Interface|None = None
+#     inet3_dnat: Interface|None = None
+#     mpls1: Interface|None = None
+#     mpls2: Interface|None = None
+#     mpls_summary: Network|None = None    # Summary for MPLS underlay (e.g. '10.71.0.0/16')
+#
+#     def __iter__(self):
+#         """"
+#         Makes the class an iterable which can iterate over the WAN interfaces
+#         Leverage the iterator from the class '__dict__' iterable
+#         """
+#         return iter(self.__dict__.items())
+#
+#     def update(self, wan: WAN):
+#         # Update (Override) this WAN instance with all not-None attributes from the 'wan' passed as argument
+#         for k, v in wan:  # 'self' is iterable due to redefinition of __iter__()
+#             if v is not None and k is not None and isinstance(self.__dict__[k], Interface):
+#                 self.__dict__[k].update(v)    # update Interface 'k' with Interface 'v'
+#             else:
+#                 self.__dict__[k] = v
+#
+#     # def dictify(self):
+#     #     """
+#     #     Make a dictionary out of this Object
+#     #     This is needed for FMG CLI script template
+#     #     """
+#     #     return { wan_name: interface.dictify() for wan_name, interface in self }
+
+
 class WAN:
-    # All attributes must default to None due to the update() method used by FortiGate class
-    inet: Interface|None = None
-    inet_snat: Interface|None = None
-    inet_dnat: Interface|None = None
-    inet1: Interface|None = None
-    inet1_snat: Interface|None = None
-    inet1_dnat: Interface|None = None
-    inet2: Interface|None = None
-    inet2_snat: Interface|None = None
-    inet2_dnat: Interface|None = None
-    inet3: Interface|None = None
-    inet3_snat: Interface|None = None
-    inet3_dnat: Interface|None = None
-    mpls1: Interface|None = None
-    mpls2: Interface|None = None
-    mpls_summary: Network|None = None    # Summary for MPLS underlay (e.g. '10.71.0.0/16')
+    """
+    Container for dynamically named WAN interfaces.
+
+    Interfaces are stored internally in a dictionary but can be accessed
+    using normal attribute syntax.
+
+    Example:
+        wan = WAN(inet=IFACE("eth0"), mpls1=IFACE("port5"))
+
+        wan.inet
+        wan.mpls1
+        wan.inet2 = IFACE("eth1")
+
+        wan = WAN(
+            inet=IFACE("eth0"),
+            mpls1=IFACE("port5"),
+        )
+
+        # Attribute-style access
+        print(wan.inet)
+        print(wan.mpls1)
+
+        # Add dynamically
+        wan.inet2 = IFACE("eth1")
+
+        # Iterate over name/interface pairs
+        for name, iface in wan.items():
+            print(name, iface)
+
+        # Iterate over names
+        for name in wan:
+            print(name)
+
+        # Iterate over interfaces
+        for iface in wan.values():
+            print(iface)
+
+        # Dictionary-like operations
+        if "inet" in wan:
+            print(wan.inet)
+
+        print(len(wan))
+    """
+    mpls_summary: Network | None = None  # Summary for MPLS underlay (e.g. '10.71.0.0/16')
+
+    def __init__(self, **ifaces):
+        # Store all interfaces in a private dictionary.
+        if 'mpls_summary' in ifaces.keys():
+            object.__setattr__(self,'mpls_summary', ifaces['mpls_summary'])
+            del(ifaces['mpls_summary'])
+
+        object.__setattr__(self, "_ifaces", dict(ifaces))
+
+    def __getattr__(self, name):
+        """
+        Called when normal attribute lookup fails.
+
+        For example:
+            wan.inet
+
+        becomes:
+            wan._ifaces["inet"]
+        """
+        if name == "_ifaces":
+            raise AttributeError(name)
+
+        ifaces = object.__getattribute__(self, "_ifaces")
+
+        try:
+            return ifaces[name]
+        except KeyError:
+            raise AttributeError(
+                f"{type(self).__name__} has no attribute {name!r}"
+            ) from None
+
+    def __setattr__(self, name, value):
+        """
+        Store dynamically assigned attributes in the internal dictionary.
+
+        For example:
+            wan.inet = IFACE("eth0")
+
+        becomes:
+            wan._ifaces["inet"] = IFACE("eth0")
+        """
+        if name == 'mpls_summary':
+            object.__setattr__(self, 'mpls_summary', value)
+        else:
+            self._ifaces[name] = value
 
     def __iter__(self):
-        """"
-        Makes the class an iterable which can iterate over the WAN interfaces
-        Leverage the iterator from the class '__dict__' iterable
         """
-        return iter(self.__dict__.items())
+        Iterate over (name, interface) pairs.
+
+        This allows:
+            for name, iface in wan.items():
+                ...
+        """
+        return iter(self._ifaces.items())
+
+    def items(self):
+        """
+        Iterate over (name, interface) pairs.
+
+        This allows:
+            for name, iface in wan.items():
+                ...
+        """
+        return self._ifaces.items()
+
+    def keys(self):
+        """Return an iterable of interface names."""
+        return self._ifaces.keys()
+
+    def values(self):
+        """Return an iterable of interfaces."""
+        return self._ifaces.values()
+
+    def __len__(self):
+        """Return the number of interfaces."""
+        return len(self._ifaces)
+
+    def __contains__(self, name):
+        """Allow: 'inet' in wan"""
+        return name in self._ifaces
 
     def update(self, wan: WAN):
         # Update (Override) this WAN instance with all not-None attributes from the 'wan' passed as argument
-        for k, v in wan:  # 'self' is iterable due to redefinition of __iter__()
-            if v is not None and k is not None and isinstance(self.__dict__[k], Interface):
-                self.__dict__[k].update(v)    # update Interface 'k' with Interface 'v'
+        for k, v in wan.items():
+            if v is None:
+                self._ifaces[k] = None
+            elif k in self._ifaces:
+                self._ifaces[k].update(v)   # update Interface 'k' with Interface 'v'
             else:
-                self.__dict__[k] = v
-
-    # def dictify(self):
-    #     """
-    #     Make a dictionary out of this Object
-    #     This is needed for FMG CLI script template
-    #     """
-    #     return { wan_name: interface.dictify() for wan_name, interface in self }
+                self._ifaces[k] = copy.deepcopy(v)  # add Interface 'v'
 
 
 @dataclass
