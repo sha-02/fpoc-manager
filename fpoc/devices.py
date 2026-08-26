@@ -157,7 +157,7 @@ class Network:
 #     #     return { wan_name: interface.dictify() for wan_name, interface in self }
 
 
-class InterFaceCollection:
+class InterfaceCollection:
     """
     Container for dynamically named interfaces.
 
@@ -165,7 +165,7 @@ class InterFaceCollection:
     using normal attribute syntax.
 
     Example:
-        wan = InterFaceCollection(inet=Interface("eth0"), mpls1=Interface("port5"))
+        wan = InterfaceCollection(inet=Interface("eth0"), mpls1=Interface("port5"))
 
         wan.inet
         wan.mpls1
@@ -281,10 +281,10 @@ class InterFaceCollection:
         )
         return f"{type(self).__name__}({ifaces})"
 
-    def update(self, ifaces: InterFaceCollection):
+    def update(self, ifaces: InterfaceCollection):
         """
-        Update (Override) this InterFaceCollection instance
-        with all not-None Interfaces from the 'ifaces' InterFaceCollection
+        Update (Override) this InterfaceCollection instance
+        with all not-None Interfaces from the 'ifaces' InterfaceCollection
         """
         for k, v in ifaces:
             if v is None:
@@ -297,7 +297,7 @@ class InterFaceCollection:
         return self
 
 
-class WAN(InterFaceCollection):
+class WAN(InterfaceCollection):
     """
     Extends the InterfaceCollection class to add 'mpls_summary' attribute
     *TODO* = fix later with a better solution
