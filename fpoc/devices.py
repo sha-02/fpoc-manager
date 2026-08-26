@@ -157,24 +157,19 @@ class Network:
 #     #     return { wan_name: interface.dictify() for wan_name, interface in self }
 
 
-class WAN:
+class InterFaceCollection:
     """
-    Container for dynamically named WAN interfaces.
+    Container for dynamically named interfaces.
 
     Interfaces are stored internally in a dictionary but can be accessed
     using normal attribute syntax.
 
     Example:
-        wan = WAN(inet=IFACE("eth0"), mpls1=IFACE("port5"))
+        wan = InterFaceCollection(inet=Interface("eth0"), mpls1=Interface("port5"))
 
         wan.inet
         wan.mpls1
-        wan.inet2 = IFACE("eth1")
-
-        wan = WAN(
-            inet=IFACE("eth0"),
-            mpls1=IFACE("port5"),
-        )
+        wan.inet2 = Interface("eth1")
 
         # Attribute-style access
         print(wan.inet)
@@ -201,14 +196,8 @@ class WAN:
 
         print(len(wan))
     """
-    mpls_summary: Network | None = None  # Summary for MPLS underlay (e.g. '10.71.0.0/16')
-
     def __init__(self, **ifaces):
         # Store all interfaces in a private dictionary.
-        if 'mpls_summary' in ifaces.keys():
-            object.__setattr__(self,'mpls_summary', ifaces['mpls_summary'])
-            del(ifaces['mpls_summary'])
-
         object.__setattr__(self, "_ifaces", dict(ifaces))
 
     def __getattr__(self, name):
@@ -238,22 +227,19 @@ class WAN:
         Store dynamically assigned attributes in the internal dictionary.
 
         For example:
-            wan.inet = IFACE("eth0")
+            wan.inet = Interface("eth0")
 
         becomes:
-            wan._ifaces["inet"] = IFACE("eth0")
+            wan._ifaces["inet"] = Interface("eth0")
         """
-        if name == 'mpls_summary':
-            object.__setattr__(self, 'mpls_summary', value)
-        else:
-            self._ifaces[name] = value
+        self._ifaces[name] = value
 
     def __iter__(self):
         """
         Iterate over (name, interface) pairs.
 
         This allows:
-            for name, iface in wan.items():
+            for name, iface in wan:
                 ...
         """
         return iter(self._ifaces.items())
@@ -266,7 +252,7 @@ class WAN:
             for name, iface in wan.items():
                 ...
         """
-        return self._ifaces.items()
+        return iter(self._ifaces.items())
 
     def keys(self):
         """Return an iterable of interface names."""
@@ -281,18 +267,61 @@ class WAN:
         return len(self._ifaces)
 
     def __contains__(self, name):
-        """Allow: 'inet' in wan"""
+        """
+        Allows test like:
+            if 'inet1' in wan:
+                ...
+        """
         return name in self._ifaces
 
-    def update(self, wan: WAN):
-        # Update (Override) this WAN instance with all not-None attributes from the 'wan' passed as argument
-        for k, v in wan.items():
+    def __repr__(self) -> str:
+        ifaces = ", ".join(
+            f"{key!r}: {value!r}"
+            for key, value in self._ifaces.items()
+        )
+        return f"{type(self).__name__}({ifaces})"
+
+    def update(self, ifaces: InterFaceCollection):
+        """
+        Update (Override) this InterFaceCollection instance
+        with all not-None Interfaces from the 'ifaces' InterFaceCollection
+        """
+        for k, v in ifaces:
             if v is None:
                 self._ifaces[k] = None
             elif k in self._ifaces:
                 self._ifaces[k].update(v)   # update Interface 'k' with Interface 'v'
             else:
                 self._ifaces[k] = copy.deepcopy(v)  # add Interface 'v'
+
+        return self
+
+
+class WAN(InterFaceCollection):
+    """
+    Extends the InterfaceCollection class to add 'mpls_summary' attribute
+    *TODO* = fix later with a better solution
+    """
+    mpls_summary: Network | None = None  # Summary for MPLS underlay (e.g. '10.71.0.0/16')
+
+    def __init__(self, **ifaces):
+        # Keep 'mpls_summary' out of the internal private dictionary _ifaces
+        if 'mpls_summary' in ifaces.keys():
+            object.__setattr__(self,'mpls_summary', ifaces['mpls_summary'])
+            del(ifaces['mpls_summary'])
+
+        # Store all interfaces in an internal private dictionary _ifaces
+        super().__init__(**ifaces)
+
+    def __setattr__(self, name, value):
+        # Keep 'mpls_summary' out of the internal private dictionary _ifaces
+        if name == 'mpls_summary':
+            object.__setattr__(self, 'mpls_summary', value)
+        else:
+            super().__setattr__(name, value)
+
+    def __repr__(self) -> str:
+        return super().__repr__()[:-1] + f", 'mpls_summary'='{self.mpls_summary}')"
 
 
 @dataclass
