@@ -118,6 +118,8 @@ class Interface:
         # Check attribute consistency
         self._post_init()
 
+        return self
+
     # def dictify(self):
     #     """
     #     Make a dictionary out of this Object
