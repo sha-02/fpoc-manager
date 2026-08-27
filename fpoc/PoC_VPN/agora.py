@@ -2,7 +2,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render
 from django.http import HttpResponse
 
-import fpoc
+from fpoc.deploy import start
 from fpoc.fortilab import FortiLab
 from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
 from fpoc.fortilab import Mgmt
@@ -74,4 +74,4 @@ def vpn_site2site_fortilab(request: WSGIRequest, poc_id: int, **kwargs) -> HttpR
     }
 
     # Check request, render and deploy configs
-    return fpoc.start(FortiLabVpnSite2Site(request, poc_id), devices)
+    return start(FortiLabVpnSite2Site(request, poc_id), devices)

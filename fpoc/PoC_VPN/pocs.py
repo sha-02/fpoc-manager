@@ -2,7 +2,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.shortcuts import render
 from django.http import HttpResponse
 
-import fpoc
+from fpoc.deploy import start
 from fpoc.fortilab import FortiLab
 from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
 from fpoc.PoC_VPN import StudioVPN
@@ -53,7 +53,7 @@ def vpn_site2site(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     }
 
     # Check request, render and deploy configs
-    return fpoc.start(StudioVPN(request, poc_id), devices)
+    return start(StudioVPN(request, poc_id), devices)
 
 
 def l2vpn(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
@@ -167,7 +167,7 @@ def l2vpn(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     poc.messages = messages
 
     # Check request, render and deploy configs
-    return fpoc.start(poc, devices)
+    return start(poc, devices)
 
 
 def vpn_dialup(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
@@ -235,4 +235,4 @@ def vpn_dialup(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     }
 
     # Check request, render and deploy configs
-    return fpoc.start(StudioVPN(request, poc_id), devices)
+    return start(StudioVPN(request, poc_id), devices)

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 import typing
-import fpoc
+from fpoc.deploy import start
 from fpoc.exceptions import AbortDeployment
 from fpoc.devices import Interface, FortiGate, LXC
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
@@ -427,7 +427,7 @@ def dualdc(request: WSGIRequest, **kwargs) -> HttpResponse:
     poc.messages = messages
 
     # Check request, render and deploy configs
-    return fpoc.start(poc, devices)
+    return start(poc, devices)
 
 
 ###############################################################################################################

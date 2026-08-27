@@ -2,7 +2,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 import copy
 
-import fpoc
+from fpoc.deploy import start
 from fpoc.devices import Interface, FortiGate, FortiGate_HA
 from .once import FabricStudioPoCOnce
 
@@ -241,4 +241,4 @@ def poc02(request: WSGIRequest, poc_id: int, **kwargs) -> HttpResponse:
     }
 
     # Check request, render and deploy configs
-    return fpoc.start(poc, devices)
+    return start(poc, devices)
