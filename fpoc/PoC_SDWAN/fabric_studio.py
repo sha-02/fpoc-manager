@@ -1,7 +1,7 @@
 import copy
 
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS, WAN, Interface, Network
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS, LAN, WAN, Interface, Network
 from fpoc.fabric_studio import FabricStudio
 
 
@@ -15,7 +15,13 @@ class FabricStudioSDWAN(FabricStudio):
     devices = {
         'HUB1': FortiGate(offset=0, nameid='fgt000', name_phy='HUB1',
                             mgmt=Interface('port10', 0, '172.16.31.11/24'),
-                            lan=Interface('port5', 0, ''),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0),
+                                lan2=Interface('port5', 16),
+                                lan3=Interface('port5', 17),
+                                lan4=Interface('port5', 18),
+                            ),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.11.1/24', alias='Internet_1'),
                                 inet2=Interface('port2', 0, '100.64.12.1/24', alias='Internet_2'),
@@ -24,7 +30,13 @@ class FabricStudioSDWAN(FabricStudio):
 
         'HUB2': FortiGate(offset=2, nameid='fgt001', name_phy='HUB2',
                             mgmt=Interface('port10', 0, '172.16.31.21/24'),
-                            lan=Interface('port5', 0, ''),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0),
+                                lan2=Interface('port5', 26),
+                                lan3=Interface('port5', 27),
+                                lan4=Interface('port5', 28),
+                            ),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.21.1/24', alias='Internet_1'),
                                 inet2=Interface('port2', 0, '100.64.22.1/24', alias='Internet_2'),
@@ -33,11 +45,31 @@ class FabricStudioSDWAN(FabricStudio):
 
         'HUB3': FortiGate(offset=3, nameid='fgt004', name_phy='HUB3',
                             mgmt=Interface('port10', 0, '172.16.31.22/24'),
-                            lan=Interface('port5', 0, ''),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0),
+                                lan2=Interface('port5', 56),
+                                lan3=Interface('port5', 57),
+                                lan4=Interface('port5', 58),
+                            ),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.31.1/24', alias='Internet_1'),
                                 inet2=Interface('port2', 0, '100.64.32.1/24', alias='Internet_2'),
                                 mpls1=Interface('port3', 0, '10.71.34.1/24', alias='MPLS'),
+                            )),
+
+        'HUB4': FortiGate(offset=0, nameid='NOT-YET-CREATED', name_phy='HUB4',
+                            mgmt=Interface('port10', 0, '1.2.3.4/32'),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0), # to be done
+                                lan2=Interface('port5', 0), # to be done
+                                lan3=Interface('port5', 0), # to be done
+                            ),
+                            wan=WAN(
+                                inet1=Interface('port1', 0, '1.2.3.4/32', alias='Internet_1'),
+                                inet2=Interface('port2', 0, '1.2.3.4/32', alias='Internet_2'),
+                                mpls1=Interface('port3', 0, '1.2.3.4/32', alias='MPLS'),
                             )),
 
         'BR1': FortiGate(offset=4, nameid='fgt002',  name_phy='BR1',
@@ -45,7 +77,14 @@ class FabricStudioSDWAN(FabricStudio):
                             HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
                                          hbdev=[('port6', 0)], sessyncdev=['port7'],
                                          monitordev=['port1', 'port2', 'port3', 'port5']),
-                            lan=Interface('port5', 0, ''),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0),
+                                lan2=Interface('port5', 36),
+                                lan3=Interface('port5', 37),
+                                lan4=Interface('port5', 38),
+                                xtd=Interface('port5', 101),
+                            ),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.41.1/24', alias='Internet_1'),
                                 inet2=Interface('port2', 0, '100.64.42.1/24', alias='Internet_2'),
@@ -61,7 +100,14 @@ class FabricStudioSDWAN(FabricStudio):
 
         'BR2': FortiGate(offset=6, nameid='fgt003',  name_phy='BR2',
                             mgmt=Interface('port10', 0, '172.16.31.41/24'),
-                            lan=Interface('port5', 0, ''),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0),
+                                lan2=Interface('port5', 46),
+                                lan3=Interface('port5', 47),
+                                lan4=Interface('port5', 48),
+                                xtd=Interface('port5', 102),
+                            ),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.51.1/24', alias='Internet_1'),
                                 inet2=Interface('port2', 0, '100.64.52.1/24', alias='Internet_2'),
@@ -70,12 +116,35 @@ class FabricStudioSDWAN(FabricStudio):
 
         'BR3': FortiGate(offset=7, nameid='fgt005',  name_phy='BR3',
                             mgmt=Interface('port10', 0, '172.16.31.42/24'),
-                            lan=Interface('port5', 0, ''),
+                            lan=Interface('port5', 0),
+                            segments=LAN(
+                                lan1=Interface('port5', 0),
+                                lan2=Interface('port5', 66),
+                                lan3=Interface('port5', 67),
+                                lan4=Interface('port5', 68),
+                                xtd=Interface('port5', 103),
+                            ),
                             wan=WAN(
                                 inet1=Interface('port1', 0, '100.64.61.1/24', alias='Internet_1'),
                                 inet2=Interface('port2', 0, '100.64.62.1/24', alias='Internet_2'),
                                 mpls1=Interface('port3', 0, '10.71.64.1/24', alias='MPLS'),
                             )),
+
+        'BR4': FortiGate(offset=0, nameid='NOT-YET-CREATED', name_phy='BR4',
+                          mgmt=Interface('port10', 0, '1.2.3.4/32'),
+                          lan=Interface('port5', 0),
+                          segments=LAN(
+                              lan1=Interface('port5', 0),
+                              lan2=Interface('port5', 76),
+                              lan3=Interface('port5', 77),
+                              lan4=Interface('port5', 78),
+                              xtd=Interface('port5', 104),
+                          ),
+                          wan=WAN(
+                              inet1=Interface('port1', 0, '1.2.3.4/32', alias='Internet_1'),
+                              inet2=Interface('port2', 0, '1.2.3.4/32', alias='Internet_2'),
+                              mpls1=Interface('port3', 0, '1.2.3.4/32', alias='MPLS'),
+                          )),
 
         'EXT': VyOS(offset=8, nameid='vyos00',  name_phy='EXT',
                             mgmt=Interface('eth0', 0, '172.16.31.6/24'),

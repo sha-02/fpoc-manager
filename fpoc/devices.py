@@ -9,53 +9,67 @@ from fpoc.exceptions import StopProcessingDevice
 
 
 class Interface:
-    # port: str  # e.g. 'port1'
-    # vlanid: int  # e.g, 11
-    # _address: ipaddress
+    # _name : str|None
+    # _address : ipaddress.IPv4Interface|'dhcp'|None
+    # _dhcp : bool|None
     def __init__(self, port:str|None = None, vlanid: int|None = None, address: str|None = None, name: str|None = None, speed: str|None = None,
                  vrfid: int|None = None, alias: str|None = None):
         # All parameters must default to None due to the update() method used by FortiGate class
         self.port = port
         self.vlanid = vlanid
-        self.vrfid = vrfid
         self.speed = speed
-        self.dhcp = None    # must default to None because of the update() method
-        self._address = None
+        self.vrfid = vrfid
+        self.alias = alias
 
-        self._name = name if vlanid else port
-            # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
-            # for non-VLAN interface: '_name' and 'port' both reference the physical interface
+        self._name = name
+        self._address = address # address can be 'dhcp' or an interface IP '10.10.10.10/24' or None
+        self._dhcp = None    # must default to None because of the update() method
 
-        if alias is None and vlanid is not None and name is not None:
-            # a name and a vlanid [0-x] was specified: use this name also as an alias
-            self.alias = name
-        else:
-            self.alias = alias
+        self._post_init()
 
-        if address is None:
+    def _post_init(self):
+        """ Make a separate function for attribute consistency checks
+        so that it can be re-used outside teh __init__() constructor """
+
+        # for VLAN interface: '_name' is the name of the VLAN interface and 'port' is the parent interface
+        # for non-VLAN interface: '_name' and 'port' both reference the physical interface
+        self._name = self.port if not self.vlanid and self.port else self._name
+        self._name = self.alias if not self._name and self.vlanid and self.alias else self._name
+
+        # if self.vlanid and self._name and self.alias==self._name:
+        #     # no point having an alias identical to the vlan interface name
+        #     self.alias = None
+
+        if self._address is None:
             self._address = ipaddress.ip_interface('1.2.3.4/32')
-        elif address == 'dhcp':
-            self.dhcp = True
+        elif self._address == 'dhcp':
+            self._dhcp = True
             self._address = ipaddress.ip_interface('1.2.3.4/32')
-        elif len(address.split('.')) == 3:  # address is a network of the form '198.51.100'
+        elif isinstance(self._address,str) and len(self._address.split('.')) == 3:
+            # address is a network of the form '198.51.100'
             # kept for backward compatibility with previous code
-            self._address = ipaddress.ip_interface(address + '.0/24')
-            self.dhcp = False
-        elif '/' in address:  # address is an IP@ or a subnet of the form '198.51.100.0/24' or '198.51.100.1/24'
-            self._address = ipaddress.ip_interface(address)
-            self.dhcp = False
+            self._address = ipaddress.ip_interface(self._address + '.0/24')
+            self._dhcp = False
+        elif isinstance(self._address,str) and '/' in self._address:
+            # address is an IP@ or a subnet of the form '198.51.100.0/24' or '198.51.100.1/24'
+            self._address = ipaddress.ip_interface(self._address)
+            self._dhcp = False
 
     def __repr__(self):
         return (f'{type(self).__name__}(port={self.port}, vrfid={self.vrfid}, vlanid={self.vlanid}, '
-                f'address={"dhcp" if self.dhcp else (self._address)}, name={self.name}, speed={self.speed}, '
+                f'address={"dhcp" if self._dhcp else (self._address)}, name={self.name}, speed={self.speed}, '
                 f'alias={self.alias})')
 
     @property
-    def name(self) -> str:  # vlan name or physical interface name
+    def name(self) -> str|None:  # vlan name or physical interface name
         return self._name
 
     @property
-    def interface(self) -> str:  # alias for 'port'
+    def dhcp(self) -> str|None:  # vlan name or physical interface name
+        return self._dhcp
+
+    @property
+    def interface(self) -> str|None:  # alias for 'port'
         return self.port
 
     @property
@@ -83,10 +97,26 @@ class Interface:
         return str(self._address.netmask)  # e.g. '255.255.255.0'
 
     def update(self, interface: Interface):
+        # special check for
+        self_name = self._name
+
         # Update (Override) this Interface instance with all not-None attributes from the 'interface' passed as argument
         for k, v in interface.__dict__.items():
+            if k == '_address' and v == ipaddress.ip_interface('1.2.3.4/32'): # address 1.2.3.4/32 is conceptually similar to None/Unspecified
+                continue
             if v is not None:
                 self.__dict__[k] = v    # update Interface 'k' with Interface 'v'
+
+        # if any of the two interface had a name before the update() and, after the update(), there is no vlan
+        # keep track of one the original name (that is different from the port) as an alias
+        # if (self_name or interface._name) and not self.vlanid:   # two original names and no vlan
+        #     if self_name and self_name != self.port:
+        #         self.alias = self_name
+        #     if interface._name and interface._name != self.port:
+        #         self.alias = interface._name
+
+        # Check attribute consistency
+        self._post_init()
 
     # def dictify(self):
     #     """
@@ -324,6 +354,16 @@ class WAN(InterfaceCollection):
         return super().__repr__()[:-1] + f", 'mpls_summary'='{self.mpls_summary}')"
 
 
+class LAN(InterfaceCollection):
+    """
+    Collection of LAN interfaces.
+
+    This is currently a specialization of InterfaceCollection and can
+    be extended later with LAN-specific behavior.
+    """
+    pass
+
+
 @dataclass
 class Device:
     # All attributes must default to None due to the update() method used by FortiGate class
@@ -420,8 +460,9 @@ class FortiGate(Device):
     fos_version: str|None = None  # FortiOS version running on the FGT. For e.g., "6.0.13"
     fos_version_target: str|None = None  # FortiOS requested by the user. For e.g., "6.0.13"
 
-    lan: Interface|None = None  # used to define the LAN connectivity (eg, "port5")
-    wan: WAN|None = None  # WAN underlays
+    lan: Interface|None = None  # single LAN interface: lan=Interface('port5')
+    segments: LAN|None = None   # collection of additional LAN Interfaces: LAN(lan2=Interface('port6'), lan3=Interface('port7'))
+    wan: WAN|None = None  # Collection of WAN interfaces
     HA: FortiGate_HA|None = None  # Initializing default value here does not work well, so it is done in __post_init__
 
     apiv2auth: bool = False  # True= Use APIv2 authentication based on admin/password ; False= Use API admin

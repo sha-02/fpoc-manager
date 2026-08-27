@@ -1,4 +1,4 @@
-from fpoc.devices import FortiGate, FortiGate_HA, WAN, Interface
+from fpoc.devices import FortiGate, FortiGate_HA, LAN, WAN, Interface
 
 # Define each FGT appliance in Agora Hardware Lab
 
@@ -14,6 +14,12 @@ FGT_A = FortiGate(name_phy='SDW-1001F-A', alias='SDW-1001F-A', password='Fortine
                                     monitordev=['port1','port2','port3', 'port4', 'port5', 'port6']),
                     mgmt=Interface('mgmt', 0, '10.210.0.59/23'),
                     lan=Interface('port6', vlanid=0, speed='1000auto'),
+                    segments=LAN(
+                        lan1=Interface('port6', 0),
+                        lan2=Interface('port6', 16),
+                        lan3=Interface('port6', 17),
+                        lan4=Interface('port6', 18),
+                    ),
                   )
 FGT_B = FortiGate(name_phy='SDW-1001F-B', alias='SDW-1001F-B', password='Fortinet123#',
                   HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
@@ -21,6 +27,12 @@ FGT_B = FortiGate(name_phy='SDW-1001F-B', alias='SDW-1001F-B', password='Fortine
                                   monitordev=['port1', 'port2', 'port3', 'port4', 'port5', 'port6']),
                   mgmt=Interface('mgmt', 0, '10.210.0.50/23'),
                   lan=Interface('port6', vlanid=0, speed='1000auto'),
+                  segments=LAN(
+                      lan1=Interface('port6', 0),
+                      lan2=Interface('port6', 26),
+                      lan3=Interface('port6', 27),
+                      lan4=Interface('port6', 38),
+                  ),
                   )
 wan_impairment = FortiGate(wan=WAN(
     inet1=Interface('port1', vlanid=0, speed='1000auto', alias='Internet_1'),
@@ -81,6 +93,12 @@ FGT_A = FortiGate(name_phy='SDW-3301E-A', alias='SDW-3301E-A', password='Fortine
                                   monitordev=['port1', 'port2', 'port3', 'port4', 'port5', 'port6']),
                   mgmt=Interface('mgmt1', 0, '10.210.0.63/23'),
                   lan=Interface('port6', vlanid=0, speed='auto'),
+                  segments=LAN(
+                      lan1=Interface('port6', 0),
+                      lan2=Interface('port6', 56),
+                      lan3=Interface('port6', 57),
+                      lan4=Interface('port6', 58),
+                  ),
                   )
 FGT_B = FortiGate(name_phy='SDW-3301E-B', alias='SDW-3301E-B', password='Fortinet123#',
                   HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
@@ -88,6 +106,12 @@ FGT_B = FortiGate(name_phy='SDW-3301E-B', alias='SDW-3301E-B', password='Fortine
                                   monitordev=['port1', 'port2', 'port3', 'port4', 'port5', 'port6']),
                   mgmt=Interface('mgmt1', 0, '10.210.0.67/23'),
                   lan=Interface('port6', vlanid=0, speed='auto'),
+                  segments=LAN(
+                      lan1=Interface('port6', 0),
+                      lan2=Interface('port6', 66),
+                      lan3=Interface('port6', 67),
+                      lan4=Interface('port6', 68),
+                  ),
                   )
 wan_impairment = FortiGate(wan=WAN(
     inet1=Interface('port1', vlanid=0, speed='1000auto', alias='Internet_1'),
@@ -148,6 +172,12 @@ FGT_A = FortiGate(name_phy='SDW-101F-A', alias='SDW-101F-A', password='Fortinet1
                                   monitordev=['port1', 'port2', 'port3', 'port4']),
                   mgmt=Interface('mgmt', 0, '10.210.0.23/23'),
                   lan=Interface('port4', vlanid=0, speed='auto'),
+                  segments=LAN(
+                      lan1=Interface('port4', 0),
+                      lan2=Interface('port4', 36),
+                      lan3=Interface('port4', 37),
+                      lan4=Interface('port4', 38),
+                  ),
                   )
 FGT_B = FortiGate(name_phy='SDW-101F-B', alias='SDW-101F-B', password='Fortinet123#',
                   HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
@@ -155,6 +185,12 @@ FGT_B = FortiGate(name_phy='SDW-101F-B', alias='SDW-101F-B', password='Fortinet1
                                   monitordev=['port1', 'port2', 'port3', 'port4']),
                   mgmt=Interface('mgmt', 0, '10.210.0.41/23'),
                   lan=Interface('port4', vlanid=0, speed='auto'),
+                  segments=LAN(
+                      lan1=Interface('port4', 0),
+                      lan2=Interface('port4', 46),
+                      lan3=Interface('port4', 47),
+                      lan4=Interface('port4', 48),
+                  ),
                   )
 wan_impairment = FortiGate(wan=WAN(
     inet1=Interface('wan1', vlanid=0, speed='auto', alias='Internet_1'),
@@ -216,6 +252,12 @@ FGT_A = FortiGate(name_phy='SDW-50G-A', alias='SDW-50G-A', password='Fortinet123
                                   monitordev=['wan']),
                   mgmt=Interface('lan2', 0, '10.210.0.250/23'),
                   lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
+                  segments=LAN(
+                      lan1=Interface('lan', 0),
+                      lan2=Interface('lan', 96),
+                      lan3=Interface('lan', 97),
+                      lan4=Interface('lan', 98),
+                  ),
                   )
 FGT_B = FortiGate(name_phy='SDW-50G-B', alias='SDW-50G-B', password='Fortinet123#',
                   HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
@@ -223,6 +265,12 @@ FGT_B = FortiGate(name_phy='SDW-50G-B', alias='SDW-50G-B', password='Fortinet123
                                   monitordev=['wan']),
                   mgmt=Interface('lan2', 0, '10.210.0.255/23'),
                   lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
+                  segments=LAN(
+                      lan1=Interface('lan', 0),
+                      lan2=Interface('lan', 106),
+                      lan3=Interface('lan', 107),
+                      lan4=Interface('lan', 108),
+                  ),
                   )
 wan_impairment_A = FortiGate(wan=WAN(
     inet1=Interface('wan', name="Internet_1", vlanid=91, speed='auto'),
@@ -279,4 +327,3 @@ SDW_agora['SDW_50G_B'] = {
                                 mpls2=Interface(address='10.72.75.10/24'),
                             ))),
     }
-
