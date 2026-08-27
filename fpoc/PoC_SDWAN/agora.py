@@ -16,12 +16,12 @@ WEST_DC1 = SDW_agora['SDW_1001F_A']
 WEST_DC2 = SDW_agora['SDW_1001F_B']
 EAST_DC1 = SDW_agora['SDW_3301E_A']
 
-WEST_BR1 = SDW_agora['SDW_101F_A']
-WEST_BR2 = SDW_agora['SDW_101F_B']
+WEST_BR1 = SDW_agora['SDW_50G_A']
+WEST_BR2 = SDW_agora['SDW_50G_B']
 
 # EAST_BR1 = SDW_agora['SDW_3301E_B']
-EAST_BR1 = SDW_agora['SDW_50G_A']
-EAST_BR2 = SDW_agora['SDW_50G_B']
+EAST_BR1 = SDW_agora['SDW_101F_A']
+EAST_BR2 = SDW_agora['SDW_101F_B']
 
 
 class AgoraSDWAN(FortiLab):

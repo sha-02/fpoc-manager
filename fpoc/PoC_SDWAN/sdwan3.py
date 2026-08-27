@@ -7,9 +7,9 @@ from fpoc.deploy import start
 from fpoc import devices
 from fpoc.agora import wan_impairment
 from fpoc.exceptions import AbortDeployment
-from fpoc.devices import Interface, FortiGate, FortiGate_HA, LXC
+from fpoc.devices import Interface, FortiGate, FortiGate_HA, LAN, LXC
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
-
+from fpoc.types import TypePoC
 
 #
 # PoC mappings
@@ -220,7 +220,7 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     #
     if 'fabric'  in request.path:  # poc is running in FabricStudio
         poc = SDWAN3(request)
-    elif 'agora' in request.path:  # poc is running in Hardware Lab
+    elif 'agora' in request.path:  # poc is running in Agora Lab
         poc = AgoraSDWAN(request, wan_impairment=bool(request.POST.get('wan_impairment', False)))
     else:
         print('\nError: Cannot create the poc based on the request PATH')
@@ -308,7 +308,7 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
                     'inet1': poc.devices['EAST-DC2'].wan.inet1 if 'EAST-DC2' in poc.devices else Interface(),
                     'inet2': poc.devices['EAST-DC2'].wan.inet2 if 'EAST-DC2' in poc.devices else Interface(),
                     'mpls': poc.devices['EAST-DC2'].wan.mpls1 if 'EAST-DC2' in poc.devices else Interface(),
-                    'lan': '0.0.0.0/0',
+                    'lan': Interface(),
                     'loopback': dc_loopbacks['EAST-DC2'],
                     'loopback_RP': rendezvous_points['EAST-DC2']
                 }
@@ -394,17 +394,17 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     #
     # Host Devices used to build the /etc/hosts file
 
-    hosts = {
-        'WEST-DC1-LXC': {'rank': 7, 'gateway': LAN['WEST-DC1'].ipprefix},
-        'WEST-DC2-LXC': {'rank': 7, 'gateway': LAN['WEST-DC2'].ipprefix},
-        'EAST-DC1-LXC': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
-        'WEST-BR1-LXC': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
-        'WEST-BR2-LXC': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
-        'WEST-BR3-LXC': {'rank': 101, 'gateway': LAN['WEST-BR3'].ipprefix},
-        'WEST-BR4-LXC': {'rank': 101, 'gateway': LAN['WEST-BR4'].ipprefix},
-        'EAST-BR1-LXC': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
-        'EAST-BR2-LXC': {'rank': 101, 'gateway': LAN['EAST-BR2'].ipprefix},
-    }
+    # hosts = {
+    #     'WEST-DC1-LXC': {'rank': 7, 'gateway': LAN['WEST-DC1'].ipprefix},
+    #     'WEST-DC2-LXC': {'rank': 7, 'gateway': LAN['WEST-DC2'].ipprefix},
+    #     'EAST-DC1-LXC': {'rank': 7, 'gateway': LAN['EAST-DC1'].ipprefix},
+    #     'WEST-BR1-LXC': {'rank': 101, 'gateway': LAN['WEST-BR1'].ipprefix},
+    #     'WEST-BR2-LXC': {'rank': 101, 'gateway': LAN['WEST-BR2'].ipprefix},
+    #     'WEST-BR3-LXC': {'rank': 101, 'gateway': LAN['WEST-BR3'].ipprefix},
+    #     'WEST-BR4-LXC': {'rank': 101, 'gateway': LAN['WEST-BR4'].ipprefix},
+    #     'EAST-BR1-LXC': {'rank': 101, 'gateway': LAN['EAST-BR1'].ipprefix},
+    #     'EAST-BR2-LXC': {'rank': 101, 'gateway': LAN['EAST-BR2'].ipprefix},
+    # }
 
     devices = {
         'WEST-DC1': west_dc1,
@@ -421,26 +421,26 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
 
         # 'WAN': FortiGate(name='WAN', template_filename='WAN.conf'),
 
-        'WEST-DC1-LXC': LXC(name="WEST-DC1-LXC", template_context={'hosts': hosts}),
-        'WEST-DC2-LXC': LXC(name="WEST-DC2-LXC",template_context={'hosts': hosts}),
-        'WEST-BR1-LXC': LXC(name="WEST-BR1-LXC",template_context={'hosts': hosts}),
-        'WEST-BR2-LXC': LXC(name="WEST-BR2-LXC",template_context={'hosts': hosts}),
-        'WEST-BR3-LXC': LXC(name="WEST-BR3-LXC",template_context={'hosts': hosts}),
-        'WEST-BR4-LXC': LXC(name="WEST-BR4-LXC",template_context={'hosts': hosts}),
-        'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),
-        'EAST-BR1-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),
-        'EAST-BR2-LXC': LXC(name="EAST-BR2-LXC", template_context={'hosts': hosts}),
+        # 'WEST-DC1-LXC': LXC(name="WEST-DC1-LXC", template_context={'hosts': hosts}),
+        # 'WEST-DC2-LXC': LXC(name="WEST-DC2-LXC",template_context={'hosts': hosts}),
+        # 'WEST-BR1-LXC': LXC(name="WEST-BR1-LXC",template_context={'hosts': hosts}),
+        # 'WEST-BR2-LXC': LXC(name="WEST-BR2-LXC",template_context={'hosts': hosts}),
+        # 'WEST-BR3-LXC': LXC(name="WEST-BR3-LXC",template_context={'hosts': hosts}),
+        # 'WEST-BR4-LXC': LXC(name="WEST-BR4-LXC",template_context={'hosts': hosts}),
+        # 'EAST-DC1-LXC': LXC(name="EAST-DC1-LXC", template_context={'hosts': hosts}),
+        # 'EAST-BR1-LXC': LXC(name="EAST-BR1-LXC", template_context={'hosts': hosts}),
+        # 'EAST-BR2-LXC': LXC(name="EAST-BR2-LXC", template_context={'hosts': hosts}),
         'INTERNET-SERVER': LXC(name="INTERNET-SERVER", template_filename='lxc.SRVINET.conf')
     }
 
     # Add VRF segmentation information to the poc
     #
     if context['vrf_segmentation']:
-        vrf_segmentation(targetedFOSversion, context, devices)
+        vrf_segmentation(poc, targetedFOSversion, context, devices)
 
     # Add EVPN information to the poc
     if context['evpn']:
-        evpn(targetedFOSversion, context, devices)
+        evpn(poc, targetedFOSversion, context, devices)
 
     # Update the poc (monkey patching)
     poc.id = poc_id
@@ -468,56 +468,66 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
 # and the rest is left to CEs.
 #
 
-def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+def vrf_segmentation(poc:TypePoC, fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     segments = {
-        'WEST-DC1': {
-            'BLUE': Interface(address='10.1.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.1.1.1/24', port='port5', vlanid=16, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.1.2.1/24', port='port5', vlanid=17, name='LAN_RED', vrfid=context['vrf_red']),
-            'GREY': Interface(address='10.1.255.1/24', port='port5', vlanid=18, name='LAN_GREY', vrfid=context['vrf_grey']),
-        },
-        'WEST-DC2': {
-            'BLUE': Interface(address='10.2.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.2.1.1/24', port='port5', vlanid=26, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.2.2.1/24', port='port5', vlanid=27, name='LAN_RED', vrfid=context['vrf_red']),
-            'GREY': Interface(address='10.2.255.1/24', port='port5', vlanid=28, name='LAN_GREY', vrfid=context['vrf_grey']),
-        },
-        'WEST-BR1': {
-            'BLUE': Interface(address='10.0.1.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.0.11.1/24', port='port5', vlanid=36, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.0.12.1/24', port='port5', vlanid=37, name='LAN_RED', vrfid=context['vrf_red']),
-        },
-        'WEST-BR2': {
-            'BLUE': Interface(address='10.0.2.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.0.21.1/24', port='port5', vlanid=46, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.0.22.1/24', port='port5', vlanid=47, name='LAN_RED', vrfid=context['vrf_red']),
-        },
-        'WEST-BR3': {
-            'BLUE': Interface(address='10.0.3.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.0.31.1/24', port='port5', vlanid=86, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.0.32.1/24', port='port5', vlanid=87, name='LAN_RED', vrfid=context['vrf_red']),
-        },
-        'WEST-BR4': {
-            'BLUE': Interface(address='10.0.4.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.0.41.1/24', port='port5', vlanid=96, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.0.42.1/24', port='port5', vlanid=97, name='LAN_RED', vrfid=context['vrf_red']),
-        },
-        'EAST-DC1': {
-            'BLUE': Interface(address='10.4.0.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.4.1.1/24', port='port5', vlanid=56, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.4.2.1/24', port='port5', vlanid=57, name='LAN_RED', vrfid=context['vrf_red']),
-        },
-        'EAST-BR1': {
-            'BLUE': Interface(address='10.4.1.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.4.11.1/24', port='port5', vlanid=66, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.4.12.1/24', port='port5', vlanid=67, name='LAN_RED', vrfid=context['vrf_red']),
-        },
-        'EAST-BR2': {
-            'BLUE': Interface(address='10.4.2.1/24', port='port5', vlanid=0, alias='LAN_BLUE', vrfid=context['vrf_blue']),
-            'YELLOW': Interface(address='10.4.21.1/24', port='port5', vlanid=76, name='LAN_YELLOW', vrfid=context['vrf_yellow']),
-            'RED': Interface(address='10.4.22.1/24', port='port5', vlanid=77, name='LAN_RED', vrfid=context['vrf_red']),
-        },
+        'WEST-DC1': LAN(
+            BLUE=Interface(address='10.1.0.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.1.1.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.1.2.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+            GREY=Interface(address='10.1.255.1/24', alias='LAN_GREY', vrfid=context['vrf_grey']),
+        ),
+        'WEST-DC2': LAN(
+            BLUE=Interface(address='10.2.0.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.2.1.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.2.2.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+            GREY=Interface(address='10.2.255.1/24', alias='LAN_GREY', vrfid=context['vrf_grey']),
+        ),
+        'WEST-BR1': LAN(
+            BLUE=Interface(address='10.0.1.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.0.11.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.0.12.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
+        'WEST-BR2': LAN(
+            BLUE=Interface(address='10.0.2.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.0.21.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.0.22.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
+        'WEST-BR3': LAN(
+            BLUE=Interface(address='10.0.3.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.0.31.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.0.32.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
+        'WEST-BR4': LAN(
+            BLUE=Interface(address='10.0.4.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.0.41.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.0.42.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
+        'EAST-DC1': LAN(
+            BLUE=Interface(address='10.4.0.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.4.1.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.4.2.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
+        'EAST-BR1': LAN(
+            BLUE=Interface(address='10.4.1.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.4.11.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.4.12.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
+        'EAST-BR2': LAN(
+            BLUE=Interface(address='10.4.2.1/24', alias='LAN_BLUE', vrfid=context['vrf_blue']),
+            YELLOW=Interface(address='10.4.21.1/24', alias='LAN_YELLOW', vrfid=context['vrf_yellow']),
+            RED=Interface(address='10.4.22.1/24', alias='LAN_RED', vrfid=context['vrf_red']),
+        ),
     }
+
+    # Get the underlay LAN segments interface information (port, vlanid) from the execution environment (poc.devices)
+    # and update the above 'segments' interfaces
+    for dev_name in segments.keys():
+        if poc.devices.get(dev_name):
+            segments[dev_name].BLUE.update(poc.devices[dev_name].segments.lan1)
+            segments[dev_name].YELLOW.update(poc.devices[dev_name].segments.lan2)
+            segments[dev_name].RED.update(poc.devices[dev_name].segments.lan3)
+            if 'GREY' in segments[dev_name].keys():
+                segments[dev_name].GREY.update(poc.devices[dev_name].segments.lan4)
 
     # FOS 7.6 'inter_segments' describes the inter-vrf links
 
@@ -534,8 +544,10 @@ def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str,
 
     for device in devices.values():
         if isinstance(device,FortiGate):
+            if device.HA is not None and device.HA.mode==FortiGate_HA.Modes.FGCP and device.HA.role==FortiGate_HA.role.SECONDARY:
+                continue
             # LAN segments
-            device.lan.update(segments[device.name]['BLUE'])    # default LAN interface
+            device.lan.update(segments[device.name].BLUE)    # default LAN interface
             device.template_context['vrf_segments'] = segments[device.name]
             # inter_segments for FOS 7.6
             if fos_target < 8_000_000:
@@ -551,7 +563,7 @@ def vrf_segmentation(fos_target:int, context: dict, devices: typing.Mapping[str,
 # If vrf_segmentation is done, PE VRF must be in VRF 0 as well per my tests
 #
 
-def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
+def evpn(poc:TypePoC, fos_target:int, context: dict, devices: typing.Mapping[str, typing.Union[FortiGate, LXC]]) -> None:
     extended_lans = {
             # Extended LAN between WEST BR1<->BR2
             # L3VNI are not used in the context of SD-WAN design, but they are kept for reference
@@ -560,14 +572,14 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
                 'l2vni': 10000 + 10,
                 'l3evpnid': 50,
                 'l3vni': 50000,
-                'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=101, name='LAN_XTD', vrfid=context['vrf_evpn']),
+                'intf': Interface(address='10.99.12.1/24', alias='LAN_XTD', vrfid=context['vrf_evpn']),
             },
             'WEST-BR2': {
                 'evpnid': 10,
                 'l2vni': 10000 + 10,
                 'l3evpnid': 50,
                 'l3vni': 50000,
-                'intf': Interface(address='10.99.12.1/24', port='port5', vlanid=102, name='LAN_XTD', vrfid=context['vrf_evpn']),
+                'intf': Interface(address='10.99.12.1/24', alias='LAN_XTD', vrfid=context['vrf_evpn']),
             },
 
             # Extended LAN between WEST BR3<->BR4
@@ -576,14 +588,14 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
                 'l2vni': 10000 + 20,
                 'l3evpnid': 50,
                 'l3vni': 50000,
-                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=103, name='LAN_XTD', vrfid=context['vrf_evpn']),
+                'intf': Interface(address='10.99.34.1/24', alias='LAN_XTD', vrfid=context['vrf_evpn']),
             },
             'WEST-BR4': {
                 'evpnid': 20,
                 'l2vni': 10000 + 20,
                 'l3evpnid': 50,
                 'l3vni': 50000,
-                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=104, name='LAN_XTD', vrfid=context['vrf_evpn']),
+                'intf': Interface(address='10.99.34.1/24', alias='LAN_XTD', vrfid=context['vrf_evpn']),
             },
 
             # Extended LAN between EAST BR1<->BR2 (same as WEST BR3<->BR4 since they are not used simultaneously)
@@ -592,14 +604,14 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
                 'l2vni': 10000 + 20,
                 'l3evpnid': 50,
                 'l3vni': 50000,
-                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=103, name='LAN_XTD', vrfid=context['vrf_evpn']),
+                'intf': Interface(address='10.99.34.1/24', alias='LAN_XTD', vrfid=context['vrf_evpn']),
             },
             'EAST-BR2': {
                 'evpnid': 20,
                 'l2vni': 10000 + 20,
                 'l3evpnid': 50,
                 'l3vni': 50000,
-                'intf': Interface(address='10.99.34.1/24', port='port5', vlanid=104, name='LAN_XTD', vrfid=context['vrf_evpn']),
+                'intf': Interface(address='10.99.34.1/24', alias='LAN_XTD', vrfid=context['vrf_evpn']),
             },
         }
 
@@ -608,7 +620,13 @@ def evpn(fos_target:int, context: dict, devices: typing.Mapping[str, typing.Unio
         extended_lans['WEST-BR4']['intf'].update(Interface(address='10.99.34.2/24'))
         extended_lans['EAST-BR2']['intf'].update(Interface(address='10.99.34.2/24'))
 
-    # Update Branches FortiGates (FGTs with a branch_id)
+    # Get the underlay LAN segments interface information (port, vlanid) from the execution environment (poc.devices)
+    # and update the above 'segments' interfaces
+    for dev_name in extended_lans.keys():
+        if poc.devices.get(dev_name):
+            extended_lans[dev_name]['intf'].update(poc.devices[dev_name].segments.xtd)
+
+    # Update the context of Branch FGTs (FGTs with a branch_id)
     for device in devices.values():
         if isinstance(device,FortiGate) and device.template_context.get('branch_id', False):
             device.template_context['lan_xtd'] = extended_lans[device.name]
