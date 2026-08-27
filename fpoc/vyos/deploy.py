@@ -5,7 +5,7 @@ import os.path
 # import fpoc.ssh
 from config.settings import PATH_FPOC_TEMPLATES
 from fpoc.devices import VyOS
-from fpoc.typing import TypePoC
+from fpoc.types import TypePoC
 
 import netmiko
 

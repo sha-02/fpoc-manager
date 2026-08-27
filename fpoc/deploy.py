@@ -20,7 +20,7 @@ import fpoc.lxc as lxc
 import fpoc.vyos as vyos
 from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS
 from fpoc.fabric_studio import FabricStudio
-from fpoc.typing import TypePoC, TypeDevice
+from fpoc.types import TypePoC, TypeDevice
 from fpoc.exceptions import CompletedDeviceProcessing, StopProcessingDevice, ReProcessDevice, AbortDeployment, RetryProcessingDevice
 
 
