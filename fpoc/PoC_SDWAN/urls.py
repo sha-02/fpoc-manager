@@ -1,7 +1,8 @@
 from django.urls import path, reverse
 
-from . import views, sdwan1, sdwan2, sdwan3, dashboard
-import fpoc
+from fpoc.views import poweron, upgrade, bootstrap
+from fpoc.PoC_SDWAN import dashboard, sdwan1, sdwan2, sdwan3
+from .views import HomePageView, AboutPageView
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
 # By registering a name for this app with variable 'app_name' it creates a context
@@ -9,8 +10,8 @@ import fpoc
 app_name = 'sdwan'
 
 urlpatterns = [
-    path(route='', view=views.HomePageView.as_view(), name='home'),
-    path(route='about/', view=views.AboutPageView.as_view(), name='about'),
+    path(route='', view=HomePageView.as_view(), name='home'),
+    path(route='about/', view=AboutPageView.as_view(), name='about'),
     # path('test/', views.display_request_parameters, name='display_request_parameters'),
 
     # Class instance (FabricStudioSDWAN()) must not be created here because it is created as a default argument of the function
@@ -23,9 +24,9 @@ urlpatterns = [
     # path('bootstrap/', fpoc.views.bootstrap, {'Class_PoC': FabricStudioSDWAN}, name='bootstrap'),
 
     # New strategy for common views: the class required for the view is passed via the form
-    path(route='poweron/', view=fpoc.views.poweron, name='poweron'),
-    path(route='upgrade/', view=fpoc.views.upgrade, name='upgrade'),
-    path(route='bootstrap/', view=fpoc.views.bootstrap, name='bootstrap'),
+    path(route='poweron/', view=poweron, name='poweron'),
+    path(route='upgrade/', view=upgrade, name='upgrade'),
+    path(route='bootstrap/', view=bootstrap, name='bootstrap'),
 
     path(route='dashboard/', view=dashboard.dashboard, name='dashboard'),
     path(route='dualdc_dualregion/', view=sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10 (FOS 7.0+)
