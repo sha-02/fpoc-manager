@@ -7,7 +7,8 @@ from fpoc.fortios import fortios_firmware
 from fpoc.studio_instances import studio_instances
 
 ######### CURRENT POC = POC02  ##############################################
-from .once02 import devices
+from .once import EXECUTION_ENVIRONMENT
+from .once02 import devices_fabric_studio, devices_agora
 POC_ID=2
 #############################################################################
 
@@ -20,9 +21,14 @@ class HomePageView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(HomePageView, self).get_context_data(**kwargs)
         context['poc_id']= POC_ID
-        context['fortigates'] = devices
-        context['studio_instances'] = studio_instances()
         context['firmware'] = fortios_firmware()
+        context['execution_environment'] = EXECUTION_ENVIRONMENT
+        if EXECUTION_ENVIRONMENT == "FabricStudio":
+            context['studio_instances'] = studio_instances()
+            context['fortigates'] = devices_fabric_studio
+        else:
+            context['fortigates'] = devices_agora
+
         return context
 
 

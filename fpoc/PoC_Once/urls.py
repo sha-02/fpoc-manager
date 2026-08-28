@@ -1,8 +1,8 @@
 from django.urls import path
 
 from . import views
+from .once import EXECUTION_ENVIRONMENT
 import fpoc
-from config.urls import sites
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
 # By registering a name for this app with variable 'app_name' it creates a context
@@ -10,7 +10,7 @@ from config.urls import sites
 app_name = 'poc'
 
 urlpatterns = [
-    path('', views.HomePageView.as_view(), {'sites': sites}, name='home'),
+    path('', views.HomePageView.as_view(), name='home'),
 
     path('about/', views.AboutPageView.as_view(), name='about'),
     # path('test/', views.display_request_parameters, name='display_request_parameters'),
@@ -33,5 +33,5 @@ urlpatterns = [
     # path('01/', fpoc.PoC_Once.poc01, {'poc_id': 1}, name='poc'),
     # 'name' is not used, the submit URL is built using the POC_ID defined in views.py
     path('01/', fpoc.PoC_Once.poc01, {'poc_id': 1}),
-    path('02/', fpoc.PoC_Once.poc02, {'poc_id': 2}),
+    path('02/', fpoc.PoC_Once.poc02, {'poc_id': 2, 'execution_environment': EXECUTION_ENVIRONMENT}),
 ]
