@@ -12,6 +12,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 # from ansible_collections.ansible.utils.plugins.plugin_utils.base.ipaddr_utils import ipaddr
 from ansible_collections.ansible.utils.plugins.filter.ipaddr import ipaddr
 from ansible_collections.ansible.utils.plugins.filter.ipmath import ipmath
+from ansible.plugins.filter.core import combine
 
 
 # Using Jinja2 with Django:
@@ -51,6 +52,7 @@ def environment(**options):
     # Adds Ansible filters to Jinja2
     env.filters['ipaddr'] = ipaddr
     env.filters['ipmath'] = ipmath
+    env.filters['combine'] = combine
 
     # Add my own Jinja2 filters
     env.filters['ipv4_to_ipv6'] = ipv4_to_ipv6
