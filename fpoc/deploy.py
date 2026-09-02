@@ -141,7 +141,7 @@ def device_URL(poc: TypePoC, device: TypeDevice) -> tuple:
         if isinstance(device, LXC) or isinstance(device, VyOS):
             return 'SSH', f'https://{ip}/ttyd/ssh/{device.nameid}/'
 
-    return 'HTTPS', f'https://{device.mgmt.ip}:{device.https_port}'
+    return 'HTTPS', f'https://{device.ip}:{device.https_port}'
 
 
 def device_URL_console(poc: TypePoC, device: TypeDevice) -> str:

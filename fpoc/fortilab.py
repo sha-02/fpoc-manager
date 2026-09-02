@@ -91,8 +91,8 @@ class FortiLab:
                 self.devices[devname].update(device)
 
         # set the device IP to its OOB MGMT IP
-        for device in self.devices.values():
-            device.ip = device.mgmt.ip
+        # for device in self.devices.values():
+        #     device.ip = device.mgmt.ip
 
     def callback_register(self, callback_func: Callable):
         """

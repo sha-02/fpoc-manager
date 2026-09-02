@@ -1,4 +1,4 @@
-from fpoc.devices import FortiGate, FortiGate_HA, Interface, LAN, WAN
+from fpoc.devices import FortiGate, FortiGate_HA, Interface, LAN, WAN, Access
 from fpoc.agora import SDW_agora
 
 # HA on HUB1
@@ -26,6 +26,7 @@ devices_agora = {
 
     'INFRACOM': FortiGate(model="FGT_VM64_KVM", name_phy='INFRACOM',
                           mgmt=Interface('port1', 0, '172.16.31.102/24'),
+                          vip_access=Access(ip='10.210.46.50', ssh_port=11102, https_port=13102),
                           lan=Interface('port4'),
                           wan=WAN(inet1=Interface('port2'), inet2=Interface('port3'))
                           ),

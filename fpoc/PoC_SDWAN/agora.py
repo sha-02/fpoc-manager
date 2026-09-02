@@ -74,3 +74,25 @@ class AgoraSDWAN(FortiLab):
         for device in self.devices.values():
             if isinstance(device, FortiGate) and device.wan is not None:
                 device.wan.mpls_summary = Network(type(self).mpls_summary)
+
+    def members(self, devices: dict = None, devnames: list = None):
+        """
+        only keep some devices
+        for each device which is kept: merge the class-level attributes with the instance-level attributes
+        """
+        # Call parent class to do the device filtering and the class-level/device-level attribute merge
+        super().members(devices, devnames)
+
+        # configure access attributes for each device (name, IP@, SSH/HTTPS ports) depending on whether it is accessed
+        # directly or via an external DNAT/VIP
+        for key_name, device in self.devices.items():
+            # device.name_phy = device.name_phy or key_name   # init to 'key_name' if 'name_phy' is None
+            # device.name = device.name or device.name_phy  # init to 'name_phy' if 'name' is None
+            if device.vip_access is None:  # device is accessed directly via its mgmt interface IP
+                device.ip = device.mgmt.ip
+                device.https_port = 443
+                device.ssh_port = 22
+            else:  # device is accessed indirectly via DNAT/VIP
+                device.ip = device.vip_access.ip
+                device.https_port = device.vip_access.https_port
+                device.ssh_port = device.vip_access.ssh_port

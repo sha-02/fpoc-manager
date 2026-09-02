@@ -7,6 +7,11 @@ from enum import Enum
 from typing import Callable
 from fpoc.exceptions import StopProcessingDevice
 
+@dataclass
+class Access:
+    ip: str|None = None
+    https_port: int = 443
+    ssh_port: int = 22
 
 class Interface:
     # _name : str|None
@@ -375,6 +380,7 @@ class Device:
     ip: str|None = None  # IP@ used to access the device (eg, direct IP or external.NAT/studio IP)
     ssh_port: int|None = None  # direct access (22) or from external NAT (eg, Fabric-Studio 10100+offset)
     https_port: int|None = None  # direct access (443) or from external NAT (eg, Fabric-Studio 10400+offset)
+    vip_access: Access|None = None     # device can only be accessed via a VIP/DNAT
 
     reboot_delay: int|None = None     # number of seconds to wait for the device to perform a full reboot
 
