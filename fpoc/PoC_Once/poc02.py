@@ -159,8 +159,8 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
     # FortiGate Devices
 
     hub1 = FortiGate(name='HUB1', template_group='DATACENTERS',
-                     # HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
-                     #                 group_id=91, group_name="HUB1", priority=129),
+                     HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.PRIMARY,
+                                     group_id=91, group_name="HUB1", priority=129),
                      lan=segments['HUB1'].DATA,
                      template_context=context | {'dc_id': 1, 'gps': (48.856614, 2.352222),
                                                  'region': 'West', 'region_id': 1,
@@ -234,7 +234,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
 
     devices = {
         'HUB1': hub1,
-        # 'HUB1-B': hub1_sec,
+        'HUB1-B': hub1_sec,
         'HUB2': hub2,
         'BRANCH1': br1,
         'BRANCH1-B': br1_sec,

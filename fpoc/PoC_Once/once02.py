@@ -16,11 +16,13 @@ from fpoc.agora import SDW_agora
 # no HA on HUB1
 devices_agora = {
     'HUB1': SDW_agora['SDW_1001F_A']['impairment'],
-    'HUB2': SDW_agora['SDW_1001F_B']['impairment'],
+    'HUB1-B': SDW_agora['SDW_1001F_B']['impairment'],
+    'HUB2': SDW_agora['SDW_3301E_A']['impairment'],
 
     'BRANCH1': SDW_agora['SDW_50G_A']['impairment'],
     'BRANCH1-B': SDW_agora['SDW_50G_B']['impairment'],
-    'BRANCH2': SDW_agora['SDW_3301E_A']['impairment'],
+    'BRANCH2': SDW_agora['SDW_3301E_B']['impairment'],
+
     'BRANCH3': SDW_agora['SDW_101F_A']['impairment'],
     'BRANCH4': SDW_agora['SDW_101F_B']['impairment'],
 
