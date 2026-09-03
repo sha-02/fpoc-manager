@@ -33,11 +33,11 @@ class FabricStudio(FortiLab):
             if isinstance(device, FortiGate):
                 device.model = "FGT_VM64_KVM"
                 device.reboot_delay = 120
-                if device.lan is not None:
+                if device.lan:
                     device.lan.speed = 'auto'
-                if device.wan is not None:
+                if device.wan:
                     for intf_name, intf in device.wan:
-                        if intf is not None:
+                        if intf:
                             intf.speed = 'auto'
 
     def members(self, devices: dict = None, devnames: list = None):

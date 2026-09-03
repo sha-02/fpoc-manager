@@ -102,23 +102,12 @@ class Interface:
         return str(self._address.netmask)  # e.g. '255.255.255.0'
 
     def update(self, interface: Interface):
-        # special check for
-        self_name = self._name
-
         # Update (Override) this Interface instance with all not-None attributes from the 'interface' passed as argument
         for k, v in interface.__dict__.items():
             if k == '_address' and v == ipaddress.ip_interface('1.2.3.4/32'): # address 1.2.3.4/32 is conceptually similar to None/Unspecified
                 continue
             if v is not None:
                 self.__dict__[k] = v    # update Interface 'k' with Interface 'v'
-
-        # if any of the two interface had a name before the update() and, after the update(), there is no vlan
-        # keep track of one the original name (that is different from the port) as an alias
-        # if (self_name or interface._name) and not self.vlanid:   # two original names and no vlan
-        #     if self_name and self_name != self.port:
-        #         self.alias = self_name
-        #     if interface._name and interface._name != self.port:
-        #         self.alias = interface._name
 
         # Check attribute consistency
         self._post_init()

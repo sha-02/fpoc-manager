@@ -26,7 +26,7 @@ devices_agora = {
     'BRANCH3': SDW_agora['SDW_101F_A']['impairment'],
     'BRANCH4': SDW_agora['SDW_101F_B']['impairment'],
 
-    'INFRACOM': FortiGate(model="FGT_VM64_KVM", name_phy='INFRACOM',
+    'INFRACOM': FortiGate(model="FGT_VM64_KVM", name_phy='INFRACOM', password='Fortinet123#',
                           mgmt=Interface('port1', 0, '172.16.31.102/24'),
                           vip_access=Access(ip='10.210.46.50', ssh_port=11102, https_port=13102),
                           lan=Interface('port4'),
