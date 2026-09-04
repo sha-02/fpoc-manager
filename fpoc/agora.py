@@ -31,7 +31,7 @@ FGT_B = FortiGate(name_phy='SDW-1001F-B', alias='SDW-1001F-B', password='Fortine
                       lan1=Interface('port6', 0),
                       lan2=Interface('port6', 26),
                       lan3=Interface('port6', 27),
-                      lan4=Interface('port6', 38),
+                      lan4=Interface('port6', 28),
                   ),
                   )
 wan_impairment = FortiGate(wan=WAN(
