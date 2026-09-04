@@ -55,11 +55,21 @@ class FortiLab:
         self.lock = threading.Lock()  # mutual exclusion (mutex) lock used for concurrency (e.g., download FOS firmware)
         self._callback = None   # Callback function which can be registered to the class instance and can be called later on
 
-        # Configure default SSH/HTTPS ports for FortiGates
+        # Configure default values for FortiGates:
+        # - default SSH and HTTPS ports for access on mgmt interface
+        # - for KVM64 models: speed is 'auto' for all lan and wan interfaces, reboot_delay is 120 seconds
         for device in self.devices.values():
             if isinstance(device, FortiGate):
                 device.https_port = 443
                 device.ssh_port = 22
+                if device.model == "FGT_VM64_KVM":
+                    device.reboot_delay = 120
+                    if device.lan:
+                        device.lan.speed = 'auto'
+                    if device.wan:
+                        for intf_name, intf in device.wan:
+                            if intf:
+                                intf.speed = 'auto'
 
     def members(self, devices: dict = None, devnames: list = None):
         """

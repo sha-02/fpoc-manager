@@ -15,6 +15,12 @@ class FabricStudio(FortiLab):
     mgmt = FortiLab.mgmt.update(Mgmt(gw='172.16.31.254', dns='172.16.31.254'))
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
+        # Configure FortiGates model as KVM64 before calling the Parent call __init()__
+        # because it sets specific settings for KVM64 (retry_timeout, ...)
+        for device in self.devices.values():
+            if isinstance(device, FortiGate):
+                device.model = "FGT_VM64_KVM"
+
         # Call parent class to store the WSGI request and merge the class-level devices with the instance-level devices
         super().__init__(request, poc_id)
 
@@ -26,19 +32,6 @@ class FabricStudio(FortiLab):
         else:  # fpoc-manager is running outside the Fabric-Studio
             self.manager_inside_studio = False
             self.ip = studio_ip  # device is accessed by fpoc-manager via the Fabric-Studio outside IP
-
-        # Configure default values for FortiGate VMs running inside a Fabric-Studio
-        # model is KVM64, speed is 'auto' for all lan and wan interfaces, reboot_delay is 120 seconds
-        for device in self.devices.values():
-            if isinstance(device, FortiGate):
-                device.model = "FGT_VM64_KVM"
-                device.reboot_delay = 120
-                if device.lan:
-                    device.lan.speed = 'auto'
-                if device.wan:
-                    for intf_name, intf in device.wan:
-                        if intf:
-                            intf.speed = 'auto'
 
     def members(self, devices: dict = None, devnames: list = None):
         """
