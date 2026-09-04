@@ -4,17 +4,15 @@ from django.http import HttpResponse
 
 import typing
 from fpoc.deploy import start
-from fpoc import devices
-from fpoc.agora import wan_impairment
 from fpoc.exceptions import AbortDeployment
 from fpoc.devices import Interface, FortiGate, FortiGate_HA, LAN, LXC
 from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
 from fpoc.types import TypePoC
 
 #
-# PoC mappings
+# device name mappings for FabricStudio class
 #
-mapping = {
+mapping_studio = {
     'WEST-DC1': 'HUB1',
     'WEST-DC2': 'HUB2',
     'WEST-BR1': 'BR1',
@@ -28,10 +26,29 @@ mapping = {
     # 'EAST-BR2': 'HUB2',
 }
 
+
 class SDWAN3(FabricStudioSDWAN):
-    # Change the name of the device for this PoC
+    # Change the name of the devices for this PoC
     # Create a list of devices based off the parent device list using the mapping dict
-    devices = { k:FabricStudioSDWAN.devices[v] for k,v in mapping.items()}
+    devices = {k: FabricStudioSDWAN.devices[v] for k, v in mapping_studio.items()}
+
+
+# device name mappings for Agora class
+#
+mapping_agora = {
+    'WEST-DC1': 'SDW_1001F_A',
+    'WEST-DC2': 'SDW_1001F_B',
+    'WEST-BR1': 'SDW_50G_A',
+    'WEST-BR2': 'SDW_50G_B',
+    'EAST-DC1': 'SDW_3301E_A',
+    'EAST-BR1': 'SDW_101F_A',
+    'EAST-BR2': 'SDW_101F_B',
+}
+
+class SDWAN3_Agora(AgoraSDWAN):
+    # Create a list of devices based off the parent device list using the mapping dict
+    devices = impairment = {k: AgoraSDWAN.impairment[v] for k, v in mapping_agora.items()}
+    no_impairment = {k: AgoraSDWAN.no_impairment[v] for k, v in mapping_agora.items()}
 
 
 def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
@@ -219,9 +236,11 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     # Create the poc
     #
     if 'fabric'  in request.path:  # poc is running in FabricStudio
+        execution_environment = "FabricStudio"
         poc = SDWAN3(request)
     elif 'agora' in request.path:  # poc is running in Agora Lab
-        poc = AgoraSDWAN(request, wan_impairment=bool(request.POST.get('wan_impairment', False)))
+        execution_environment = "Agora"
+        poc = SDWAN3_Agora(request, wan_impairment=bool(request.POST.get('wan_impairment', False)))
     else:
         print('\nError: Cannot create the poc based on the request PATH')
         raise AbortDeployment

@@ -5,9 +5,12 @@ from django.views.generic import TemplateView
 from django.shortcuts import render
 
 from fpoc.fortios import fortios_firmware
-from fpoc.PoC_SDWAN import AgoraSDWAN, SDWAN1, SDWAN2, SDWAN3 # required for eval(context['Class_PoC'])
 from fpoc.devices import FortiGate, LXC, VyOS
 from fpoc.studio_instances import studio_instances
+
+# required for eval(context['Class_PoC']) ======================================
+from fpoc.PoC_SDWAN import AgoraSDWAN, SDWAN1, SDWAN2, SDWAN3, SDWAN3_Agora
+# ==============================================================================
 
 APPNAME = "fpoc/PoC_SDWAN"
 
@@ -43,7 +46,7 @@ class HomePageView(TemplateView):
 
         # List of devices for the PoC
         if 'fabric' in self.request.path:
-            if '7.6_8.0' in self.request.path:
+            if '7.6_8.0' in self.request.path:  # passes the class via the form
                 context['Class_PoC'] = 'SDWAN3'
             elif '7.4_7.6' in self.request.path:
                 context['Class_PoC'] = 'SDWAN2'
@@ -56,7 +59,10 @@ class HomePageView(TemplateView):
             context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
 
         if 'agora' in self.request.path:
-            context['Class_PoC'] = 'AgoraSDWAN'  # passes the class to the common views (bootstrap, upgrade, poweron) via the form
+            if '7.6_8.0' in self.request.path:  # passes the class via the form
+                context['Class_PoC'] = 'SDWAN3_Agora'
+            else:
+                context['Class_PoC'] = 'AgoraSDWAN'  # passes the class via the form
             context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
 
         # Defines the minimum FOS version proposed in the dropdown list
