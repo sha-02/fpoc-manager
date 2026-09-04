@@ -40,16 +40,25 @@ def prepare_api(device: FortiGate):
     print(f'{device.name} : API key is {device.apikey}')
 
 
-def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_minimum: int, lock: threading.Lock):
+def prepare_fortios_version(device: FortiGate, scp: bool, fos_version_target: str, FOS_minimum: int, lock: threading.Lock):
     """
     Retrieves the FOS version running on the FGT and updates device.fos_version accordingly
     :param device:
+    :param scp: should upgrade be done with SCP or not (ie, API)
     :param fos_version_target: FOS version requested by user (e.g. "6.4.6"). Empty string ('')' if no FOS version is preferred
     :param FOS_minimum: minimum FOS version which must be running on the FGT (imposed by the feature set). integer (e.g., 7_002_000)
     :param lock: mutual exclusion (mutex) lock used to download and store missing firmware
     :return:
     """
-    device.fos_version = fortios.retrieve_fos_version(device)  # Update info about the version running on FGT (string, for e.g. '7.2.5')
+    # Must find the FOS version running on FGT (string, for e.g. '7.2.5')
+    print(f"{device.name} : Checking which FOS version is running on the FGT ", end='')
+    if scp:
+        print('via SSH...')
+        device.fos_version = fortios.ssh.retrieve_fos_version(device)
+    else:
+        print('via API...')
+        device.fos_version = fortios.api.retrieve_fos_version(device)
+
     print(f"{device.name} : FGT is running FOS {device.fos_version}", end='')
 
     # if the target version is not specified and the minimum version is not honored on the device then skip the device
@@ -59,10 +68,15 @@ def prepare_fortios_version(device: FortiGate, fos_version_target: str, FOS_mini
     # if the target version is specified, it is already compatible with the minimum version (check was done previously)
     if fos_version_target and fos_version_target != device.fos_version:
         print(f" but user requested FOS {fos_version_target}: need to update the FOS version")
-        print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED'")
-        fortios.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_phy}')  # Fabric-Studio device name is used here
+        print(f"{device.name} : Changing the FGT hostname to 'FIRMWARE_UPDATED_{device.name_phy}' ", end='')
+        if scp:
+            print('via SSH...')
+            fortios.ssh.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_phy}')  # name_phy is used here
+        else:
+            print('via API...')
+            fortios.api.change_hostname(device, f'FIRMWARE_UPDATED_{device.name_phy}')  # name_phy is used here
         print(f"{device.name} : Hostname changed")
-        update_fortios_version(device, fos_version_target, lock)
+        update_fortios_version(device, scp, fos_version_target, lock)
         device.apikey = ''  # Reset the API key
         raise ReProcessDevice(sleep=device.reboot_delay)  # Leave enough time for the FGT to upgrade/downgrade the config and reboot
 
@@ -284,9 +298,13 @@ def deploy(poc: TypePoC, device: FortiGate):
     # - get the FOS version from the FGT and use this version for config rendering
     #
     elif poc.request.POST.get('enforceFOSversion') or not poc.request.POST['targetedFOSversion']:
-        prepare_api(device)  # create API admin and key if needed
+        if poc.api:
+            prepare_api(device)  # create API admin and key if needed
+
         # ensure FGT runs the desired FortiOS version if user asked for a specific FOS version
-        prepare_fortios_version(device, fos_version_target=poc.request.POST['targetedFOSversion'],
+        prepare_fortios_version(device,
+                                scp = poc.scp,
+                                fos_version_target=poc.request.POST['targetedFOSversion'],
                                 FOS_minimum=poc.minimum_FOS_version,
                                 lock=poc.lock)
     else:   # Not preview, and no need to connect to the device (FOS version not enforced)
@@ -323,7 +341,7 @@ def deploy(poc: TypePoC, device: FortiGate):
         config_filepath = save_config(poc.__class__.__name__, device, 0)  # Save the bootstrap config
         if not poc.request.POST.get('previewOnly'):
             print(f'{device.name} : Uploading bootstrap configuration ', end='')
-            if poc.request.POST.get('scpDeploy'):
+            if poc.scp:
                 print('via SCP...')
                 fortios.ssh.upload_config(device, filepath=config_filepath)
             else:
@@ -411,7 +429,7 @@ def deploy(poc: TypePoC, device: FortiGate):
 
     if poc.request.POST.get('singlePassDeploy'):
         # Upload the Full configuration file
-        if poc.request.POST.get('scpDeploy'):  # Upload via SCP
+        if poc.scp:  # Upload via SCP
             fortios.ssh.upload_config(device, filepath=config_filepath)
         else:  # Upload via API
             fortios.api.upload_config(device)

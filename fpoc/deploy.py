@@ -80,6 +80,11 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
     # Only keep the 'devices' that are active members for the poc
     poc.members(devices=devices)
 
+    # Monkey patching to add deployment method (API or SCP)
+    poc.scp = bool(poc.request.POST.get('scpDeploy', False))
+    poc.api = not poc.scp
+
+
     # Call the callback function (if any was previously registered) before starting the actual deployment
     poc.callback()
 
@@ -259,18 +264,18 @@ def deploy(poc: TypePoC, device: TypeDevice):
     :return:
     """
     if not poc.request.POST.get('previewOnly'):
-        print(f'{device.name} : testing liveness on SSH port tcp/{device.ssh_port}')
+        print(f'{device.name} : testing liveness on SSH port tcp/{device.ssh_port}...')
         if not is_alive_tcp(device.ip, device.ssh_port):
             print(f'{device.name} : is not responding on SSH port tcp/{device.ssh_port}. Stop processing device.')
             raise StopProcessingDevice(f'not responding on SSH port tcp/{device.ssh_port}')
-        print(f'{device.name} : responded on SSH port tcp/{device.ssh_port}')
+        print(f'{device.name} : responded on SSH port tcp/{device.ssh_port}.')
 
-        if not poc.request.POST.get('scpDeploy'):
-            print(f'{device.name} : testing liveness on HTTPS port tcp/{device.https_port}')
+        if poc.api:
+            print(f'{device.name} : testing liveness on HTTPS port tcp/{device.https_port}...')
             if not is_alive_tcp(device.ip, device.https_port):
                 print(f'{device.name} : is not responding on HTTPS port tcp/{device.https_port}. Stop processing device.')
                 raise StopProcessingDevice(f'not responding on HTTPS port tcp/{device.https_port}')
-            print(f'{device.name} : responded on HTTPS port tcp/{device.https_port}')
+            print(f'{device.name} : responded on HTTPS port tcp/{device.https_port}.')
 
     if isinstance(device, FortiGate):
         fortios.deploy(poc, device)

@@ -116,7 +116,7 @@ def upgrade(request: WSGIRequest, **kwargs) -> HttpResponse:
         fgt.name  = fgt.name or fgt.name_phy    # if name is None then name=name_phy
         print(f'{fgt.name} : Upgrading to FortiOS', fos_version_target, ' ...')
         thread = threading.Thread(target=fortios.update_fortios_version,
-                                  args=(fgt, request.POST.get('scpDeploy', False),
+                                  args=(fgt, bool(request.POST.get('scpDeploy', False)),
                                         fos_version_target, poc.lock))
         threads.append(thread)
         thread.start()

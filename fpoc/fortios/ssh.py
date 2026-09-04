@@ -132,7 +132,23 @@ def scp_upload(device: FortiGate, filepath: str, remote_path: str):
     scp.close(); ssh.close()
 
 
-# Legacy functions for old FOS versions (< 7.0) #####################
+def retrieve_fos_version(device: FortiGate) -> str:
+    """
+
+    :param device:
+    :return:
+    """
+    ssh = ssh_logon(device)
+
+    device.output = ssh.send_command('get system status')
+    re_token = re.search(r'\bv(\d+\.\d+\.\d+)\b', device.output, re.IGNORECASE)
+
+    if not re_token:  # failed to retrieve hostname => skip this device
+        raise StopProcessingDevice(f'device={device.name} : failure to retrieve the hostname via SSH')
+
+    # Return the hostname
+    return re_token.group(1).strip()
+
 
 def retrieve_hostname(device: FortiGate) -> str:
     """
@@ -150,6 +166,20 @@ def retrieve_hostname(device: FortiGate) -> str:
 
     # Return the hostname
     return re_token.group(1).strip()
+
+
+def change_hostname(device: FortiGate, hostname: str):
+    ssh = ssh_logon(device)
+
+    config = f'''
+config system global
+set hostname "{hostname}"
+end
+'''
+
+    device.output += ssh.send_config_set(config.splitlines())
+
+    time.sleep(1)
 
 
 def is_running_ha(device: FortiGate) -> bool:
