@@ -318,8 +318,11 @@ def deploy(poc: TypePoC, device: FortiGate):
         {
             'apiadmin': device.apiadmin,
             'password': device.password,
-            'mgmt': device.mgmt,  # mgmt info (interface, vlanid, ipmask, vrfid)
-            'poc': {'dns': poc.mgmt.dns, 'gw': poc.mgmt.gw, 'gw2': poc.mgmt.gw2},
+            'mgmt': device.mgmt,  # mgmt interface info (interface, vlanid, ipmask, vrfid)
+            'poc': {'dns': poc.mgmt.dns,
+                    'gw': device.mgmt_gw if device.mgmt_gw else poc.mgmt.gw,
+                    'gw2': poc.mgmt.gw2
+                    },
             'fos_version': device.fos_version,  # FOS version encoded as a string like '6.0.13'
             'FOS': device.FOS,  # FOS version as long integer, like 6_000_013 for '6.0.13'
             'HA': device.HA,

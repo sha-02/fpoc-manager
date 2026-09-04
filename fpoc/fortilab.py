@@ -1,3 +1,5 @@
+from __future__ import annotations  # Allows to reference a class as a type hint during the declaration of the class itself
+
 import threading
 from django.core.handlers.wsgi import WSGIRequest
 import copy
@@ -12,9 +14,18 @@ class Mgmt: # poc mgmt network
     gw:     str = None  # Default Gateway
     gw2:    str = None  # Alternative Default Gateway ('WAN' FGT in Fabric Studio)
 
+    def update(self, mgmt: Mgmt):
+        # Update (Override) this Mgmt instance with all not-None attributes from the 'mgmt' passed as argument
+        for k, v in mgmt.__dict__.items():
+            if v is not None:
+                self.__dict__[k] = v    # update Mgmt 'k' with Mgmt 'v'
+
+        return self
+
+
 class FortiLab:
     devices: dict = {}  # The class-level dict containing all possible devices which can be used in this poc
-    mgmt = Mgmt(vrfid=0)
+    mgmt = Mgmt()
     template_folder = None  # Folder hosting the jinja templates
 
 

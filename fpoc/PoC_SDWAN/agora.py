@@ -28,7 +28,7 @@ class AgoraSDWAN(FortiLab):
     """
     """
     template_folder = 'PoC_SDWAN'
-    mgmt = Mgmt(vrfid=10, dns='96.45.45.45', gw='10.210.1.254')
+    mgmt = FortiLab.mgmt.update(Mgmt(dns='96.45.45.45', gw='10.210.1.254'))
     mpls_summary = '10.71.0.0/16'  # mpls_summary assigned to the WAN of each FGT of this PoC
 
     devices = impairment = {

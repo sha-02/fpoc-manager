@@ -28,6 +28,7 @@ devices_agora = {
 
     'INFRACOM': FortiGate(model="FGT_VM64_KVM", name_phy='INFRACOM', password='Fortinet123#',
                           mgmt=Interface('port1', 0, '172.16.31.102/24'),
+                          mgmt_gw='172.16.31.254',
                           vip_access=Access(ip='10.210.46.50', ssh_port=11102, https_port=13102),
                           lan=Interface('port4'),
                           wan=WAN(inet1=Interface('port2'), inet2=Interface('port3'))

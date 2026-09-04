@@ -373,7 +373,9 @@ class Device:
 
     reboot_delay: int|None = None     # number of seconds to wait for the device to perform a full reboot
 
-    mgmt: Interface|None = None  # OOB mgmt settings (port, vlanid, ipaddress/mask): for eg ('port10', 0, '172.16.31.1/24')
+    mgmt: Interface|None = None  # mgmt interface configuration on the device (port, vlanid, ipaddress/mask)
+                                # for eg ('port10', 0, '172.16.31.1/24')
+    mgmt_gw: str|None = None    # default gateway IP accessed via the mgmt interface
 
     name: str|None = None  # Name configured on the device
     name_phy: str|None = None  # "Physical" Name of the device in the Fabric-Studio or in the Hardware Lab

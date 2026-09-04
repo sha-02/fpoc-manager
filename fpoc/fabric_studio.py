@@ -12,7 +12,7 @@ class FabricStudio(FortiLab):
     BASE_PORT_HTTPS = 20000
     BASE_PORT_SSH = 11000
 
-    mgmt = Mgmt(vrfid=10, gw='172.16.31.254', gw2='172.16.31.251', dns='172.16.31.254')
+    mgmt = FortiLab.mgmt.update(Mgmt(gw='172.16.31.254', dns='172.16.31.254'))
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Call parent class to store the WSGI request and merge the class-level devices with the instance-level devices
