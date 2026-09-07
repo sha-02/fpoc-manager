@@ -8,6 +8,22 @@ from typing import Callable
 from fpoc.exceptions import StopProcessingDevice
 
 @dataclass
+class Mgmt: # poc mgmt network
+    vrfid:  int|None = None  # VRF where it should be isolated
+    dns:    str|None = None  # DNS server inside the poc mgmt network
+    gw:     str|None = None  # Default Gateway
+    gw2:    str|None = None  # Alternative Default Gateway ('WAN' FGT in Fabric Studio)
+
+    def update(self, mgmt: Mgmt):
+        # Update (Override) this Mgmt instance with all not-None attributes from the 'mgmt' passed as argument
+        for k, v in mgmt.__dict__.items():
+            if v is not None:
+                self.__dict__[k] = v    # update Mgmt 'k' with Mgmt 'v'
+
+        return self
+
+
+@dataclass
 class Access:
     ip: str|None = None
     https_port: int = 443

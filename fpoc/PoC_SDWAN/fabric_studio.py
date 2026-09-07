@@ -1,9 +1,6 @@
-import copy
-
 from django.core.handlers.wsgi import WSGIRequest
-from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS, LAN, WAN, Interface, Network
+from fpoc.devices import FortiGate, FortiGate_HA, LXC, VyOS, LAN, WAN, Interface, Network, Mgmt
 from fpoc.fabric_studio import FabricStudio
-from fpoc.fortilab import Mgmt
 
 
 class FabricStudioSDWAN(FabricStudio):
@@ -13,7 +10,8 @@ class FabricStudioSDWAN(FabricStudio):
     mpls_summary = '10.71.0.0/16'  # mpls_summary assigned to the WAN of each FGT of this PoC
     password = 'Fortinet123#'  # password assigned to each FGT of this PoC
 
-    mgmt = FabricStudio.mgmt.update(Mgmt(gw2='172.16.31.251'))
+    # child Mgmt is updated by parent Mgmt, and not the reverse, to prevent updating the parent class definition
+    mgmt = Mgmt(gw2='172.16.31.251').update(FabricStudio.mgmt)
 
     devices = {
         'HUB1': FortiGate(offset=0, nameid='fgt000', name_phy='HUB1',

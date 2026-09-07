@@ -1,14 +1,13 @@
 from django.core.handlers.wsgi import WSGIRequest
 from fpoc.fortilab import FortiLab
-from fpoc.devices import FortiGate, Network
-from fpoc.fortilab import Mgmt
+from fpoc.devices import FortiGate, Network, Mgmt
 from fpoc.agora import SDW_agora
 
 class AgoraSDWAN(FortiLab):
     """
     """
     template_folder = 'PoC_SDWAN'
-    mgmt = FortiLab.mgmt.update(Mgmt(dns='96.45.45.45', gw='10.210.1.254'))
+    mgmt = Mgmt(dns='96.45.45.45', gw='10.210.1.254')
     mpls_summary = '10.71.0.0/16'  # mpls_summary assigned to the WAN of each FGT of this PoC
 
     devices = impairment = {phy_name: SDW_agora[phy_name]['impairment'] for phy_name in SDW_agora.keys()}

@@ -1,8 +1,7 @@
 from django.core.handlers.wsgi import WSGIRequest
 
 from fpoc.fortilab import FortiLab
-from fpoc.devices import FortiGate
-from fpoc.fortilab import Mgmt
+from fpoc.devices import FortiGate, Mgmt
 
 
 class FabricStudio(FortiLab):
@@ -12,7 +11,7 @@ class FabricStudio(FortiLab):
     BASE_PORT_HTTPS = 20000
     BASE_PORT_SSH = 11000
 
-    mgmt = FortiLab.mgmt.update(Mgmt(gw='172.16.31.254', dns='172.16.31.254'))
+    mgmt = Mgmt(gw='172.16.31.254', dns='172.16.31.254')
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0):
         # Configure FortiGates model as KVM64 before calling the Parent call __init()__

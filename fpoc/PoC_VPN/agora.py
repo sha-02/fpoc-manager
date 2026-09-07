@@ -4,8 +4,7 @@ from django.http import HttpResponse
 
 from fpoc.deploy import start
 from fpoc.fortilab import FortiLab
-from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN
-from fpoc.fortilab import Mgmt
+from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN, Mgmt
 from fpoc.agora import SDW_agora
 
 # Define which physical FGT is assigned to FGT-A and to FGT-B
