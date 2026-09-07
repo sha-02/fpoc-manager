@@ -79,16 +79,17 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
 
         # VRF segmentation
         'vrf_segmentation': bool(request.POST.get('vrf_segmentation', False)),  # True or False
-        'vrf_mgmt': int(request.POST.get('vrf_mgmt',10)),  # [0-511]
-        'vrf_wan': int(request.POST.get('vrf_wan',0)),  # VRF for Internet and MPLS links
-        'vrf_pe': int(request.POST.get('vrf_pe',0)),  # VRF for IPsec tunnels
-        'vrf_blue': int(request.POST.get('vrf_blue', 13)),  # VRF user (segment)
+        'vrf_mgmt': int(request.POST.get('vrf_mgmt',0)),  # [0-511]
+        'vrf_wan': int(request.POST.get('vrf_wan',1)),  # VRF for Internet and MPLS links
+        'vrf_pe': int(request.POST.get('vrf_pe',1)),  # VRF for IPsec tunnels
+        'vrf_blue': int(request.POST.get('vrf_blue', 10)),  # VRF user (segment)
         'vrf_yellow': int(request.POST.get('vrf_yellow', 11)),  # VRF user (segment)
         'vrf_red': int(request.POST.get('vrf_red', 12)),  # VRF user (segment)
+        'vrf_green': int(request.POST.get('vrf_green', 13)),  # VRF user (segment)
         'vrf_grey': int(request.POST.get('vrf_grey', 14)),  # VRF between WEST-DCs and WEST-EXT
 
         # EVPN
-        'vrf_evpn': 0,         # vrf_evpn must be 0 and, from my test results, it forces using vrf_pe as 0 as well
+        'vrf_evpn': int(request.POST.get('vrf_evpn', 0)),  # vrf_evpn must be 0 and, from my test results, it forces using vrf_pe as 0 as well
         'evpn': bool(request.POST.get('evpn', False)),
         'evpn_anycast_gw': bool(request.POST.get('evpn_anycast_gw', False)),  # Use same GW IP on all leafs of the same segment
 
@@ -104,14 +105,15 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     if context['vrf_segmentation']:
         context |= { 'vpnv4': True,
             'vrfs': [ ('pe', context['vrf_pe']), ('blue', context['vrf_blue']), ('yellow', context['vrf_yellow']),
-                      ('red', context['vrf_red']), ('grey', context['vrf_grey']) ],
+                      ('red', context['vrf_red']), ('green', context['vrf_green']), ('grey', context['vrf_grey']) ],
         }
         if context['ipv6']:
             context |= { 'vpnv6': context['ipv6'] } # vpnv6 if ipv6
         if context['multicast']:
             context |= {'mcgroups': [('blue', f"239.{context['vrf_blue']}.{context['vrf_blue']}.{context['vrf_blue']}"),
                                      ('yellow', f"239.{context['vrf_yellow']}.{context['vrf_yellow']}.{context['vrf_yellow']}"),
-                                     ('red', f"239.{context['vrf_red']}.{context['vrf_red']}.{context['vrf_red']}")]
+                                     ('red', f"239.{context['vrf_red']}.{context['vrf_red']}.{context['vrf_red']}"),
+                                     ('green', f"239.{context['vrf_green']}.{context['vrf_green']}.{context['vrf_green']}")]
                         }
     if context['multicast'] and not context['vrf_segmentation']:
         context |= { 'mcgroups': [ ('wdc1', '239.1.1.0'), ('wdc2', '239.1.2.0'), ('edc1', '239.2.1.0') ] }
@@ -164,21 +166,22 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         messages.append("Origin IP for SIA is preserved")
 
     if context['vrf_segmentation']: # VRF segmentation
-        ce_vrfs = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red'], context['vrf_grey']]  # List of VRF IDs of all CEs
+        ce_vrfs = [context['vrf_blue'], context['vrf_yellow'], context['vrf_red'], context['vrf_green'], context['vrf_grey']]  # List of VRF IDs of all CEs
         for vrfid in [context['vrf_wan'], context['vrf_pe']] + ce_vrfs:
             if vrfid > 511 or vrfid < 0:
                 errors.append('VRF id must be within [0-511]')
 
-        if context['vrf_wan'] != context['vrf_pe']:
-            errors.append('vrf_wan and vrf_pe must be identical in current PoC')
+        # if context['vrf_wan'] != context['vrf_pe']:
+        #     errors.append('vrf_wan and vrf_pe must be identical in current PoC')
 
-        vrfids = [context['vrf_pe']] + ce_vrfs # list of all PE+CE VRF IDs
-        if len(set(vrfids)) != len(vrfids):  # check if the VRF IDs are all unique
-            errors.append('VRF IDs for PE and CE must all be unique. Current List of IDs='+repr(vrfids))
+        pe_ce_vrfs = [context['vrf_pe']] + ce_vrfs # list of all PE+CE VRF IDs
+        if len(set(pe_ce_vrfs)) != len(pe_ce_vrfs):  # check if the VRF IDs are all unique
+            errors.append('VRF IDs for PE and CE must all be unique. Current List of IDs='+repr(pe_ce_vrfs))
 
         # Should always be 'True' due to PE and CEs must be unique. But boolean is used for convenience in code just in
         # case this rule is relaxed for some PoCs.
-        context['vrf_pe_no_data'] = context['vrf_pe'] not in (context['vrf_blue'], context['vrf_yellow'], context['vrf_red'])
+        context['vrf_pe_no_data'] = context['vrf_pe'] not in (context['vrf_blue'], context['vrf_yellow'],
+                                                              context['vrf_red'], context['vrf_green'])
 
         if targetedFOSversion >= 8_000_000:
             messages.append("design choice: WEST-EXT resources (10.12.0.0/24) are leaked from VRF GREY to all CE VRFs (BLUE, RED, YELLOW)")
@@ -190,20 +193,24 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         if targetedFOSversion >= 8_000_000:  # FOS 8.0, WAN VRF is configurable (PE is forced to same VRF)
             if context['multicast']:
                 context['vrf_wan'] = 0
-                management_vrf = 10  # Set OOB Management in a different VRF than the WAN VRF
-                messages.append("Multicast without VRF segmentation: <b>forcing VRF WAN to 0</b>")
+                management_vrf = 1  # Set OOB Management in a different VRF than the WAN VRF
+                messages.append("Multicast without VRF segmentation: <b>forcing VRF WAN to 0</b>, "
+                                "and <b>forcing Management VRF to 1</b>")
             if context['vrf_wan'] > 511 or context['vrf_wan'] < 0:
                 messages.append('Incorrect VRF id for VRF WAN, <b>forcing to 1</b>')
                 context['vrf_wan'] = 1
-        else:   # FOS 7.6, WAN and PE are forced to VRF 0
-            messages.append('VRF WAN is <b>forced to 0</b> for FOS 7.6')
+        else:   # FOS 7.6, WAN and PE are forced to VRF 0 when there is no VRF segmentation
+            messages.append('No VRF segmentation with FOS 7.6: <b>VRF WAN forced to 0</b> '
+                            'and <b>VRF management forced to 1</b>')
             context['vrf_wan'] = 0
+            management_vrf = 1
 
         context['vrf_pe'] = context['vrf_wan']
         messages.append(f"Underlays and Overlays in VRF WAN: {context['vrf_wan']}")
 
         # only keep vrf_wan and vrf_pe which are always used, even with no vrf-segmentation
-        del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']); del(context['vrf_grey'])
+        del(context['vrf_blue']); del(context['vrf_yellow']); del(context['vrf_red']); del(context['vrf_green'])
+        del(context['vrf_grey'])
 
     # EVPN
     if context['evpn']:
@@ -216,8 +223,18 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
             context['evpn_anycast_gw'] = True
             messages.append("<b>Forcing anycast gateway</b> for FOS 8.0+")
 
-    # Must append the message here since mgmt_vrf can be forced to 10 when there is multicast without vrf segmentation
-    messages.append(f"Management in VRF {management_vrf}")
+    # Must append the message here since mgmt_vrf can be forced under certain scenario
+    msg = f"Management in VRF {management_vrf}"
+    # Check if management VRF is isolated
+    if context['vrf_segmentation']: # VRF segmentation
+        mgmt_not_isolated = management_vrf in pe_ce_vrfs
+    else:
+        mgmt_not_isolated = (management_vrf == context['vrf_wan'])
+
+    if mgmt_not_isolated:
+        messages.append( msg + " -- <b>Management plane is not isolated</b> from data plane")
+    else:
+        messages.append( msg + " -- Management plane is isolated from data plane")
 
     messages.insert(0, f"Minimum FortiOS version required for the selected set of features: {minimumFOSversion:_}")
 
