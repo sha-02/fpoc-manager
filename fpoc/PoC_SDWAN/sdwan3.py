@@ -579,15 +579,18 @@ def vrf_segmentation(poc:TypePoC, fos_target:int, context: dict, devices: typing
     # Update FortiGate devices
 
     for device in devices.values():
-        if isinstance(device,FortiGate):
-            if device.HA is not None and device.HA.mode==FortiGate_HA.Modes.FGCP and device.HA.role==FortiGate_HA.role.SECONDARY:
-                continue
-            # LAN segments
-            device.lan.update(segments[device.name].BLUE)    # default LAN interface
-            device.template_context['vrf_segments'] = segments[device.name]
-            # inter_segments for FOS 7.6
-            if fos_target < 8_000_000:
-                device.template_context['inter_segments'] = inter_segments
+        if not isinstance(device,FortiGate):
+            continue
+        if device.HA and device.HA.mode==FortiGate_HA.Modes.FGCP and device.HA.role==FortiGate_HA.role.SECONDARY:
+            continue
+        # LAN segments
+        if device.lan is None:
+            continue
+        device.lan.update(segments[device.name].BLUE)    # default LAN interface
+        device.template_context['vrf_segments'] = segments[device.name]
+        # inter_segments for FOS 7.6
+        if fos_target < 8_000_000:
+            device.template_context['inter_segments'] = inter_segments
 
 
 ###############################################################################################################
