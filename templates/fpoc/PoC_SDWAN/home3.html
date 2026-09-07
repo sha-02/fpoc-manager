@@ -140,7 +140,7 @@
                             <tr>
                                 <td>
                                     VRF
-                                    Mgmt <input maxlength="3" name="vrf_mgmt" size="3" type="text" value="10">
+                                    Mgmt <input maxlength="3" name="vrf_mgmt" size="3" type="text" value="0">
                                     WAN underlay <input maxlength="3" name="vrf_wan" size="3" type="text" value="1">
                                 </td>
                                 <td>
@@ -152,15 +152,17 @@
                                 <td></td>
                                 <td>
                                     PE <input maxlength="3" name="vrf_pe" size="3" type="text" value="1">
-                                    BLUE <input maxlength="3" name="vrf_blue" size="3" type="text" value="13">
+                                    BLUE <input maxlength="3" name="vrf_blue" size="3" type="text" value="10">
                                     YELLOW <input maxlength="3" name="vrf_yellow" size="3" type="text" value="11">
                                     RED <input maxlength="3" name="vrf_red" size="3" type="text" value="12">
+                                    GREEN <input maxlength="3" name="vrf_green" size="3" type="text" value="13">
                                     GREY <input disabled maxlength="3" name="vrf_grey" size="3" type="text" value="14">
+                                    EVPN <input disabled maxlength="3" name="vrf_evpn" size="3" type="text" value="0">
                                 </td>
                             </tr>
                         </table>
 
-                        <input name="multicast" type="checkbox" value=1> Multicast routing
+                        <input name="multicast" type="checkbox" value=1> Multicast
                         <br><input name="evpn" title="limited to VRF 0" type="checkbox" value=1> EVPN
                         <input name="evpn_anycast_gw" type="checkbox" value=1 title="FOS 8.0+"> AnyCast GW
 
