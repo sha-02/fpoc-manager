@@ -217,8 +217,9 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         if context['evpn_anycast_gw']:
             minimumFOSversion = 8_000_000
         if context['vrf_pe']:
-            # vrf_evpn must be 0 and, from my test results, it forces using vrf_pe as 0 as well
-            errors.append("MP-BGP EVPN is only supported in VRF 0, please set the WAN/PE VRF to VRF 0")
+            # vrf_evpn must be 0 and, from my tests, it forces using vrf_pe as 0 as well
+            errors.append("MP-BGP EVPN is only supported in VRF 0 and, from my tests, it forces using 0 for PE VRF. "
+                          "Please set the WAN/PE VRF to VRF 0")
         if targetedFOSversion >= 8_000_000 and not context['evpn_anycast_gw']:
             context['evpn_anycast_gw'] = True
             messages.append("<b>Forcing anycast gateway</b> for FOS 8.0+")
