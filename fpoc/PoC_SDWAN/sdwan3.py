@@ -16,14 +16,15 @@ mapping_studio = {
     'WEST-DC1': 'HUB1',
     'WEST-DC2': 'HUB2',
     'WEST-BR1': 'BR1',
-    'WEST-BR1-B': 'BR1-B',
+    # 'WEST-BR1-B': 'BR1-B',
     'WEST-BR2': 'BR2',
     # 'WEST-BR3': 'BR3',
-    # 'WEST-BR4': 'HUB3',
+    # 'WEST-BR4': 'BR4',
 
     'EAST-DC1': 'HUB3',
+    # 'EAST-DC2': 'HUB4',
     'EAST-BR1': 'BR3',
-    # 'EAST-BR2': 'HUB2',
+    'EAST-BR2': 'BR4',
 }
 
 
