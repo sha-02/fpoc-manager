@@ -102,8 +102,12 @@ def upload_config(device: FortiGate, filepath):
     """
     Upload config file with SCP
     """
+    config_password = ''
+    if device.FOS >= 8_000_001:
+        config_password = ':fortinet'
+
     print(f'{device.name} : Uploading full-config via SCP...')
-    scp_upload(device=device, filepath=filepath, remote_path='fgt-restore-config')
+    scp_upload(device=device, filepath=filepath, remote_path='fgt-restore-config'+config_password)
     print(f'{device.name} : full-config uploaded.')
 
 
