@@ -1,4 +1,8 @@
 {
+  "8.0.1": {
+    "build": "0245",
+    "trailername": "-v8.0.1.F-build0245-FORTINET.out"
+  },
   "8.0.0": {
     "build": "0167",
     "trailername": "-v8.0.0.F-build0167-FORTINET.out"
