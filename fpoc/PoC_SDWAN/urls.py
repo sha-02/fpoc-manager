@@ -1,7 +1,7 @@
 from django.urls import path, reverse
 
 from fpoc.views import poweron, upgrade, bootstrap
-from fpoc.PoC_SDWAN import dashboard, sdwan1, sdwan2, sdwan3
+from fpoc.PoC_SDWAN import sdwan1, sdwan2, sdwan3
 from .views import HomePageView, AboutPageView
 
 # The 'name' of the paths are used in templates (html) and must be unique across whole apps of the project
@@ -28,7 +28,6 @@ urlpatterns = [
     path(route='upgrade/', view=upgrade, name='upgrade'),
     path(route='bootstrap/', view=bootstrap, name='bootstrap'),
 
-    path(route='dashboard/', view=dashboard.dashboard, name='dashboard'),
     path(route='dualdc_dualregion/', view=sdwan1.dualdc, name='dualdc_dualregion'),  # poc_id 9 and 10 (FOS 7.0+)
     path(route='dualdc_dualregion2/', view=sdwan2.dualdc, name='dualdc_dualregion2'),  # poc_id 11 (FOS 7.4+)
     # path('dualdc_dualregion2B/', sdwan2B.dualdc, name='dualdc_dualregion2B'),  # poc_id 7 (FOS 7.6.7+)

@@ -139,8 +139,14 @@
         <input type="hidden" name="Class_PoC" value="{{Class_PoC}}">
 
         <!--        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion2B' %}" formaction="{% url 'sdwan:dualdc_dualregion2B' %}" >Start</button>-->
-        <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion2B" formaction="dualdc_dualregion2B/" >Deploy</button>
-        <button type="submit" class="btn btn-success btn-sm" title="Dashboard" formaction="dashboard/" >Dashboard</button>
+        <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion2B" formaction="dualdc_dualregion2B/">
+          Deploy
+        </button>
+        <button class="btn btn-success btn-sm"
+                formaction="dualdc_dualregion2B/" name="dashboard" value="true" title="Dashboard"
+                type="submit">
+            Dashboard
+        </button>
       </form>
     </div>
   </div>

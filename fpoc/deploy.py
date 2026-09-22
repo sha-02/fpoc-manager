@@ -88,10 +88,13 @@ def start(poc: TypePoC, devices: dict) -> HttpResponse:
     # Call the callback function (if any was previously registered) before starting the actual deployment
     poc.callback()
 
-    # Start the actual deployment on devices
-    status_devices = start2(poc)
-
-    return render(poc.request, f'fpoc/deployment_status.html',
+    if poc.request.POST.get("dashboard") == "true":
+        # Display the dashboard of all devices
+        return render(poc.request, f'fpoc/{poc.template_folder}/dashboard.html', {'regions': dashboard(poc)})
+    else:
+        # Start the actual deployment on devices
+        status_devices = start2(poc)
+        return render(poc.request, f'fpoc/deployment_status.html',
                   {'poc_id': poc.id, 'devices': status_devices, 'messages': poc.messages})
 
 
@@ -286,6 +289,23 @@ def deploy(poc: TypePoC, device: TypeDevice):
     else:
         raise StopProcessingDevice(f'{device.name} : the type of this device is not supported for deployment')
 
+
+def dashboard(poc: TypePoC) -> dict:
+    regions=dict()
+    # Create the regions
+    for device in poc.devices.values():
+        regions[device.template_context['region'].upper()] = list()
+
+    # Add the devices in each region
+    for device in poc.devices.values():
+        regions[device.template_context['region'].upper()].append({
+            'name': device.name,
+            'name_phy': device.name_phy,
+            'URL': device_URL(poc, device),
+            'console': device_URL_console(poc, device)
+        })
+
+    return regions
 
 def is_alive(ip: str) -> bool:
     """

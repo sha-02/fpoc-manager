@@ -19,17 +19,14 @@
             <h2 class="my-0 mr-md-auto font-weight-normal">
                 SD-WAN Dashboard
             </h2>
-            Two Regions<br>
-            Dual-DC in WEST region<br>
-            Single-DC in EAST region
         </div>
     </main>
 
     <div class="container">
 
-        {% for region, device_list in devices.items %}
+        {% for region, device_list in regions.items %}
         <div class="row">
-            <div class="p-3 mb-2 bg-info text-white">{{region}} REGION</div>
+            <div class="p-3 mb-2 bg-info text-white">{{region}}</div>
         </div>
 
         {% for device in device_list %}

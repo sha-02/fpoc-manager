@@ -135,7 +135,14 @@
         </fieldset>
         <br>
 <!--        <button type="submit" class="btn btn-info btn-sm" title="{% url 'sdwan:dualdc_dualregion' %}" formaction="{% url 'sdwan:dualdc_dualregion' %}" >Start</button>-->
-        <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion" formaction="dualdc_dualregion/" >Start</button>
+        <button type="submit" class="btn btn-info btn-sm" title="dualdc_dualregion" formaction="dualdc_dualregion/">
+          Deploy
+        </button>
+        <button class="btn btn-success btn-sm"
+                formaction="dualdc_dualregion/" name="dashboard" value="true" title="Dashboard"
+                type="submit">
+            Dashboard
+        </button>
       </form>
     </div>
   </div>
