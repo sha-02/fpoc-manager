@@ -136,11 +136,11 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
 
 
     datacenters = {
-        'west': {
+        'region_1': {
             'first': hub1_,
             'second': hub1_,
         },
-        'east': {
+        'region_2': {
             'first': hub2_,
             'second': hub2_,
         },
@@ -163,19 +163,20 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                      group_id=91, group_name="HUB1", priority=129),
                      lan=segments['HUB1'].DATA,
                      template_context=context | {'dc_id': 1, 'gps': (48.856614, 2.352222),
-                                                 'region': 'West', 'region_id': 1,
+                                                 'region': 'region_1', 'region_id': 1,
                                                  'loopback': dc_loopbacks['HUB1'],
                                                  'datacenter': datacenters,
                                                  'vrf_segments': segments['HUB1'],
                                                  })
     hub1_sec = FortiGate(name='HUB1-B', template_group='DATACENTERS',
                          HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
-                                         group_id=91, group_name="HUB1", priority=127))
+                                         group_id=91, group_name="HUB1", priority=127),
+                         template_context={'region': 'region_1'})   # 'region' needed for the dashboard
 
     hub2 = FortiGate(name='HUB2', template_group='DATACENTERS',
                      lan=segments['HUB2'].DATA,
                      template_context=context | {'dc_id': 2, 'gps': (50.1109221, 8.6821267),
-                                                 'region': 'East', 'region_id': 2,
+                                                 'region': 'region_2', 'region_id': 2,
                                                  'loopback': dc_loopbacks['HUB2'],
                                                  'datacenter': datacenters,
                                                  'vrf_segments': segments['HUB2'],
@@ -185,37 +186,38 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                     group_id=1, group_name="BRANCH1", priority=129),
                     lan=segments['BRANCH1'].LAN,
                     template_context=context | {'branch_id': 1, 'gps': (44.8333, -0.5667),
-                                                'region': 'West', 'region_id': 1,
+                                                'region': 'region_1', 'region_id': 1,
                                                 'loopback': '10.200.1.1',
-                                                'datacenter': datacenters['west'],
+                                                'datacenter': datacenters['region_1'],
                                                 'vrf_segments': segments['BRANCH1'],
                                                 })
     br1_sec = FortiGate(name='BRANCH1-B', template_group='BRANCHES',
                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
-                                        group_id=1, group_name="BRANCH1", priority=127))
+                                        group_id=1, group_name="BRANCH1", priority=127),
+                        template_context={'region': 'region_1'})   # 'region' needed for the dashboard
 
     br2 = FortiGate(name='BRANCH2', template_group='BRANCHES',
                     lan=segments['BRANCH2'].LAN,
                     template_context=context | {'branch_id': 2, 'gps': (43.616354, 7.055222),
-                                                'region': 'West', 'region_id': 1,
+                                                'region': 'region_1', 'region_id': 1,
                                                 'loopback': '10.200.1.2',
-                                                'datacenter': datacenters['west'],
+                                                'datacenter': datacenters['region_1'],
                                                 'vrf_segments': segments['BRANCH2'],
                                                 })
     br3 = FortiGate(name='BRANCH3', template_group='BRANCHES',
                     lan=segments['BRANCH3'].LAN,
                     template_context=context | {'branch_id': 3, 'gps': (47.497912, 19.040235),
-                                                'region': 'East', 'region_id': 2,
+                                                'region': 'region_2', 'region_id': 2,
                                                 'loopback': '10.200.2.3',
-                                                'datacenter': datacenters['east'],
+                                                'datacenter': datacenters['region_2'],
                                                 'vrf_segments': segments['BRANCH3'],
                                                 })
     br4 = FortiGate(name='BRANCH4', template_group='BRANCHES',
                     lan=segments['BRANCH4'].LAN,
                     template_context=context | {'branch_id': 4, 'gps': (47.497912, 19.040235),
-                                                'region': 'East', 'region_id': 2,
+                                                'region': 'region_2', 'region_id': 2,
                                                 'loopback': '10.200.2.4',
-                                                'datacenter': datacenters['east'],
+                                                'datacenter': datacenters['region_2'],
                                                 'vrf_segments': segments['BRANCH4'],
                                                 })
 
@@ -242,7 +244,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
         'BRANCH3': br3,
         'BRANCH4': br4,
         'INFRACOM': FortiGate(name='INFRACOM', template_filename='INFRACOM.conf',
-                              template_context=context|context_INFRACOM_execution_environment)
+                              template_context=context|context_INFRACOM_execution_environment|{'region': 'INFRACOM'})
     }
 
     # Check request, render and deploy configs
