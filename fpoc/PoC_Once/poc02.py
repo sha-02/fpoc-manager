@@ -109,6 +109,30 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
         ),
     }
 
+    # Layer2 EVPN between BR1<->BR2 and BR3<->BR4
+    evpn = {
+        'BRANCH1': {
+            'interface': poc.devices['BRANCH1'].segments.lan4.update(Interface(address='10.12.0.1/24', vrfid=context['vrf_evpn'])),
+            'evpnid': 10,
+            'l2vni': 100_000 + 10
+        },
+        'BRANCH2': {
+            'interface': poc.devices['BRANCH2'].segments.lan4.update(Interface(address='10.12.0.2/24', vrfid=context['vrf_evpn'])),
+            'evpnid': 10,
+            'l2vni': 100_000 + 10
+        },
+        'BRANCH3': {
+            'interface': poc.devices['BRANCH3'].segments.lan4.update(Interface(address='10.34.0.3/24', vrfid=context['vrf_evpn'])),
+            'evpnid': 20,
+            'l2vni': 100_000 + 20
+        },
+        'BRANCH4': {
+            'interface': poc.devices['BRANCH4'].segments.lan4.update(Interface(address='10.34.0.4/24', vrfid=context['vrf_evpn'])),
+            'evpnid': 20,
+            'l2vni': 100_000 + 20
+        },
+    }
+
     dc_loopbacks = {
         'HUB1': '10.200.1.251',
         'HUB2': '10.200.2.251',
@@ -190,6 +214,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                                 'loopback': '10.200.1.1',
                                                 'datacenter': datacenters['region_1'],
                                                 'vrf_segments': segments['BRANCH1'],
+                                                'evpn': evpn['BRANCH1'],
                                                 })
     br1_sec = FortiGate(name='BRANCH1-B', template_group='BRANCHES',
                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
@@ -203,6 +228,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                                 'loopback': '10.200.1.2',
                                                 'datacenter': datacenters['region_1'],
                                                 'vrf_segments': segments['BRANCH2'],
+                                                'evpn': evpn['BRANCH2'],
                                                 })
     br3 = FortiGate(name='BRANCH3', template_group='BRANCHES',
                     lan=segments['BRANCH3'].LAN,
@@ -211,6 +237,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                                 'loopback': '10.200.2.3',
                                                 'datacenter': datacenters['region_2'],
                                                 'vrf_segments': segments['BRANCH3'],
+                                                'evpn': evpn['BRANCH3'],
                                                 })
     br4 = FortiGate(name='BRANCH4', template_group='BRANCHES',
                     lan=segments['BRANCH4'].LAN,
@@ -219,6 +246,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                                 'loopback': '10.200.2.4',
                                                 'datacenter': datacenters['region_2'],
                                                 'vrf_segments': segments['BRANCH4'],
+                                                'evpn': evpn['BRANCH4'],
                                                 })
 
 

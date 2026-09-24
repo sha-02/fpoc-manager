@@ -81,6 +81,7 @@ devices_fabric_studio = {
                              lan1=Interface('port5', 0),
                              lan2=Interface('port5', 36),
                              lan3=Interface('port5', 37),
+                             lan4=Interface('port5', 38),
                          ),
                          wan=WAN(
                           inet1=Interface('port1', 0, '100.64.41.1/24', alias='Internet_1'),
@@ -104,6 +105,7 @@ devices_fabric_studio = {
                              lan1=Interface('port5', 0),
                              lan2=Interface('port5', 46),
                              lan3=Interface('port5', 47),
+                             lan4=Interface('port5', 48),
                          ),
                          wan=WAN(
                               inet1=Interface('port1', 0, '100.64.51.1/24', alias='Internet_1'),
@@ -119,6 +121,7 @@ devices_fabric_studio = {
                              lan1=Interface('port5', 0),
                              lan2=Interface('port5', 66),
                              lan3=Interface('port5', 67),
+                             lan4=Interface('port5', 68),
                          ),
                          wan=WAN(
                               inet1=Interface('port1', 0, '100.64.61.1/24', alias='Internet_1'),
@@ -134,6 +137,7 @@ devices_fabric_studio = {
                             lan1=Interface('port5', 0),
                             lan2=Interface('port5', 76),
                             lan3=Interface('port5', 77),
+                            lan4=Interface('port5', 78),
                         ),
                         wan=WAN(
                             inet1=Interface('port1', 0, '100.64.71.1/24', alias='Internet_1'),
