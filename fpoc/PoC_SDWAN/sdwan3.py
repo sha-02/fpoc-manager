@@ -390,7 +390,9 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
                              })
     west_br1_sec = FortiGate(name='WEST-BR1-B', template_group='BRANCHES',
                         HA=FortiGate_HA(mode=FortiGate_HA.Modes.FGCP, role=FortiGate_HA.Roles.SECONDARY,
-                                        group_id=1, group_name="BRANCH1", priority=127))
+                                        group_id=1, group_name="BRANCH1", priority=127),
+                        template_context={'region': 'West'})   # 'region' needed for the dashboard
+
     west_br2 = FortiGate(name='WEST-BR2', template_group='BRANCHES',
                          lan=LAN['WEST-BR2'],
                          template_context=context | {'region': 'West', 'region_id': 1, 'branch_id': 2, 'gps': (43.616354, 7.055222),
