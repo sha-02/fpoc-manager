@@ -5,12 +5,12 @@ from django.http import HttpResponse
 from fpoc.deploy import start
 from fpoc.fortilab import FortiLab
 from fpoc.devices import Interface, FortiGate, LXC, VyOS, WAN, Mgmt
-from fpoc.agora import SDW_agora
+from fpoc.atrium import SDW_atrium
 
 # Define which physical FGT is assigned to FGT-A and to FGT-B
 
-FGT_A = SDW_agora['SDW_1001F_A']['no-impairment']
-FGT_B = SDW_agora['SDW_1001F_B']['no-impairment']
+FGT_A = SDW_atrium['SDW_1001F_A']['no-impairment']
+FGT_B = SDW_atrium['SDW_1001F_B']['no-impairment']
 
 
 class FortiLabVpnSite2Site(FortiLab):

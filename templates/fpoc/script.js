@@ -7,7 +7,7 @@ function collectElements(formID)
     document.getElementById('vmInstance').setAttribute('form', formID);
     document.getElementById('vmIP').setAttribute('form', formID);
   {% endif %}
-  {% if agora %}
+  {% if atrium %}
     document.getElementById('wan_impairment').setAttribute('form', formID);
   {% endif %}
 

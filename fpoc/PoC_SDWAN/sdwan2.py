@@ -6,7 +6,7 @@ import typing
 from fpoc.deploy import start
 from fpoc.exceptions import AbortDeployment
 from fpoc.devices import Interface, FortiGate, LXC
-from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
+from fpoc.PoC_SDWAN import AtriumSDWAN, FabricStudioSDWAN
 
 import copy
 
@@ -204,8 +204,8 @@ def dualdc(request: WSGIRequest, **kwargs) -> HttpResponse:
     #
     if 'fabric'  in request.path:  # poc is running in FabricStudio
         poc = SDWAN2(request)
-    elif 'agora' in request.path:  # poc is running in Hardware Lab
-        poc = AgoraSDWAN(request)
+    elif 'atrium' in request.path:  # poc is running in Hardware Lab
+        poc = AtriumSDWAN(request)
     else:
         print('\nError: Cannot create the poc based on the request PATH')
         raise AbortDeployment

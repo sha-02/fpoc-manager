@@ -6,7 +6,7 @@ import typing
 from fpoc.deploy import start
 from fpoc.exceptions import AbortDeployment
 from fpoc.devices import Interface, FortiGate, FortiGate_HA, LAN, LXC
-from fpoc.PoC_SDWAN import AgoraSDWAN, FabricStudioSDWAN
+from fpoc.PoC_SDWAN import AtriumSDWAN, FabricStudioSDWAN
 from fpoc.types import TypePoC
 
 #
@@ -34,9 +34,9 @@ class SDWAN3(FabricStudioSDWAN):
     devices = {k: FabricStudioSDWAN.devices[v] for k, v in mapping_studio.items()}
 
 
-# device name mappings for Agora class
+# device name mappings for Atrium class
 #
-mapping_agora = {
+mapping_atrium = {
     'WEST-DC1': 'SDW_1001F_A',
     'WEST-DC2': 'SDW_1001F_B',
     'WEST-BR1': 'SDW_50G_A',
@@ -46,10 +46,10 @@ mapping_agora = {
     'EAST-BR2': 'SDW_101F_B',
 }
 
-class SDWAN3_Agora(AgoraSDWAN):
+class SDWAN3_Atrium(AtriumSDWAN):
     # Create a list of devices based off the parent device list using the mapping dict
-    devices = impairment = {k: AgoraSDWAN.impairment[v] for k, v in mapping_agora.items()}
-    no_impairment = {k: AgoraSDWAN.no_impairment[v] for k, v in mapping_agora.items()}
+    devices = impairment = {k: AtriumSDWAN.impairment[v] for k, v in mapping_atrium.items()}
+    no_impairment = {k: AtriumSDWAN.no_impairment[v] for k, v in mapping_atrium.items()}
 
 
 def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
@@ -257,9 +257,9 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
     if 'fabric'  in request.path:  # poc is running in FabricStudio
         execution_environment = "FabricStudio"
         poc = SDWAN3(request)
-    elif 'agora' in request.path:  # poc is running in Agora Lab
-        execution_environment = "Agora"
-        poc = SDWAN3_Agora(request, wan_impairment=bool(request.POST.get('wan_impairment', False)))
+    elif 'atrium' in request.path:  # poc is running in Atrium Lab
+        execution_environment = "Atrium"
+        poc = SDWAN3_Atrium(request, wan_impairment=bool(request.POST.get('wan_impairment', False)))
     else:
         print('\nError: Cannot create the poc based on the request PATH')
         raise AbortDeployment
@@ -479,6 +479,7 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         vrf_segmentation(poc, targetedFOSversion, context, devices)
 
     # Add EVPN information to the poc
+    #
     if context['evpn']:
         evpn(poc, targetedFOSversion, context, devices)
 

@@ -1,19 +1,19 @@
 from fpoc.devices import FortiGate, FortiGate_HA, Interface, LAN, WAN, Access
-from fpoc.agora import SDW_agora
+from fpoc.atrium import SDW_atrium
 
-devices_agora = {
-    'HUB1': SDW_agora['SDW_1001F_A']['impairment'],
-    # 'HUB1-B': SDW_agora['SDW_1001F_B']['impairment'],
-    'HUB2': SDW_agora['SDW_1001F_B']['impairment'],
-    # 'HUB2': SDW_agora['SDW_3301E_A']['impairment'],
+devices_atrium = {
+    'HUB1': SDW_atrium['SDW_1001F_A']['impairment'],
+    # 'HUB1-B': SDW_atrium['SDW_1001F_B']['impairment'],
+    'HUB2': SDW_atrium['SDW_1001F_B']['impairment'],
+    # 'HUB2': SDW_atrium['SDW_3301E_A']['impairment'],
 
-    'BRANCH1': SDW_agora['SDW_50G_A']['impairment'],
-    # 'BRANCH1-B': SDW_agora['SDW_50G_B']['impairment'],
-    'BRANCH2': SDW_agora['SDW_50G_B']['impairment'],
-    # 'BRANCH2': SDW_agora['SDW_3301E_B']['impairment'],
+    'BRANCH1': SDW_atrium['SDW_50G_A']['impairment'],
+    # 'BRANCH1-B': SDW_atrium['SDW_50G_B']['impairment'],
+    'BRANCH2': SDW_atrium['SDW_50G_B']['impairment'],
+    # 'BRANCH2': SDW_atrium['SDW_3301E_B']['impairment'],
 
-    'BRANCH3': SDW_agora['SDW_101F_A']['impairment'],
-    'BRANCH4': SDW_agora['SDW_101F_B']['impairment'],
+    'BRANCH3': SDW_atrium['SDW_101F_A']['impairment'],
+    'BRANCH4': SDW_atrium['SDW_101F_B']['impairment'],
 
     'INFRACOM': FortiGate(model="FGT_VM64_KVM", name_phy='INFRACOM', password='Fortinet123#',
                           mgmt=Interface('port1', 0, '172.16.31.102/24'),

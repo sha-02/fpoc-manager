@@ -8,7 +8,7 @@ from fpoc.studio_instances import studio_instances
 
 ######### CURRENT POC = POC02  ##############################################
 from .once import EXECUTION_ENVIRONMENT
-from .once02 import devices_fabric_studio, devices_agora
+from .once02 import devices_fabric_studio, devices_atrium
 POC_ID=2
 #############################################################################
 
@@ -27,7 +27,7 @@ class HomePageView(TemplateView):
             context['studio_instances'] = studio_instances()
             context['fortigates'] = devices_fabric_studio
         else:
-            context['fortigates'] = devices_agora
+            context['fortigates'] = devices_atrium
 
         return context
 

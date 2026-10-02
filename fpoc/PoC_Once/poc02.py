@@ -4,7 +4,7 @@ import copy
 
 from fpoc.deploy import start
 from fpoc.devices import Interface, FortiGate, FortiGate_HA, LAN
-from .once import FabricStudioPoCOnce, AgoraPoCOnce
+from .once import FabricStudioPoCOnce, AtriumPoCOnce
 
 
 def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "FabricStudio", **kwargs) -> HttpResponse:
@@ -16,15 +16,15 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
     EVPN: two extended LANs between BR1<->BR2 in Region1 and BR3<->BR4 in Region2
     No local breakout, only overlay traffic
 
-    execution_environment = 'FabricStudio' or 'Agora'
+    execution_environment = 'FabricStudio' or 'Atrium'
     kwargs = dict() which may be passed by the urlpattern caller path(...) in 'urls' files
     """
 
     #
     # Create the poc
     #
-    if execution_environment == "Agora":
-        poc = AgoraPoCOnce(request)
+    if execution_environment == "Atrium":
+        poc = AtriumPoCOnce(request)
     else:
         poc = FabricStudioPoCOnce(request)
 
@@ -250,9 +250,9 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
                                                 })
 
 
-    if execution_environment == "Agora":
+    if execution_environment == "Atrium":
         context_INFRACOM_execution_environment = {
-            'INFRACOM_VLAN_IDs': 'INFRACOM.agora.conf',
+            'INFRACOM_VLAN_IDs': 'INFRACOM.atrium.conf',
             'HUB1_segments': segments['HUB1'],
             'HUB2_segments': segments['HUB2'],
         }

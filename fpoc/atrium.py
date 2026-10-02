@@ -1,8 +1,8 @@
 from fpoc.devices import FortiGate, FortiGate_HA, LAN, WAN, Interface
 
-# Define each FGT appliance in Agora Hardware Lab
+# Define each FGT appliance in Atrium Hardware Lab
 
-SDW_agora = dict()
+SDW_atrium = dict()
 
 
 ### 1001F-A, 1001F-B
@@ -49,7 +49,7 @@ wan_no_impairment = FortiGate(wan=WAN(
     mpls2=Interface('port5', name="MPLS2", vlanid=75, speed='1000auto'),
     ))
 
-SDW_agora['SDW_1001F_A'] = {
+SDW_atrium['SDW_1001F_A'] = {
     'impairment': FGT_1001F.update(FGT_A).update(wan_impairment).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.11.1/24'),
                                 inet2=Interface(address='100.64.12.1/24'),
@@ -66,7 +66,7 @@ SDW_agora['SDW_1001F_A'] = {
                             ))),
     }
 
-SDW_agora['SDW_1001F_B'] = {
+SDW_atrium['SDW_1001F_B'] = {
     'impairment': FGT_1001F.update(FGT_B).update(wan_impairment).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.21.1/24'),
                                 inet2=Interface(address='100.64.22.1/24'),
@@ -128,7 +128,7 @@ wan_no_impairment = FortiGate(wan=WAN(
     mpls2=Interface('port5', name="MPLS2", vlanid=75, speed='1000auto'),
     ))
 
-SDW_agora['SDW_3301E_A'] = {
+SDW_atrium['SDW_3301E_A'] = {
     'impairment': FGT_3301E.update(FGT_A).update(wan_impairment).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.51.1/24'),
                                 inet2=Interface(address='100.64.52.1/24'),
@@ -145,7 +145,7 @@ SDW_agora['SDW_3301E_A'] = {
                             ))),
     }
 
-SDW_agora['SDW_3301E_B'] = {
+SDW_atrium['SDW_3301E_B'] = {
     'impairment': FGT_3301E.update(FGT_B).update(wan_impairment).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.61.1/24'),
                                 inet2=Interface(address='100.64.62.1/24'),
@@ -208,7 +208,7 @@ wan_no_impairment = FortiGate(wan=WAN(
     ))
 
 
-SDW_agora['SDW_101F_A'] = {
+SDW_atrium['SDW_101F_A'] = {
     'impairment': FGT_101F.update(FGT_A).update(wan_impairment).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.31.1/24'),
                                 inet2=Interface(address='100.64.32.1/24'),
@@ -225,7 +225,7 @@ SDW_agora['SDW_101F_A'] = {
                             ))),
     }
 
-SDW_agora['SDW_101F_B'] = {
+SDW_atrium['SDW_101F_B'] = {
     'impairment': FGT_101F.update(FGT_B).update(wan_impairment).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.41.1/24'),
                                 inet2=Interface(address='100.64.42.1/24'),
@@ -294,7 +294,7 @@ wan_no_impairment = FortiGate(wan=WAN(
     mpls2=Interface('wan', name="MPLS2", vlanid=75, speed='auto'),
     ))
 
-SDW_agora['SDW_50G_A'] = {
+SDW_atrium['SDW_50G_A'] = {
     'impairment': FGT_50G.update(FGT_A).update(wan_impairment_A).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.91.1/24'),
                                 inet2=Interface(address='100.64.92.1/24'),
@@ -311,7 +311,7 @@ SDW_agora['SDW_50G_A'] = {
                             ))),
     }
 
-SDW_agora['SDW_50G_B'] = {
+SDW_atrium['SDW_50G_B'] = {
     'impairment': FGT_50G.update(FGT_B).update(wan_impairment_B).update(FortiGate(wan=WAN(
                                 inet1=Interface(address='100.64.101.1/24'),
                                 inet2=Interface(address='100.64.102.1/24'),

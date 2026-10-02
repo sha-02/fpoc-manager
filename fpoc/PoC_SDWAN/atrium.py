@@ -1,17 +1,17 @@
 from django.core.handlers.wsgi import WSGIRequest
 from fpoc.fortilab import FortiLab
 from fpoc.devices import FortiGate, Network, Mgmt
-from fpoc.agora import SDW_agora
+from fpoc.atrium import SDW_atrium
 
-class AgoraSDWAN(FortiLab):
+class AtriumSDWAN(FortiLab):
     """
     """
     template_folder = 'PoC_SDWAN'
     mgmt = Mgmt(dns='96.45.45.45', gw='10.210.1.254')
     mpls_summary = '10.71.0.0/16'  # mpls_summary assigned to the WAN of each FGT of this PoC
 
-    devices = impairment = {phy_name: SDW_agora[phy_name]['impairment'] for phy_name in SDW_agora.keys()}
-    no_impairment = {phy_name: SDW_agora[phy_name]['no-impairment'] for phy_name in SDW_agora.keys()}
+    devices = impairment = {phy_name: SDW_atrium[phy_name]['impairment'] for phy_name in SDW_atrium.keys()}
+    no_impairment = {phy_name: SDW_atrium[phy_name]['no-impairment'] for phy_name in SDW_atrium.keys()}
 
     def __init__(self, request: WSGIRequest, poc_id: int = 0, wan_impairment: bool = True):
         # Go up the parent chain to store the WSGI request, merge class-level devices with instance-level devices

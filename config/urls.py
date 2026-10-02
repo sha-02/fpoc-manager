@@ -8,11 +8,11 @@ from config.settings import BASE_DIR
 
 sites = {
     'SDWAN/7.6_8.0/fabric/': 'fpoc.PoC_SDWAN.urls',
-    'SDWAN/7.6_8.0/agora/': 'fpoc.PoC_SDWAN.urls',
+    'SDWAN/7.6_8.0/atrium/': 'fpoc.PoC_SDWAN.urls',
     'SDWAN/7.4_7.6/fabric/': 'fpoc.PoC_SDWAN.urls',
-    'SDWAN/7.4_7.6/agora/': 'fpoc.PoC_SDWAN.urls',
+    'SDWAN/7.4_7.6/atrium/': 'fpoc.PoC_SDWAN.urls',
     'SDWAN/7.0_7.2/fabric/': 'fpoc.PoC_SDWAN.urls',
-    'SDWAN/7.0_7.2/agora/': 'fpoc.PoC_SDWAN.urls',
+    'SDWAN/7.0_7.2/atrium/': 'fpoc.PoC_SDWAN.urls',
     'VPN/': 'fpoc.PoC_VPN.urls',
     'One-Off/': 'fpoc.PoC_Once.urls'
 }

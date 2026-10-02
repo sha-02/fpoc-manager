@@ -9,7 +9,7 @@ from fpoc.devices import FortiGate, LXC, VyOS
 from fpoc.studio_instances import studio_instances
 
 # required for eval(context['Class_PoC']) ======================================
-from fpoc.PoC_SDWAN import AgoraSDWAN, SDWAN1, SDWAN2, SDWAN3, SDWAN3_Agora
+from fpoc.PoC_SDWAN import AtriumSDWAN, SDWAN1, SDWAN2, SDWAN3, SDWAN3_Atrium
 # ==============================================================================
 
 APPNAME = "fpoc/PoC_SDWAN"
@@ -41,8 +41,8 @@ class HomePageView(TemplateView):
         if 'fabric' in self.request.path:
             context['studio_instances'] = studio_instances()
 
-        # Add agora to context if applicable
-        context['agora'] = 'agora' in self.request.path
+        # Add atrium to context if applicable
+        context['atrium'] = 'atrium' in self.request.path
 
         # List of devices for the PoC
         if 'fabric' in self.request.path:
@@ -58,11 +58,11 @@ class HomePageView(TemplateView):
             context['lxces'] = eval(context['Class_PoC']).devices_of_type(LXC).keys()
             context['vyoses'] = eval(context['Class_PoC']).devices_of_type(VyOS).keys()
 
-        if 'agora' in self.request.path:
+        if 'atrium' in self.request.path:
             if '7.6_8.0' in self.request.path:  # passes the class via the form
-                context['Class_PoC'] = 'SDWAN3_Agora'
+                context['Class_PoC'] = 'SDWAN3_Atrium'
             else:
-                context['Class_PoC'] = 'AgoraSDWAN'  # passes the class via the form
+                context['Class_PoC'] = 'AtriumSDWAN'  # passes the class via the form
             context['fortigates'] = eval(context['Class_PoC']).devices_of_type(FortiGate).keys()
 
         # Defines the minimum FOS version proposed in the dropdown list

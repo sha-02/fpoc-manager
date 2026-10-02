@@ -1,9 +1,9 @@
-from fpoc.PoC_SDWAN import FabricStudioSDWAN, AgoraSDWAN
+from fpoc.PoC_SDWAN import FabricStudioSDWAN, AtriumSDWAN
 
 ######### CURRENT POC = POC02  #############################
-from .once02 import devices_fabric_studio, devices_agora
+from .once02 import devices_fabric_studio, devices_atrium
 # EXECUTION_ENVIRONMENT = "FabricStudio"
-EXECUTION_ENVIRONMENT = "Agora"
+EXECUTION_ENVIRONMENT = "Atrium"
 ############################################################
 
 class FabricStudioPoCOnce(FabricStudioSDWAN):
@@ -13,8 +13,8 @@ class FabricStudioPoCOnce(FabricStudioSDWAN):
     devices = devices_fabric_studio
 
 
-class AgoraPoCOnce(AgoraSDWAN):
+class AtriumPoCOnce(AtriumSDWAN):
     """
     """
     template_folder = 'PoC_Once'
-    devices = impairment = no_impairment = devices_agora
+    devices = impairment = no_impairment = devices_atrium
