@@ -251,12 +251,12 @@ FGT_A = FortiGate(name_phy='SDW-50G-A', alias='SDW-50G-A', password='Fortinet123
                                   hbdev=[('lan3', 0)], sessyncdev=['a'], mgmt_interfaces=False,
                                   monitordev=['wan']),
                   mgmt=Interface('lan2', 0, '10.210.0.250/23'),
-                  lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
+                  lan=Interface('lan1', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
                   segments=LAN(
-                      lan1=Interface('lan', 0),
-                      lan2=Interface('lan', 96),
-                      lan3=Interface('lan', 97),
-                      lan4=Interface('lan', 98),
+                      lan1=Interface('lan1', 0),
+                      lan2=Interface('lan1', 96),
+                      lan3=Interface('lan1', 97),
+                      lan4=Interface('lan1', 98),
                   ),
                   )
 FGT_B = FortiGate(name_phy='SDW-50G-B', alias='SDW-50G-B', password='Fortinet123#',
@@ -264,12 +264,12 @@ FGT_B = FortiGate(name_phy='SDW-50G-B', alias='SDW-50G-B', password='Fortinet123
                                   hbdev=[('lan3', 0)], sessyncdev=['a'], mgmt_interfaces=False,
                                   monitordev=['wan']),
                   mgmt=Interface('lan2', 0, '10.210.0.255/23'),
-                  lan=Interface('lan', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
+                  lan=Interface('lan1', vlanid=0, speed=None),  # speed None since 'lan' is in a virtual-switch
                   segments=LAN(
-                      lan1=Interface('lan', 0),
-                      lan2=Interface('lan', 106),
-                      lan3=Interface('lan', 107),
-                      lan4=Interface('lan', 108),
+                      lan1=Interface('lan1', 0),
+                      lan2=Interface('lan1', 106),
+                      lan3=Interface('lan1', 107),
+                      lan4=Interface('lan1', 108),
                   ),
                   )
 wan_impairment_A = FortiGate(wan=WAN(
