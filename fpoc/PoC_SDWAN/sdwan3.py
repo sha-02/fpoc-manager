@@ -102,7 +102,10 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         'fmg_sn': request.POST.get('fmg_sn'),
     }
 
-    # For aliases in boostrap config
+    # =============================== #
+    # For aliases in boostrap config  #
+    # =============================== #
+
     if context['vrf_segmentation']:
         context |= { 'vpnv4': True,
             'vrfs': [ ('pe', context['vrf_pe']), ('blue', context['vrf_blue']), ('yellow', context['vrf_yellow']),
@@ -111,13 +114,19 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         if context['ipv6']:
             context |= { 'vpnv6': context['ipv6'] } # vpnv6 if ipv6
         if context['multicast']:
-            context |= {'mcgroups': [('blue', f"239.{context['vrf_blue']}.{context['vrf_blue']}.{context['vrf_blue']}"),
-                                     ('yellow', f"239.{context['vrf_yellow']}.{context['vrf_yellow']}.{context['vrf_yellow']}"),
-                                     ('red', f"239.{context['vrf_red']}.{context['vrf_red']}.{context['vrf_red']}"),
-                                     ('green', f"239.{context['vrf_green']}.{context['vrf_green']}.{context['vrf_green']}")]
+            context |= {'mcgroups': [(f"239_{context['vrf_blue']}_{context['vrf_blue']}_{context['vrf_blue']}",
+                                      f"239.{context['vrf_blue']}.{context['vrf_blue']}.{context['vrf_blue']}"),
+                                     (f"239_{context['vrf_yellow']}_{context['vrf_yellow']}_{context['vrf_yellow']}",
+                                      f"239.{context['vrf_yellow']}.{context['vrf_yellow']}.{context['vrf_yellow']}"),
+                                     (f"239_{context['vrf_red']}_{context['vrf_red']}_{context['vrf_red']}",
+                                      f"239.{context['vrf_red']}.{context['vrf_red']}.{context['vrf_red']}"),
+                                     (f"239_{context['vrf_green']}_{context['vrf_green']}_{context['vrf_green']}",
+                                      f"239.{context['vrf_green']}.{context['vrf_green']}.{context['vrf_green']}"),
+                                     ('ssm_232_1_1_1', '232.1.1.1')]
                         }
     if context['multicast'] and not context['vrf_segmentation']:
-        context |= { 'mcgroups': [ ('wdc1', '239.1.1.0'), ('wdc2', '239.1.2.0'), ('edc1', '239.2.1.0') ] }
+        context |= { 'mcgroups': [ ('239_1_1_1', '239.1.1.1'), ('239_1_2_1', '239.1.2.1'), ('239_2_1_1', '239.2.1.1'),
+                                   ('ssm_232_1_1_1', '232.1.1.1')] }
 
 
     # Define the poc_id based on the options which were selected
