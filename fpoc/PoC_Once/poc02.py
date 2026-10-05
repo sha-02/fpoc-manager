@@ -69,7 +69,7 @@ def poc02(request: WSGIRequest, poc_id: int, execution_environment: str = "Fabri
         'ipv6': True, 'vpnv4': True, 'vpnv6': True,
         'vrfs': [ ('pe', context['vrf_pe']), ('data', context['vrf_data']), ('voice', context['vrf_voice']),
                   ('video', context['vrf_video']) ],
-        'mcgroups': [ ('voice', '239.11.11.11'), ('video', '239.12.12.12') ]
+        'mcgroups': [ ('voice', '239.11.11.11'), ('video', '239.12.12.12'), ('ssm', '232.1.1.1') ]
     }
 
     #
