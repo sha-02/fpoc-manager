@@ -1,5 +1,6 @@
 {
   "internal": { "ip": "0.0.0.0", "selected": true },
+  "sdwan.studio": { "ip": "sdwan.studio", "selected": false },
   "almodo10": { "ip": "almodo10", "selected": false },
   "almodo10 [IP]": { "ip": "10.222.52.29", "selected": false },
   "almodo20": { "ip": "almodo20", "selected": false },
