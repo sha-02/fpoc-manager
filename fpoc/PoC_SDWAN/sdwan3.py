@@ -233,6 +233,8 @@ def dualdc(request: WSGIRequest,  **kwargs) -> HttpResponse:
         if targetedFOSversion >= 8_000_000 and not context['evpn_anycast_gw']:
             context['evpn_anycast_gw'] = True
             messages.append("<b>Forcing anycast gateway</b> for FOS 8.0+")
+    else:   # No EVPN
+        del (context['vrf_evpn'])
 
     # Must append the message here since mgmt_vrf can be forced under certain scenario
     msg = f"Management in VRF {management_vrf}"
